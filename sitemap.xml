@@ -8,6 +8,11 @@
   </url>
   
   <url>
+    <loc>https://xiongsyao.github.io/post/2018/3/7/%E5%8A%A8%E6%80%81%E5%8A%A0%E8%BD%BDDjango%E7%9A%84config%E9%85%8D%E7%BD%AE/</loc>
+    <lastmod>2018-03-07T14:29:58+08:00</lastmod>
+  </url>
+  
+  <url>
     <loc>https://xiongsyao.github.io/post/2018/1/25/%E4%BB%8E0%E5%BC%80%E5%A7%8B%E7%9A%84JS%E4%B9%8B%E6%97%85%E4%B8%89DOM%E6%93%8D%E4%BD%9C%E5%9F%BA%E7%A1%80/</loc>
     <lastmod>2018-01-25T13:51:37+08:00</lastmod>
   </url>
@@ -24,6 +29,18 @@
   
   <url>
     <loc>https://xiongsyao.github.io/categories/</loc>
+    <priority>0</priority>
+  </url>
+  
+  <url>
+    <loc>https://xiongsyao.github.io/tags/Django/</loc>
+    <lastmod>2018-03-07T14:29:58+08:00</lastmod>
+    <priority>0</priority>
+  </url>
+  
+  <url>
+    <loc>https://xiongsyao.github.io/categories/Django/</loc>
+    <lastmod>2018-03-07T14:29:58+08:00</lastmod>
     <priority>0</priority>
   </url>
   
@@ -53,13 +70,13 @@
   
   <url>
     <loc>https://xiongsyao.github.io/post/</loc>
-    <lastmod>2018-01-25T13:51:37+08:00</lastmod>
+    <lastmod>2018-03-07T14:29:58+08:00</lastmod>
     <priority>0</priority>
   </url>
   
   <url>
     <loc>https://xiongsyao.github.io/tags/</loc>
-    <lastmod>2018-01-25T13:51:37+08:00</lastmod>
+    <lastmod>2018-03-07T14:29:58+08:00</lastmod>
     <priority>0</priority>
   </url>
   
