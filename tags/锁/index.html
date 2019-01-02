@@ -7,22 +7,22 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
 
-    <title>JavaScript | Matrix</title>
-    <meta property="og:title" content="JavaScript - Matrix">
+    <title>锁 | Matrix</title>
+    <meta property="og:title" content="锁 - Matrix">
     <meta property="og:type" content="article">
         
         
     <meta name="Keywords" content="golang,python">
-    <meta name="description" content="JavaScript">
+    <meta name="description" content="锁">
         
     <meta name="author" content="matrix">
-    <meta property="og:url" content="https://xiongsyao.github.io/categories/JavaScript/">
+    <meta property="og:url" content="https://xiongsyao.github.io/tags/%E9%94%81/">
     <link rel="shortcut icon" href="/favicon.ico" type="image/x-icon">
 
     <link rel="stylesheet" href="/css/normalize.css">
     
     <link rel="stylesheet" href="/css/style.css">
-    <link rel="alternate" type="application/rss+xml+xml" href="https://xiongsyao.github.io/categories/JavaScript/index.xml" title="Matrix" />
+    <link rel="alternate" type="application/rss+xml+xml" href="https://xiongsyao.github.io/tags/%E9%94%81/index.xml" title="Matrix" />
     <script type="text/javascript" src="//cdn.bootcss.com/jquery/3.2.1/jquery.min.js"></script>
 
     
@@ -68,9 +68,9 @@
                 <div class="res-cons">
                     
                     <h3 class="archive-title">
-                        分类
-                        <span class="keyword">JavaScript</span>
-                        中的文章
+                        包含标签
+                        <span class="keyword">锁</span>
+                        的文章
                     </h3>
                     
 
@@ -78,111 +78,34 @@
                         <article class="post">
                             <header>
                                 <h1 class="post-title">
-                                    <a href="https://xiongsyao.github.io/post/2018/1/25/%E4%BB%8E0%E5%BC%80%E5%A7%8B%E7%9A%84JS%E4%B9%8B%E6%97%85%E4%B8%89DOM%E6%93%8D%E4%BD%9C%E5%9F%BA%E7%A1%80/">从0开始的JS之旅（三）：DOM操作基础</a>
+                                    <a href="https://xiongsyao.github.io/post/2018/12/28/%E8%B0%88%E8%B0%88golang%E4%B8%AD%E7%9A%84%E9%94%81/">谈谈golang中的锁</a>
                                 </h1>
                             </header>
                             <date class="post-meta meta-date">
-                                2018年1月25日
+                                2018年12月28日
                             </date>
                             
                             <div class="post-meta meta-category">
                                 |
                                 
-                                    <a href="https://xiongsyao.github.io/categories/JavaScript">JavaScript</a>
+                                    <a href="https://xiongsyao.github.io/categories/golang">golang</a>
                                 
                             </div>
                             
                             <div class="post-content">
-                                <h1 id="从0开始的js之旅-三">从0开始的JS之旅（三）</h1>
+                                <p>得益于go的goroutine，go的并发变得十分容易，只需要<code>go</code>关键字，就可以启动一个新的协程。
+例如一下程序:</p>
 
-<blockquote>
-<p>前面讲了一些JS语言的基本语法，但是JS运用最广泛的地方就是前端开发了，肯定免不了操纵DOM节点，这章就讲讲DOM相关的东西</p>
+<pre><code class="language-go">package main
 
-<h2 id="dom">DOM</h2>
+import (
+    &quot;fmt&quot;
+    &quot;time&quot;
+)
 
-<p>究竟什么是DOM呢？文档对象模型 (DOM) 是HTML和XML文档的编程接口。它提供了对文档的结构化的表述，并定义了一种方式可以使从程序中对该结构进行访问，从而改变文档的结构，样式和内容。 …</p></blockquote>
-                                <p class="readmore"><a href="https://xiongsyao.github.io/post/2018/1/25/%E4%BB%8E0%E5%BC%80%E5%A7%8B%E7%9A%84JS%E4%B9%8B%E6%97%85%E4%B8%89DOM%E6%93%8D%E4%BD%9C%E5%9F%BA%E7%A1%80/">阅读全文</a></p>
-                            </div>
-                        </article>
-                    
-                        <article class="post">
-                            <header>
-                                <h1 class="post-title">
-                                    <a href="https://xiongsyao.github.io/post/2018/1/25/%E4%BB%8E0%E5%BC%80%E5%A7%8B%E7%9A%84JS%E4%B9%8B%E6%97%85%E4%BA%8C%E9%9D%A2%E5%90%91%E5%AF%B9%E8%B1%A1%E7%BC%96%E7%A8%8B/">从0开始的JS之旅（二）：面向对象编程</a>
-                                </h1>
-                            </header>
-                            <date class="post-meta meta-date">
-                                2018年1月25日
-                            </date>
-                            
-                            <div class="post-meta meta-category">
-                                |
-                                
-                                    <a href="https://xiongsyao.github.io/categories/JavaScript">JavaScript</a>
-                                
-                            </div>
-                            
-                            <div class="post-content">
-                                <h1 id="从0开始的js之旅-二">从0开始的JS之旅（二）</h1>
-
-<h2 id="面向对象">面向对象</h2>
-
-<h3 id="类">类</h3>
-
-<blockquote>
-<p>JavaScript是一种基于原型的语言，它没类的声明语句，比如C+ +或Java中用的。这有时会对习惯使用有类申明语句语言的程序员产生困扰。相反，JavaScript可用方法作类。定义一个类跟定义一个函数一样简单。在下面的例子中，我们定义了一个新类Person。</p>
-
-<pre><code class="language-JS">function Person() …</code></pre></blockquote>
-                                <p class="readmore"><a href="https://xiongsyao.github.io/post/2018/1/25/%E4%BB%8E0%E5%BC%80%E5%A7%8B%E7%9A%84JS%E4%B9%8B%E6%97%85%E4%BA%8C%E9%9D%A2%E5%90%91%E5%AF%B9%E8%B1%A1%E7%BC%96%E7%A8%8B/">阅读全文</a></p>
-                            </div>
-                        </article>
-                    
-                        <article class="post">
-                            <header>
-                                <h1 class="post-title">
-                                    <a href="https://xiongsyao.github.io/post/2018/1/25/%E4%BB%8E0%E5%BC%80%E5%A7%8B%E7%9A%84JS%E4%B9%8B%E6%97%85%E4%B8%80%E6%95%B0%E6%8D%AE%E7%B1%BB%E5%9E%8B%E6%B5%81%E7%A8%8B%E8%AF%AD%E5%8F%A5%E5%8F%8A%E5%87%BD%E6%95%B0/">从0开始的JS之旅（一）：数据类型，流程语句及函数</a>
-                                </h1>
-                            </header>
-                            <date class="post-meta meta-date">
-                                2018年1月25日
-                            </date>
-                            
-                            <div class="post-meta meta-category">
-                                |
-                                
-                                    <a href="https://xiongsyao.github.io/categories/JavaScript">JavaScript</a>
-                                
-                            </div>
-                            
-                            <div class="post-content">
-                                <h1 id="从0开始的js之旅-一">从0开始的JS之旅（一）</h1>
-
-<blockquote>
-<p>半年多之前学的JS，结果后来一直在写python，现在趁着有些空闲时间，准备重新学习一遍JS，故记录下来，方便自己以后回顾，同时希望能对别人有所帮助</p>
-</blockquote>
-
-<h2 id="数据类型">数据类型</h2>
-
-<table>
-<thead>
-<tr>
-<th>类型</th>
-<th>描述</th>
-<th>示例</th>
-</tr>
-</thead>
-
-<tbody>
-<tr>
-<td>String</td>
-<td>字符串，一段文本。</td>
-<td>&lsquo;hello world&rsquo;</td>
-</tr>
-
-<tr>
-<td>Number</td>
-<td>数字， …</td></tr></tbody></table>
-                                <p class="readmore"><a href="https://xiongsyao.github.io/post/2018/1/25/%E4%BB%8E0%E5%BC%80%E5%A7%8B%E7%9A%84JS%E4%B9%8B%E6%97%85%E4%B8%80%E6%95%B0%E6%8D%AE%E7%B1%BB%E5%9E%8B%E6%B5%81%E7%A8%8B%E8%AF%AD%E5%8F%A5%E5%8F%8A%E5%87%BD%E6%95%B0/">阅读全文</a></p>
+func do() {
+    time.Sleep(1 * time.Second) …</code></pre>
+                                <p class="readmore"><a href="https://xiongsyao.github.io/post/2018/12/28/%E8%B0%88%E8%B0%88golang%E4%B8%AD%E7%9A%84%E9%94%81/">阅读全文</a></p>
                             </div>
                         </article>
                     

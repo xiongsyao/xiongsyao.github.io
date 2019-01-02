@@ -7,20 +7,20 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
 
-    <title>从0开始的JS之旅（二）：面向对象编程 | Matrix</title>
-    <meta property="og:title" content="从0开始的JS之旅（二）：面向对象编程 - Matrix">
+    <title>谈谈golang中的锁 | Matrix</title>
+    <meta property="og:title" content="谈谈golang中的锁 - Matrix">
     <meta property="og:type" content="article">
         
-    <meta property="article:published_time" content="2018-01-25T13:48:56&#43;08:00">
+    <meta property="article:published_time" content="2018-12-28T15:26:58&#43;08:00">
         
         
-    <meta property="article:modified_time" content="2018-01-25T13:48:56&#43;08:00">
+    <meta property="article:modified_time" content="2018-12-28T15:26:58&#43;08:00">
         
     <meta name="Keywords" content="golang,python">
-    <meta name="description" content="从0开始的JS之旅（二）：面向对象编程">
+    <meta name="description" content="谈谈golang中的锁">
         
     <meta name="author" content="matrix">
-    <meta property="og:url" content="https://xiongsyao.github.io/post/2018/1/25/%E4%BB%8E0%E5%BC%80%E5%A7%8B%E7%9A%84JS%E4%B9%8B%E6%97%85%E4%BA%8C%E9%9D%A2%E5%90%91%E5%AF%B9%E8%B1%A1%E7%BC%96%E7%A8%8B/">
+    <meta property="og:url" content="https://xiongsyao.github.io/post/2018/12/28/%E8%B0%88%E8%B0%88golang%E4%B8%AD%E7%9A%84%E9%94%81/">
     <link rel="shortcut icon" href="/favicon.ico" type="image/x-icon">
 
     <link rel="stylesheet" href="/css/normalize.css">
@@ -72,198 +72,217 @@
                 <div class="res-cons">
                     <article class="post">
                         <header>
-                            <h1 class="post-title">从0开始的JS之旅（二）：面向对象编程</h1>
+                            <h1 class="post-title">谈谈golang中的锁</h1>
                         </header>
                         <date class="post-meta meta-date">
-                            2018年1月25日
+                            2018年12月28日
                         </date>
                         
                         <div class="post-meta meta-category">
                             |
                             
-                                <a href="https://xiongsyao.github.io/categories/JavaScript">JavaScript</a>
+                                <a href="https://xiongsyao.github.io/categories/golang">golang</a>
                             
                         </div>
                         
                         
                         <div class="post-content">
-                            
+                            <p>得益于go的goroutine，go的并发变得十分容易，只需要<code>go</code>关键字，就可以启动一个新的协程。
+例如一下程序:</p>
 
-<h1 id="从0开始的js之旅-二">从0开始的JS之旅（二）</h1>
+<pre><code class="language-go">package main
 
-<h2 id="面向对象">面向对象</h2>
+import (
+	&quot;fmt&quot;
+	&quot;time&quot;
+)
 
-<h3 id="类">类</h3>
-
-<blockquote>
-<p>JavaScript是一种基于原型的语言，它没类的声明语句，比如C+ +或Java中用的。这有时会对习惯使用有类申明语句语言的程序员产生困扰。相反，JavaScript可用方法作类。定义一个类跟定义一个函数一样简单。在下面的例子中，我们定义了一个新类Person。</p>
-
-<pre><code class="language-JS">function Person() {...}
-
-var Person = function() {...}
-</code></pre>
-
-<p>类名采用<strong>首字母大写</strong>的方式，以此来与函数声明区分开。</p>
-
-<h3 id="对象">对象</h3>
-
-<p>对象是类的实例，一般通过<code>new obj</code>的方式创建，下面演示了如何创建一个类的实例。</p>
-
-<pre><code class="language-JS">function Person() {...}
-var person1 = new Person();
-var person2 = new Person();
-</code></pre>
-
-<h3 id="构造器">构造器</h3>
-
-<p>构造器指在实例创建时执行的方法，类似于python的<strong>init</strong>方法。</p>
-
-<pre><code class="language-JS">function Person() {
-    console.log(&quot;init&quot;)
-};
-
-var person1 = new Person(); // -&gt; init
-</code></pre>
-
-<h3 id="属性">属性</h3>
-
-<p>属性就是 类中包含的变量;每一个对象实例有若干个属性. 为了正确的继承，属性应该被定义在类的原型属性 (函数)中。可以使用 关键字 this调用类中的属性, this是对当前对象的引用。从外部存取(读/写)其属性的语法是: InstanceName.Property。</p>
-
-<pre><code class="language-JS">function Person(name) {
-    this.name = name;
-    console.log(this.name);
+func do() {
+	time.Sleep(1 * time.Second)
+	count++
 }
 
-var person1 = new Person('Xiong') // -&gt; Xiong
-console.log(person1.name) // -&gt; Xiong
-</code></pre>
+var count int
 
-<h3 id="方法">方法</h3>
-
-<p>方法指的是类中的方法</p>
-
-<pre><code class="language-JS">function Person(name) {
-    this.name = name;
-    this.greeting = function() {
-        console.log(this.name)
-    }
-}
-var person = new Person(&quot;xiong&quot;);
-person.greeting(); // -&gt; xiong
-</code></pre>
-
-<h3 id="继承">继承</h3>
-
-<ul>
-<li>构造函数继承</li>
-</ul>
-</blockquote>
-
-<p>同其他语言的面向对象一样，JS同样支持继承，它的继承，来源于<strong>原型链</strong><code>prototype</code></p>
-
-<pre><code class="language-JS">function Person(name) {
-    this.name = name;
-    this.greeting = function() {
-        console.log(this.name)
-    }
-}
-
-function Woman(name) {
-    Person.call(this, name)
-    this.sex = &quot;woman&quot;
+// 10秒后会看到打印出10
+func main() {
+	for i := 0; i &lt; 10; i++ {
+		do()
+	}
+	fmt.Println(count)
 }
 </code></pre>
 
-<p><code>Woman</code>继承自<code>Person</code>,它具备了<code>Person</code>的<code>name</code>属性和<code>greeting</code>方法，同时，扩展自己的属性<code>sex</code></p>
+<p>在以上例子中，我们对count执行累加操作，这个例子，可以用go关键字并发操作<code>do</code>,如下:</p>
 
-<p>运行下面代码</p>
+<pre><code class="language-go">package main
 
-<pre><code class="language-JS">var lucy = new Woman(&quot;lucy&quot;)
-lucy.name // -&gt; lucy
-lucy.greeting(); // -&gt; lucy
-lucy.sex // -&gt; woman
-</code></pre>
+import (
+	&quot;fmt&quot;
+	&quot;sync&quot;
+	&quot;time&quot;
+)
 
-<p>可以看到，<code>lucy</code>具备<code>Woman</code>从<code>Person</code>继承的方法和属性。</p>
+var count int
+var wg sync.WaitGroup
 
-<p>保持上面的代码别动，接着，我们为<code>Person</code>动态的增加一个新的方法</p>
-
-<pre><code class="language-JS">Person.prototype.eat = function() {
-    console.log(this.name + &quot; is eating&quot;)
-};
-
-lucy.eat(); // -&gt; error
-</code></pre>
-
-<p>在为<code>Person</code>新加方法后，其子类<code>Woman</code>的实例<code>lucy</code>并不具备这个方法。显然与我们预期的不一样，这里就需要用到另一种继承方式。
-+ 原型链式继承
-&gt; 为了让子类继承父类的属性（也包括方法），首先需要定义一个构造函数。然后，将父类的新实例赋值给构造函数的原型。</p>
-
-<pre><code class="language-JS">function Parent(){
-    this.name = 'mike';
+func do() {
+	time.Sleep(1 * time.Second)
+	count++
+	// 通知协程执行完毕
+	wg.Done()
 }
 
-function Child(){
-    this.age = 12;
+// 1秒后打印出10（不保证一定为0)
+func main() {
+	n := 10
+	for i := 0; i &lt; n; i++ {
+		// 记录新增一个协程
+		wg.Add(1)
+		go do()
+	}
+	// 等待所有协程执行完毕
+	wg.Wait()
+	fmt.Println(count)
 }
-
-Child.prototype = new Parent(); // Child继承Parent，通过原型，形成链条
-
-var child = new Child()
-child.name // -&gt; 'mike'
-child.age  // -&gt; 12 
-
-Parent.prototype.eat = function() {
-    console.log(this.name + &quot; is eating&quot;)
-}  // 为Parent原型添加eat方法
-
-child.eat() // -&gt; mike is eating
 </code></pre>
 
-<p>这样，我们就实现了动态添加父类方法后，其子类的实例同时具备此方法，但是，使用原型继承主要由两个问题：字面量重写原型会中断关系，使用引用类型的原型，并且子类型还无法给超类型传递参数。所以一般情况下，我们会把构造函数与链式继承结合起来，称之为<strong>组合继承</strong>。
-+ 组合继承</p>
+<p>可以看到，代表中额外加了<code>sync.WaitGroup</code>相关的东西，这些内容是为了保证，在协程都执行完毕后，主进程(也可以是协程)才继续执行，否则在计数完成前，主进程就退出，这一切工作都没有意义了。</p>
 
-<p>对于<code>构造函数继承</code>一节的东西，我们运用组合继承，可以完美实现想要的效果，完整代码如下：</p>
+<p>通过<code>goroutine</code>，原来10s的计算仅需1s。在上面的例子中，我们并发了10个goroutine，他们都对同一资源<code>count</code>进行了操作, 其实这里已经出问题了， 但是并发数太少，所以不容易观测出问题。</p>
 
-<pre><code class="language-JS">function Person(name) {
-    this.name = name;
-    this.greeting = function() {
-        console.log(this.name)
-    }
+<p>做一下尝试，将for循环中的n改为1000，多执行几次，发现运行结果可能为<code>945 965 948</code>。问题出在这里<code>count++</code>其中应该拆分为<code>temp := count; count = temp + 1</code>, 当在获取temp=99之后，可能其他协程已经对count完成了累加操作，count变为100, 但当前协程依旧执行<code>count=99+1</code>，这就导致某些提交没有生效。</p>
+
+<p>怎么避免这个问题呢？我们需要对某一资源的访问做限制，也就是当某一协程在访问某一资源时，要限制其他协程访问。简单来说，就是<code>加锁</code>。</p>
+
+<pre><code class="language-go">package main
+
+import (
+	&quot;fmt&quot;
+	&quot;sync&quot;
+	&quot;time&quot;
+)
+
+var count int
+var mux sync.Mutex
+var wg sync.WaitGroup
+
+func doCount() {
+	time.Sleep(1 * time.Second)
+	// 加锁
+	mux.Lock()
+	count++
+	// 释放锁
+	mux.Unlock()
+	wg.Done()
 }
 
-function Woman(name) {
-    Person.call(this, name) // 对象冒充，给超类型传参
-    this.sex = &quot;woman&quot;
+func main() {
+	n := 1000
+	for i := 0; i &lt; n; i++ {
+		wg.Add(1)
+		go doCount()
+	}
+	wg.Wait()
+	fmt.Println(count)
 }
-Woman.prototype = Object.create(Person.prototype);  // 原型链继承
-
-var lucy = new Woman(&quot;lucy&quot;);
-
-Person.prototype.eat = function() {
-    console.log(this.name + &quot; is eating&quot;)
-};
-
-lucy.eat(); // -&gt; lucy is eating
 </code></pre>
 
-<p>其中，<code>Woman.prototype = Object.create(Person.prototype);</code>这一句，大体上是等同于<code>Woman.prototype = Person.prototype</code>，但是这样写更利于多态的表现，通常在组合继承中使用此类写法。</p>
+<p>通过在<code>count++</code>上下前后添加锁，现在的版本运行之后结果始终为1000。<code>Lock</code>与<code>UnLock</code>使得他们之间的代码块，同一时间，只有一个协程可以执行到。</p>
 
-<h3 id="多态">多态</h3>
+<p>在这个例子中，对锁的应用简陋，在实际运用中，需要注意以下两点:
++ 一个应用中会存在多把锁，不应该用全局变量声明锁，最好能与相关的资源封装进用一结构体内。
++ 假如某一处在持有锁的时候出异常了，导致没办法释放锁，影响其他协程的运行，所以在可能出问题的函数内，使用<code>defer</code>确保函数返回前，锁被正常释放。
++ 尽量缩减锁的区域，例如在上例中，假如在<code>time.Sleep(1 * time.Second)</code>之前就加锁，导致所有协程都阻塞。原则上，只需要可能引发竞态的地方加锁。</p>
 
-<p>对于<strong>继承</strong>这一节，最后完整的例子中，要实现多态，例如，覆写<code>eat</code>方法，我们只需在原有的代码基础上，增加以下代码：</p>
+<p>采用以上建议，可以重构代码为:</p>
 
-<pre><code class="language-JS">Woman.prototype.eat = function() {
-    Person.prototype.eat.call(this);
-    console.log(this.name + &quot;is&quot; + this.sex)
+<pre><code class="language-go">package main
+
+import (
+	&quot;fmt&quot;
+	&quot;sync&quot;
+	&quot;time&quot;
+)
+
+type Counter struct {
+	count int          // 记录计数
+	mu    sync.Mutex   // 当前资源的锁
 }
 
-lucy.eat();
-// -&gt; lucy is eating
-// -&gt; lucy is woman
+func (c *Counter) Add(num int) {
+	// 加锁
+	c.mu.Lock()
+	c.count = c.count + num
+	// 释放锁
+	c.mu.Unlock()
+}
+
+func doCount(counter *Counter, wg *sync.WaitGroup) {
+	wg.Add(1)
+	time.Sleep(1 * time.Second)
+	counter.Add(1)
+	wg.Done()
+}
+
+func main() {
+	wg := &amp;sync.WaitGroup{}
+	counter := &amp;Counter{}
+	for i := 0; i &lt; 1000; i++ {
+		go doCount(counter, wg)
+	}
+	wg.Wait()
+	fmt.Println(counter.count)
+}
 </code></pre>
 
-<p>JS的面向对象其实是非常复杂的，这里只介绍了最基本的用法，另外，借助es6的<code>class</code>和<code>extend</code>，我们其实可以写出更优雅的代码，这一块会在之后的es6专题中讲到。</p>
+<p>到这里， 就介绍完了go中的互斥锁。等等…也就是说，还有另一种锁？那是当然啦。考虑一种使用场景，较少的协程对某一资源执行<code>写</code>操作，而更多的协程执行<code>读</code>操作，采用<code>sync.Mutex</code>即互斥锁，会导致每一次对资源的访问，无论是读还是写，都会阻塞。实际上，执行读操作的时候，并不会对资源进行更改，所以应该允许其他协程同时读取资源(可重入锁)，且不允许其他协程<code>写</code>。而在<code>写</code>的时候，应该限制其他协程的<code>读</code>与<code>写</code>（这里读写互斥，是因为要防止协程读到不应存在的中间态）。这里就使用到了go提供的<code>sync.RWMutex</code>(读写锁)。 <code>RWMutex</code>是基于Mutex实现的读写互斥锁，一个goroutine可以持有多个读锁或者一个写锁，同一时刻只能持有读锁或者写锁。</p>
+
+<p>使用方法如下:</p>
+
+<pre><code class="language-go">package main
+
+import (
+	&quot;fmt&quot;
+	&quot;sync&quot;
+	&quot;time&quot;
+)
+
+type MultiCounter struct {
+	store map[string]int
+	rw    sync.RWMutex
+}
+
+func (m *MultiCounter) Add(key string, num int) {
+	m.rw.Lock()
+	m.store[key] = m.store[key] + num
+	m.rw.Unlock()
+}
+
+func (m *MultiCounter) Read(key string) int {
+	m.rw.RLock()
+	defer m.rw.RUnlock()
+	return m.store[key]
+}
+
+func doCount(counter *MultiCounter, wg *sync.WaitGroup) {
+	wg.Add(1)
+	time.Sleep(1 * time.Second)
+	counter.Add(&quot;a&quot;, 1)
+	wg.Done()
+}
+
+func main() {
+	wg := &amp;sync.WaitGroup{}
+	counter := &amp;MultiCounter{store: make(map[string]int)}
+	for i := 0; i &lt; 1000; i++ {
+		go doCount(counter, wg)
+	}
+	fmt.Println(counter.Read(&quot;a&quot;))
+	wg.Wait()
+	fmt.Println(counter.Read(&quot;a&quot;))
+}
+</code></pre>
 
                         </div>
 
@@ -273,9 +292,15 @@ lucy.eat();
     <h2>See Also</h2>
     <ul class="listing">
         
-        <li><a href="/post/2018/1/25/%E4%BB%8E0%E5%BC%80%E5%A7%8B%E7%9A%84JS%E4%B9%8B%E6%97%85%E4%B8%80%E6%95%B0%E6%8D%AE%E7%B1%BB%E5%9E%8B%E6%B5%81%E7%A8%8B%E8%AF%AD%E5%8F%A5%E5%8F%8A%E5%87%BD%E6%95%B0/">从0开始的JS之旅（一）：数据类型，流程语句及函数</a></li>
+        <li><a href="/post/2018/12/17/LeetCode150%E9%80%86%E6%B3%A2%E5%85%B0%E8%A1%A8%E8%BE%BE%E5%BC%8F%E6%B1%82%E5%80%BC/">[LeetCode]150:逆波兰表达式求值</a></li>
         
-        <li><a href="/archives/">归档</a></li>
+        <li><a href="/about/">关于</a></li>
+        
+        <li><a href="/post/2018/3/7/%E5%8A%A8%E6%80%81%E5%8A%A0%E8%BD%BDDjango%E7%9A%84config%E9%85%8D%E7%BD%AE/">动态加载Django的config配置</a></li>
+        
+        <li><a href="/post/2018/1/25/%E4%BB%8E0%E5%BC%80%E5%A7%8B%E7%9A%84JS%E4%B9%8B%E6%97%85%E4%B8%89DOM%E6%93%8D%E4%BD%9C%E5%9F%BA%E7%A1%80/">从0开始的JS之旅（三）：DOM操作基础</a></li>
+        
+        <li><a href="/post/2018/1/25/%E4%BB%8E0%E5%BC%80%E5%A7%8B%E7%9A%84JS%E4%B9%8B%E6%97%85%E4%BA%8C%E9%9D%A2%E5%90%91%E5%AF%B9%E8%B1%A1%E7%BC%96%E7%A8%8B/">从0开始的JS之旅（二）：面向对象编程</a></li>
         
     </ul>
 </div>
@@ -285,9 +310,11 @@ lucy.eat();
                             
                             <ul class="clearfix">
                                 
-                                <li><a href="https://xiongsyao.github.io/tags/JavaScript%E5%9F%BA%E7%A1%80%E6%95%99%E7%A8%8B">JavaScript基础教程</a></li>
+                                <li><a href="https://xiongsyao.github.io/tags/golang">golang</a></li>
                                 
-                                <li><a href="https://xiongsyao.github.io/tags/JavaScript">JavaScript</a></li>
+                                <li><a href="https://xiongsyao.github.io/tags/%E5%B9%B6%E5%8F%91">并发</a></li>
+                                
+                                <li><a href="https://xiongsyao.github.io/tags/%E9%94%81">锁</a></li>
                                 
                             </ul>
                             

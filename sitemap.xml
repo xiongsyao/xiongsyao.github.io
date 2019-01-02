@@ -3,6 +3,11 @@
   xmlns:xhtml="http://www.w3.org/1999/xhtml">
   
   <url>
+    <loc>https://xiongsyao.github.io/post/2018/12/28/%E8%B0%88%E8%B0%88golang%E4%B8%AD%E7%9A%84%E9%94%81/</loc>
+    <lastmod>2018-12-28T15:26:58+08:00</lastmod>
+  </url>
+  
+  <url>
     <loc>https://xiongsyao.github.io/post/2018/12/17/LeetCode150%E9%80%86%E6%B3%A2%E5%85%B0%E8%A1%A8%E8%BE%BE%E5%BC%8F%E6%B1%82%E5%80%BC/</loc>
     <lastmod>2018-12-19T15:08:08+08:00</lastmod>
   </url>
@@ -69,19 +74,31 @@
   
   <url>
     <loc>https://xiongsyao.github.io/</loc>
-    <lastmod>2018-12-19T15:08:08+08:00</lastmod>
+    <lastmod>2018-12-28T15:26:58+08:00</lastmod>
     <priority>0</priority>
   </url>
   
   <url>
     <loc>https://xiongsyao.github.io/post/</loc>
-    <lastmod>2018-12-19T15:08:08+08:00</lastmod>
+    <lastmod>2018-12-28T15:26:58+08:00</lastmod>
     <priority>0</priority>
   </url>
   
   <url>
     <loc>https://xiongsyao.github.io/tags/</loc>
     <lastmod>2018-03-07T14:29:58+08:00</lastmod>
+    <priority>0</priority>
+  </url>
+  
+  <url>
+    <loc>https://xiongsyao.github.io/tags/golang/</loc>
+    <lastmod>2018-12-28T15:26:58+08:00</lastmod>
+    <priority>0</priority>
+  </url>
+  
+  <url>
+    <loc>https://xiongsyao.github.io/categories/golang/</loc>
+    <lastmod>2018-12-28T15:26:58+08:00</lastmod>
     <priority>0</priority>
   </url>
   
@@ -104,7 +121,19 @@
   </url>
   
   <url>
+    <loc>https://xiongsyao.github.io/tags/%E5%B9%B6%E5%8F%91/</loc>
+    <lastmod>2018-12-28T15:26:58+08:00</lastmod>
+    <priority>0</priority>
+  </url>
+  
+  <url>
     <loc>https://xiongsyao.github.io/archives/</loc>
+  </url>
+  
+  <url>
+    <loc>https://xiongsyao.github.io/tags/%E9%94%81/</loc>
+    <lastmod>2018-12-28T15:26:58+08:00</lastmod>
+    <priority>0</priority>
   </url>
   
 </urlset>

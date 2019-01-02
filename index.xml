@@ -6,10 +6,21 @@
     <description>Recent content on Matrix</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>zh-CH</language>
-    <lastBuildDate>Wed, 19 Dec 2018 15:08:08 +0800</lastBuildDate>
+    <lastBuildDate>Fri, 28 Dec 2018 15:26:58 +0800</lastBuildDate>
     
 	<atom:link href="https://xiongsyao.github.io/index.xml" rel="self" type="application/rss+xml" />
     
+    
+    <item>
+      <title>谈谈golang中的锁</title>
+      <link>https://xiongsyao.github.io/post/2018/12/28/%E8%B0%88%E8%B0%88golang%E4%B8%AD%E7%9A%84%E9%94%81/</link>
+      <pubDate>Fri, 28 Dec 2018 15:26:58 +0800</pubDate>
+      
+      <guid>https://xiongsyao.github.io/post/2018/12/28/%E8%B0%88%E8%B0%88golang%E4%B8%AD%E7%9A%84%E9%94%81/</guid>
+      <description>得益于go的goroutine，go的并发变得十分容易，只需要go关键字，就可以启动一个新的协程。 例如一下程序:
+package main import ( &amp;quot;fmt&amp;quot; &amp;quot;time&amp;quot; ) func do() { time.Sleep(1 * time.Second) count++ } var count int // 10秒后会看到打印出10 func main() { for i := 0; i &amp;lt; 10; i++ { do() } fmt.Println(count) }  在以上例子中，我们对count执行累加操作，这个例子，可以用go关键字并发操作do,如下:
+package main import ( &amp;quot;fmt&amp;quot; &amp;quot;sync&amp;quot; &amp;quot;time&amp;quot; ) var count int var wg sync.WaitGroup func do() { time.Sleep(1 * time.Second) count++ // 通知协程执行完毕 wg.Done() } // 1秒后打印出10（不保证一定为0) func main() { n := 10 for i := 0; i &amp;lt; n; i++ { // 记录新增一个协程 wg.</description>
+    </item>
     
     <item>
       <title>[LeetCode]150:逆波兰表达式求值</title>
