@@ -6,10 +6,27 @@
     <description>Recent content in Posts on Matrix</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>zh-CH</language>
-    <lastBuildDate>Fri, 28 Dec 2018 15:26:58 +0800</lastBuildDate>
+    <lastBuildDate>Wed, 02 Jan 2019 17:20:16 +0800</lastBuildDate>
     
 	<atom:link href="https://xiongsyao.github.io/post/index.xml" rel="self" type="application/rss+xml" />
     
+    
+    <item>
+      <title>解读redis协议</title>
+      <link>https://xiongsyao.github.io/post/2019/01/02/%E8%A7%A3%E8%AF%BBredis%E5%8D%8F%E8%AE%AE/</link>
+      <pubDate>Wed, 02 Jan 2019 17:20:16 +0800</pubDate>
+      
+      <guid>https://xiongsyao.github.io/post/2019/01/02/%E8%A7%A3%E8%AF%BBredis%E5%8D%8F%E8%AE%AE/</guid>
+      <description>前言 Redis作为我们日常使用的key-value数据库，不光操作简单(例如set get delete等指令)，通信协议也简洁明了。 本篇就会剖析Redis的通信协议，并且实现一个简单的Redis客户端。
+协议 Redis服务端与客户端使用的基于TCP的文本协议(敲黑板，这里并没有使用效率更高的二进制协议)，称之为RESP(Redis Serialization Protocol)。区别于同样是文本协议的HTTP协议，RESP尤为简洁，其基础规则很容易理解。
+请求信息 假如我们执行set test ok这样的命令，可以视为准备了一个[&amp;quot;set&amp;quot;, &amp;quot;test&amp;quot;, &amp;quot;ok&amp;quot;]这样的数组，随即将其序列化为字符串，序列化规则如下:
+ 首先以每一个指令以*开头指明数组长度 以$开头指明下个元素的字符长度 每一个元素以间隔符号\r\n(CRLF)隔开  按这个规则,set test ok则为:
+*3\r\n $3\r\n set\r\n $4\r\n test\r\n $2\r\n ok\r\n  以python为例:
+import redis r = redis.Redis() r.set(&#39;hello&#39;, &#39;world&#39;)  那么将发送的指令为*3\r\n$3\r\nset\r\n$5\r\nhello\r\n$5\r\nworld\r\n，收到的响应为+OK\r\n。
+响应信息 RESP协议中，不同类型的响应信息，会以不同的字符开头，比如上例中，+OK\r\n就以+开头。 + 简单字符串(Simple Strings)响应会以&amp;rdquo;+&amp;ldquo;开头 &amp;gt;+OK\r\n + 错误(Errors)响应会以&amp;rdquo;-&amp;ldquo;开头 &amp;gt;-ERR unkown command &amp;lsquo;ST&amp;rsquo;\r\n + 数字(Integer)响应会以&amp;rdquo;:&amp;ldquo;开头 &amp;gt;:2\r\n + 大字符串(Bulk Strings)会以&amp;rdquo;$&amp;ldquo;开头，并且随之标出字符串字节数 &amp;gt;$13\r\nHello, World!\r\n + 数组类型(Arrays)类似与请求信息的序列化一致（在HGETALLLRANGEMGET命令中会返回)。
+实例 接下来，我们将用go实现一个简单的redis客户端
+// file is kv.go package main import ( &amp;quot;log&amp;quot; &amp;quot;net&amp;quot; &amp;quot;os&amp;quot; &amp;quot;strconv&amp;quot; &amp;quot;strings&amp;quot; ) // serialize将待发送的命令按RESP协议处理成合法的字符串 func serialize(args []string) []byte { r := []string{ &amp;quot;*&amp;quot; + strconv.</description>
+    </item>
     
     <item>
       <title>谈谈golang中的锁</title>
@@ -37,10 +54,10 @@ package main import ( &amp;quot;fmt&amp;quot; &amp;quot;sync&amp;quot; &amp;quot
     
     <item>
       <title>动态加载Django的config配置</title>
-      <link>https://xiongsyao.github.io/post/2018/3/7/%E5%8A%A8%E6%80%81%E5%8A%A0%E8%BD%BDDjango%E7%9A%84config%E9%85%8D%E7%BD%AE/</link>
+      <link>https://xiongsyao.github.io/post/2018/03/7/%E5%8A%A8%E6%80%81%E5%8A%A0%E8%BD%BDDjango%E7%9A%84config%E9%85%8D%E7%BD%AE/</link>
       <pubDate>Wed, 07 Mar 2018 14:29:58 +0800</pubDate>
       
-      <guid>https://xiongsyao.github.io/post/2018/3/7/%E5%8A%A8%E6%80%81%E5%8A%A0%E8%BD%BDDjango%E7%9A%84config%E9%85%8D%E7%BD%AE/</guid>
+      <guid>https://xiongsyao.github.io/post/2018/03/7/%E5%8A%A8%E6%80%81%E5%8A%A0%E8%BD%BDDjango%E7%9A%84config%E9%85%8D%E7%BD%AE/</guid>
       <description>github本章代码: 点这里
  前言 之前想新开的一个坑，目标是从0开始写一个CMS框架，将要实现的功能应该有：
  媒体库 导航栏配置 富文本页 文章及评论 自定义模版样式(换肤) 可视化编辑 &amp;hellip;  但是发现传统的单config.py文件记录配置信息，不方便在开发环境和生产环境中来回切换。
@@ -59,10 +76,10 @@ HELLO 创建名为django_cms的数据库，之后clone项目，为项目创建�
     
     <item>
       <title>从0开始的JS之旅（三）：DOM操作基础</title>
-      <link>https://xiongsyao.github.io/post/2018/1/25/%E4%BB%8E0%E5%BC%80%E5%A7%8B%E7%9A%84JS%E4%B9%8B%E6%97%85%E4%B8%89DOM%E6%93%8D%E4%BD%9C%E5%9F%BA%E7%A1%80/</link>
+      <link>https://xiongsyao.github.io/post/2018/01/25/%E4%BB%8E0%E5%BC%80%E5%A7%8B%E7%9A%84JS%E4%B9%8B%E6%97%85%E4%B8%89DOM%E6%93%8D%E4%BD%9C%E5%9F%BA%E7%A1%80/</link>
       <pubDate>Thu, 25 Jan 2018 13:51:37 +0800</pubDate>
       
-      <guid>https://xiongsyao.github.io/post/2018/1/25/%E4%BB%8E0%E5%BC%80%E5%A7%8B%E7%9A%84JS%E4%B9%8B%E6%97%85%E4%B8%89DOM%E6%93%8D%E4%BD%9C%E5%9F%BA%E7%A1%80/</guid>
+      <guid>https://xiongsyao.github.io/post/2018/01/25/%E4%BB%8E0%E5%BC%80%E5%A7%8B%E7%9A%84JS%E4%B9%8B%E6%97%85%E4%B8%89DOM%E6%93%8D%E4%BD%9C%E5%9F%BA%E7%A1%80/</guid>
       <description>从0开始的JS之旅（三）  前面讲了一些JS语言的基本语法，但是JS运用最广泛的地方就是前端开发了，肯定免不了操纵DOM节点，这章就讲讲DOM相关的东西
 DOM 究竟什么是DOM呢？文档对象模型 (DOM) 是HTML和XML文档的编程接口。它提供了对文档的结构化的表述，并定义了一种方式可以使从程序中对该结构进行访问，从而改变文档的结构，样式和内容。
  我们从一个最简单的实例开始:
@@ -71,10 +88,10 @@ DOM 究竟什么是DOM呢？文档对象模型 (DOM) 是HTML和XML文档的编�
     
     <item>
       <title>从0开始的JS之旅（二）：面向对象编程</title>
-      <link>https://xiongsyao.github.io/post/2018/1/25/%E4%BB%8E0%E5%BC%80%E5%A7%8B%E7%9A%84JS%E4%B9%8B%E6%97%85%E4%BA%8C%E9%9D%A2%E5%90%91%E5%AF%B9%E8%B1%A1%E7%BC%96%E7%A8%8B/</link>
+      <link>https://xiongsyao.github.io/post/2018/01/25/%E4%BB%8E0%E5%BC%80%E5%A7%8B%E7%9A%84JS%E4%B9%8B%E6%97%85%E4%BA%8C%E9%9D%A2%E5%90%91%E5%AF%B9%E8%B1%A1%E7%BC%96%E7%A8%8B/</link>
       <pubDate>Thu, 25 Jan 2018 13:48:56 +0800</pubDate>
       
-      <guid>https://xiongsyao.github.io/post/2018/1/25/%E4%BB%8E0%E5%BC%80%E5%A7%8B%E7%9A%84JS%E4%B9%8B%E6%97%85%E4%BA%8C%E9%9D%A2%E5%90%91%E5%AF%B9%E8%B1%A1%E7%BC%96%E7%A8%8B/</guid>
+      <guid>https://xiongsyao.github.io/post/2018/01/25/%E4%BB%8E0%E5%BC%80%E5%A7%8B%E7%9A%84JS%E4%B9%8B%E6%97%85%E4%BA%8C%E9%9D%A2%E5%90%91%E5%AF%B9%E8%B1%A1%E7%BC%96%E7%A8%8B/</guid>
       <description>从0开始的JS之旅（二） 面向对象 类  JavaScript是一种基于原型的语言，它没类的声明语句，比如C+ +或Java中用的。这有时会对习惯使用有类申明语句语言的程序员产生困扰。相反，JavaScript可用方法作类。定义一个类跟定义一个函数一样简单。在下面的例子中，我们定义了一个新类Person。
 function Person() {...} var Person = function() {...}  类名采用首字母大写的方式，以此来与函数声明区分开。
 对象 对象是类的实例，一般通过new obj的方式创建，下面演示了如何创建一个类的实例。
@@ -85,10 +102,10 @@ function Person(name) { this.name = name; console.log(this.name); } var person1 
     
     <item>
       <title>从0开始的JS之旅（一）：数据类型，流程语句及函数</title>
-      <link>https://xiongsyao.github.io/post/2018/1/25/%E4%BB%8E0%E5%BC%80%E5%A7%8B%E7%9A%84JS%E4%B9%8B%E6%97%85%E4%B8%80%E6%95%B0%E6%8D%AE%E7%B1%BB%E5%9E%8B%E6%B5%81%E7%A8%8B%E8%AF%AD%E5%8F%A5%E5%8F%8A%E5%87%BD%E6%95%B0/</link>
+      <link>https://xiongsyao.github.io/post/2018/01/25/%E4%BB%8E0%E5%BC%80%E5%A7%8B%E7%9A%84JS%E4%B9%8B%E6%97%85%E4%B8%80%E6%95%B0%E6%8D%AE%E7%B1%BB%E5%9E%8B%E6%B5%81%E7%A8%8B%E8%AF%AD%E5%8F%A5%E5%8F%8A%E5%87%BD%E6%95%B0/</link>
       <pubDate>Thu, 25 Jan 2018 13:39:21 +0800</pubDate>
       
-      <guid>https://xiongsyao.github.io/post/2018/1/25/%E4%BB%8E0%E5%BC%80%E5%A7%8B%E7%9A%84JS%E4%B9%8B%E6%97%85%E4%B8%80%E6%95%B0%E6%8D%AE%E7%B1%BB%E5%9E%8B%E6%B5%81%E7%A8%8B%E8%AF%AD%E5%8F%A5%E5%8F%8A%E5%87%BD%E6%95%B0/</guid>
+      <guid>https://xiongsyao.github.io/post/2018/01/25/%E4%BB%8E0%E5%BC%80%E5%A7%8B%E7%9A%84JS%E4%B9%8B%E6%97%85%E4%B8%80%E6%95%B0%E6%8D%AE%E7%B1%BB%E5%9E%8B%E6%B5%81%E7%A8%8B%E8%AF%AD%E5%8F%A5%E5%8F%8A%E5%87%BD%E6%95%B0/</guid>
       <description>从0开始的JS之旅（一）  半年多之前学的JS，结果后来一直在写python，现在趁着有些空闲时间，准备重新学习一遍JS，故记录下来，方便自己以后回顾，同时希望能对别人有所帮助
  数据类型    类型 描述 示例     String 字符串，一段文本。 &amp;lsquo;hello world&amp;rsquo;   Number 数字，不需要引号包裹 666   Boolean 布尔型，代表是或否 True/False   Null 代表空， 仅有一种表示方式，即null null   Undefined 未赋值的量 undefined   Array 数组 (1, &amp;ldquo;wow&amp;rdquo;, 0)   Symbol es6引入的新数据类型，类似于function 看这里    基本数据类型的操作 Number 数字  toSting(len) 将数字转化为指定长度的字符串 toFixed(len) 将小数转化为小数点后指定位数的数字 toPrecision(len) 将数字转化为指定精度的数字 valueOf() 返回数字的原始数值  String 字符串  length 返回字符串的字符数目 JS var txt = &amp;quot;yes i do&amp;quot; console.</description>
     </item>

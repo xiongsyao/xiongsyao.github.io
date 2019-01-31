@@ -7,22 +7,22 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
 
-    <title>Django | Matrix</title>
-    <meta property="og:title" content="Django - Matrix">
+    <title>Redis | Matrix</title>
+    <meta property="og:title" content="Redis - Matrix">
     <meta property="og:type" content="article">
         
         
     <meta name="Keywords" content="golang,python">
-    <meta name="description" content="Django">
+    <meta name="description" content="Redis">
         
     <meta name="author" content="matrix">
-    <meta property="og:url" content="https://xiongsyao.github.io/categories/Django/">
+    <meta property="og:url" content="https://xiongsyao.github.io/categories/Redis/">
     <link rel="shortcut icon" href="/favicon.ico" type="image/x-icon">
 
     <link rel="stylesheet" href="/css/normalize.css">
     
     <link rel="stylesheet" href="/css/style.css">
-    <link rel="alternate" type="application/rss+xml+xml" href="https://xiongsyao.github.io/categories/Django/index.xml" title="Matrix" />
+    <link rel="alternate" type="application/rss+xml+xml" href="https://xiongsyao.github.io/categories/Redis/index.xml" title="Matrix" />
     <script type="text/javascript" src="//cdn.bootcss.com/jquery/3.2.1/jquery.min.js"></script>
 
     
@@ -69,7 +69,7 @@
                     
                     <h3 class="archive-title">
                         分类
-                        <span class="keyword">Django</span>
+                        <span class="keyword">Redis</span>
                         中的文章
                     </h3>
                     
@@ -78,43 +78,30 @@
                         <article class="post">
                             <header>
                                 <h1 class="post-title">
-                                    <a href="https://xiongsyao.github.io/post/2018/03/7/%E5%8A%A8%E6%80%81%E5%8A%A0%E8%BD%BDDjango%E7%9A%84config%E9%85%8D%E7%BD%AE/">动态加载Django的config配置</a>
+                                    <a href="https://xiongsyao.github.io/post/2019/01/02/%E8%A7%A3%E8%AF%BBredis%E5%8D%8F%E8%AE%AE/">解读redis协议</a>
                                 </h1>
                             </header>
                             <date class="post-meta meta-date">
-                                2018年3月7日
+                                2019年1月2日
                             </date>
                             
                             <div class="post-meta meta-category">
                                 |
                                 
-                                    <a href="https://xiongsyao.github.io/categories/Django">Django</a>
+                                    <a href="https://xiongsyao.github.io/categories/Redis">Redis</a>
                                 
                             </div>
                             
                             <div class="post-content">
-                                <blockquote>
-<p>github本章代码: <strong><a href="https://github.com/xiongsyao/django-cms/tree/05879ef5f4221ed237bffe4c484d65cc27d6a05e">点这里</a></strong></p>
-</blockquote>
+                                <h2 id="前言">前言</h2>
 
-<h2 id="前言">前言</h2>
+<p>Redis作为我们日常使用的key-value数据库，不光操作简单(例如<code>set get delete</code>等指令)，通信协议也简洁明了。
+本篇就会剖析Redis的通信协议，并且实现一个简单的Redis客户端。</p>
 
-<p>之前想新开的一个坑，目标是从0开始写一个CMS框架，将要实现的功能应该有：</p>
+<h2 id="协议">协议</h2>
 
-<ul>
-<li>媒体库</li>
-<li>导航栏配置</li>
-<li>富文本页</li>
-<li>文章及评论</li>
-<li>自定义模版样式(换肤)</li>
-<li>可视化编辑</li>
-<li>&hellip;</li>
-</ul>
-
-<p>但是发现传统的单config.py文件记录配置信息，不方便在开发环境和生产环境中来回切换。</p>
-
-<p>这里，提出一种方式，依据环境变量，自动加 …</p>
-                                <p class="readmore"><a href="https://xiongsyao.github.io/post/2018/03/7/%E5%8A%A8%E6%80%81%E5%8A%A0%E8%BD%BDDjango%E7%9A%84config%E9%85%8D%E7%BD%AE/">阅读全文</a></p>
+<p>Redis服务端与客户端使用的基于TCP的文本协议(敲黑板，这里并没有使用效率更高的二进制协议)，称之为<code>RESP</code>(Redis …</p>
+                                <p class="readmore"><a href="https://xiongsyao.github.io/post/2019/01/02/%E8%A7%A3%E8%AF%BBredis%E5%8D%8F%E8%AE%AE/">阅读全文</a></p>
                             </div>
                         </article>
                     

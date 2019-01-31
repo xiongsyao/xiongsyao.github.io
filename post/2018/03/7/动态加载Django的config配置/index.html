@@ -7,22 +7,27 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
 
-    <title>Django | Matrix</title>
-    <meta property="og:title" content="Django - Matrix">
+    <title>动态加载Django的config配置 | Matrix</title>
+    <meta property="og:title" content="动态加载Django的config配置 - Matrix">
     <meta property="og:type" content="article">
         
+    <meta property="article:published_time" content="2018-03-07T14:29:58&#43;08:00">
+        
+        
+    <meta property="article:modified_time" content="2018-03-07T14:29:58&#43;08:00">
         
     <meta name="Keywords" content="golang,python">
-    <meta name="description" content="Django">
+    <meta name="description" content="动态加载Django的config配置">
         
     <meta name="author" content="matrix">
-    <meta property="og:url" content="https://xiongsyao.github.io/categories/Django/">
+    <meta property="og:url" content="https://xiongsyao.github.io/post/2018/03/7/%E5%8A%A8%E6%80%81%E5%8A%A0%E8%BD%BDDjango%E7%9A%84config%E9%85%8D%E7%BD%AE/">
     <link rel="shortcut icon" href="/favicon.ico" type="image/x-icon">
 
     <link rel="stylesheet" href="/css/normalize.css">
     
+        <link rel="stylesheet" href="/css/prism.css">
+    
     <link rel="stylesheet" href="/css/style.css">
-    <link rel="alternate" type="application/rss+xml+xml" href="https://xiongsyao.github.io/categories/Django/index.xml" title="Matrix" />
     <script type="text/javascript" src="//cdn.bootcss.com/jquery/3.2.1/jquery.min.js"></script>
 
     
@@ -31,7 +36,6 @@
     
     
 </head>
-
 
 <body>
 <header id="header" class="clearfix">
@@ -47,7 +51,7 @@
             </div>
             <div>
                 <nav id="nav-menu" class="clearfix">
-                    <a class="" href="https://xiongsyao.github.io/">首页</a>
+                    <a class="current" href="https://xiongsyao.github.io/">首页</a>
                     
                     <a  href="https://xiongsyao.github.io/archives/" title="归档">归档</a>
                     
@@ -66,34 +70,26 @@
 
             <div class="col-8" id="main">
                 <div class="res-cons">
-                    
-                    <h3 class="archive-title">
-                        分类
-                        <span class="keyword">Django</span>
-                        中的文章
-                    </h3>
-                    
+                    <article class="post">
+                        <header>
+                            <h1 class="post-title">动态加载Django的config配置</h1>
+                        </header>
+                        <date class="post-meta meta-date">
+                            2018年3月7日
+                        </date>
+                        
+                        <div class="post-meta meta-category">
+                            |
+                            
+                                <a href="https://xiongsyao.github.io/categories/Django">Django</a>
+                            
+                        </div>
+                        
+                        
+                        <div class="post-content">
+                            
 
-                    
-                        <article class="post">
-                            <header>
-                                <h1 class="post-title">
-                                    <a href="https://xiongsyao.github.io/post/2018/03/7/%E5%8A%A8%E6%80%81%E5%8A%A0%E8%BD%BDDjango%E7%9A%84config%E9%85%8D%E7%BD%AE/">动态加载Django的config配置</a>
-                                </h1>
-                            </header>
-                            <date class="post-meta meta-date">
-                                2018年3月7日
-                            </date>
-                            
-                            <div class="post-meta meta-category">
-                                |
-                                
-                                    <a href="https://xiongsyao.github.io/categories/Django">Django</a>
-                                
-                            </div>
-                            
-                            <div class="post-content">
-                                <blockquote>
+<blockquote>
 <p>github本章代码: <strong><a href="https://github.com/xiongsyao/django-cms/tree/05879ef5f4221ed237bffe4c484d65cc27d6a05e">点这里</a></strong></p>
 </blockquote>
 
@@ -113,20 +109,110 @@
 
 <p>但是发现传统的单config.py文件记录配置信息，不方便在开发环境和生产环境中来回切换。</p>
 
-<p>这里，提出一种方式，依据环境变量，自动加 …</p>
-                                <p class="readmore"><a href="https://xiongsyao.github.io/post/2018/03/7/%E5%8A%A8%E6%80%81%E5%8A%A0%E8%BD%BDDjango%E7%9A%84config%E9%85%8D%E7%BD%AE/">阅读全文</a></p>
-                            </div>
-                        </article>
+<p>这里，提出一种方式，依据环境变量，自动加载当前模式下的配置</p>
+
+<h2 id="开始">开始</h2>
+
+<p>在开始项目前，我们需要了解下开发的基本情况</p>
+
+<ul>
+<li>项目基于<code>python3.6</code>，<code>django 2.0</code></li>
+<li>一些配置会使用到环境变量，一些帐号密码之类的配置，采用环境变量来设置是极为合理的（尤其是对于开源项目），如何设置环境变量？
+
+<ul>
+<li>windows:  <code>set KEY=VALUE</code></li>
+<li>Linux or Mac OS:  <code>export KEY=VALUE</code></li>
+</ul></li>
+</ul>
+
+<h2 id="项目配置">项目配置</h2>
+
+<p>django 的startproject命令创建的项目，结构不太合理，因为开发中与实际上线，会有一些配置上的差异，所以我们修改settings.py文件为config文件夹，来加载开发配置与生产配置。</p>
+
+<p>以开发模式为例，development.py文件里的内容</p>
+
+<pre><code>from configs.default import *
+
+DEBUG = True
+</code></pre>
+
+<p>我们设置<code>DEBUG=True</code>，而在production.py中设置<code>DEBUG=False</code></p>
+
+<p>同时，修改manage.py文件中</p>
+
+<pre><code>os.environ.setdefault(&quot;DJANGO_SETTINGS_MODULE&quot;, &quot;settings.py&quot;)
+</code></pre>
+
+<p>为</p>
+
+<pre><code>env = os.getenv('DJANGO_CMS', 'development')
+os.environ.setdefault(&quot;DJANGO_SETTINGS_MODULE&quot;, &quot;configs.{}&quot;.format(env))
+</code></pre>
+
+<p>这样便实现了通过环境变量控制应用配置。</p>
+
+<p>生产环境中，django 自带的server功能太弱，一般会使用uwsgi或者gunicore之类的server，所以还需要修改wsgi.py文件里配置，方法同上。</p>
+
+<h2 id="hello">HELLO</h2>
+
+<p>创建名为django_cms的数据库，之后clone项目，为项目创建虚拟环境并激活，然后进入项目文件夹，依次执行：</p>
+
+<ul>
+<li><code>set MYSQL_USER=&lt;your username&gt;</code></li>
+<li><code>set MYSQL_PASSWOR=&lt;your password&gt;</code></li>
+<li><code>python manage.py migrate</code></li>
+<li><code>python manage.py runserver</code></li>
+</ul>
+
+<p>接着浏览器打开 <a href="http://127.0.0.1:8000/hi/">http://127.0.0.1:8000/hi/</a> 就能看见<code>hello!</code>， 至此，项目创建成功~</p>
+
+                        </div>
+
+                        
+
+<div class="post-archive">
+    <h2>See Also</h2>
+    <ul class="listing">
+        
+        <li><a href="/post/2018/01/25/%E4%BB%8E0%E5%BC%80%E5%A7%8B%E7%9A%84JS%E4%B9%8B%E6%97%85%E4%B8%89DOM%E6%93%8D%E4%BD%9C%E5%9F%BA%E7%A1%80/">从0开始的JS之旅（三）：DOM操作基础</a></li>
+        
+        <li><a href="/post/2018/01/25/%E4%BB%8E0%E5%BC%80%E5%A7%8B%E7%9A%84JS%E4%B9%8B%E6%97%85%E4%BA%8C%E9%9D%A2%E5%90%91%E5%AF%B9%E8%B1%A1%E7%BC%96%E7%A8%8B/">从0开始的JS之旅（二）：面向对象编程</a></li>
+        
+        <li><a href="/post/2018/01/25/%E4%BB%8E0%E5%BC%80%E5%A7%8B%E7%9A%84JS%E4%B9%8B%E6%97%85%E4%B8%80%E6%95%B0%E6%8D%AE%E7%B1%BB%E5%9E%8B%E6%B5%81%E7%A8%8B%E8%AF%AD%E5%8F%A5%E5%8F%8A%E5%87%BD%E6%95%B0/">从0开始的JS之旅（一）：数据类型，流程语句及函数</a></li>
+        
+        <li><a href="/archives/">归档</a></li>
+        
+    </ul>
+</div>
+
+
+                        <div class="post-meta meta-tags">
+                            
+                            <ul class="clearfix">
+                                
+                                <li><a href="https://xiongsyao.github.io/tags/Django">Django</a></li>
+                                
+                            </ul>
+                            
+                        </div>
+                    </article>
                     
+    
 
-                    
-
-
-
-
+    
+    
+    <div class="post bg-white">
+      <script src="https://utteranc.es/client.js"
+            repo= "xiongsyao/comments"
+            issue-term="pathname"
+            theme="github-light"
+            crossorigin="anonymous"
+            async>
+      </script>
+    </div>
+    
                 </div>
             </div>
-
             <div id="secondary">
     <section class="widget">
         <form id="search" action="//www.google.com/search" method="get" accept-charset="utf-8" target="_blank" _lpchecked="1">
@@ -250,9 +336,24 @@
 </footer>
 
 
+    <script type="text/javascript">
+    
+    (function(){
+        $("pre code").parent().addClass("line-numbers")
+    }())
+
+    window.MathJax = {
+        tex2jax: {
+            inlineMath: [ ['$','$'] ],
+            processEscapes: true
+        }
+    };
+    </script>
+    <script type="text/javascript" src="/js/prism.js" async="true"></script>
+    <script src='https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-MML-AM_CHTML' async></script>
+
 <a id="rocket" href="#top"></a>
 <script type="text/javascript" src="/js/totop.js?v=0.0.0" async=""></script>
-
 
 
 

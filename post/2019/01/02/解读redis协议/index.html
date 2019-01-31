@@ -7,20 +7,20 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
 
-    <title>[LeetCode]150:逆波兰表达式求值 | Matrix</title>
-    <meta property="og:title" content="[LeetCode]150:逆波兰表达式求值 - Matrix">
+    <title>解读redis协议 | Matrix</title>
+    <meta property="og:title" content="解读redis协议 - Matrix">
     <meta property="og:type" content="article">
         
-    <meta property="article:published_time" content="2018-12-19T15:08:08&#43;08:00">
+    <meta property="article:published_time" content="2019-01-02T17:20:16&#43;08:00">
         
         
-    <meta property="article:modified_time" content="2018-12-19T15:08:08&#43;08:00">
+    <meta property="article:modified_time" content="2019-01-02T17:20:16&#43;08:00">
         
     <meta name="Keywords" content="golang,python">
-    <meta name="description" content="[LeetCode]150:逆波兰表达式求值">
+    <meta name="description" content="解读redis协议">
         
     <meta name="author" content="matrix">
-    <meta property="og:url" content="https://xiongsyao.github.io/post/2018/12/17/LeetCode150%E9%80%86%E6%B3%A2%E5%85%B0%E8%A1%A8%E8%BE%BE%E5%BC%8F%E6%B1%82%E5%80%BC/">
+    <meta property="og:url" content="https://xiongsyao.github.io/post/2019/01/02/%E8%A7%A3%E8%AF%BBredis%E5%8D%8F%E8%AE%AE/">
     <link rel="shortcut icon" href="/favicon.ico" type="image/x-icon">
 
     <link rel="stylesheet" href="/css/normalize.css">
@@ -72,16 +72,16 @@
                 <div class="res-cons">
                     <article class="post">
                         <header>
-                            <h1 class="post-title">[LeetCode]150:逆波兰表达式求值</h1>
+                            <h1 class="post-title">解读redis协议</h1>
                         </header>
                         <date class="post-meta meta-date">
-                            2018年12月19日
+                            2019年1月2日
                         </date>
                         
                         <div class="post-meta meta-category">
                             |
                             
-                                <a href="https://xiongsyao.github.io/categories/leetcode">leetcode</a>
+                                <a href="https://xiongsyao.github.io/categories/Redis">Redis</a>
                             
                         </div>
                         
@@ -89,92 +89,160 @@
                         <div class="post-content">
                             
 
-<blockquote>
-<p>本章代码: <strong><a href="https://github.com/erds8806/leetcode/tree/master/150_Evaluate_Reverse_Polish_Notation">这里</a></strong></p>
-</blockquote>
+<h2 id="前言">前言</h2>
 
-<h2 id="思路">思路</h2>
+<p>Redis作为我们日常使用的key-value数据库，不光操作简单(例如<code>set get delete</code>等指令)，通信协议也简洁明了。
+本篇就会剖析Redis的通信协议，并且实现一个简单的Redis客户端。</p>
 
-<p>leetcode第150题： 根据逆波兰表示法，求表达式的值。(题目具体信息文章顶部的链接代码里有)</p>
+<h2 id="协议">协议</h2>
 
-<p>这是一道运用<strong>栈</strong>来求解的题。</p>
+<p>Redis服务端与客户端使用的基于TCP的文本协议(敲黑板，这里并没有使用效率更高的二进制协议)，称之为<code>RESP</code>(Redis Serialization Protocol)。区别于同样是文本协议的<code>HTTP</code>协议，<code>RESP</code>尤为简洁，其基础规则很容易理解。</p>
 
-<p>通过分析题目意思，我们很容易想出这样的做法：</p>
+<h3 id="请求信息">请求信息</h3>
 
-<ol>
-<li>遍历字符，每当遇到非操作符(即数字)时，我们将此数字入栈。</li>
-<li>当遇到操作符时(即<code>+</code> <code>-</code> <code>*</code> <code>/</code>), 我们将栈顶的两个元素出栈，并按顺序与操作符执行运算，例如，当前操作符为<code>/</code>，出栈元素为依次为n2, n1, 则n3 = n2 / n1,并将计算结果n3入栈。</li>
-<li>当遍历完输入后，栈中只剩一个最终的元素，此元素极为表达式最终的结果。</li>
-</ol>
+<p>假如我们执行<code>set test ok</code>这样的命令，可以视为准备了一个<code>[&quot;set&quot;, &quot;test&quot;, &quot;ok&quot;]</code>这样的数组，随即将其序列化为字符串，序列化规则如下:</p>
 
-<h2 id="代码">代码</h2>
+<ul>
+<li>首先以每一个指令以<code>*</code>开头指明数组长度</li>
+<li>以<code>$</code>开头指明下个元素的字符长度</li>
+<li>每一个元素以间隔符号<code>\r\n</code>(CRLF)隔开</li>
+</ul>
 
-<h3 id="go">Go</h3>
+<p>按这个规则,<code>set test ok</code>则为:</p>
 
-<pre><code class="language-Go">func evalRPN(tokens []string) int {
-	operations := map[string]func(int, int) int{
-		&quot;+&quot;: func(number1, number2 int) int {return number1+number2},
-		&quot;-&quot;: func(number1, number2 int) int {return number1-number2},
-		&quot;*&quot;: func(number1, number2 int) int {return number1*number2},
-		&quot;/&quot;: func(number1, number2 int) int {return int(number1/number2)},
+<pre><code>*3\r\n
+$3\r\n
+set\r\n
+$4\r\n
+test\r\n
+$2\r\n
+ok\r\n
+</code></pre>
+
+<p>以<code>python</code>为例:</p>
+
+<pre><code class="language-python">import redis
+r = redis.Redis()
+r.set('hello', 'world')
+</code></pre>
+
+<p>那么将发送的指令为<code>*3\r\n$3\r\nset\r\n$5\r\nhello\r\n$5\r\nworld\r\n</code>，收到的响应为<code>+OK\r\n</code>。</p>
+
+<h3 id="响应信息">响应信息</h3>
+
+<p>RESP协议中，不同类型的响应信息，会以不同的字符开头，比如上例中，<code>+OK\r\n</code>就以<code>+</code>开头。
++ 简单字符串(Simple Strings)响应会以&rdquo;+&ldquo;开头
+  &gt;+OK\r\n
++ 错误(Errors)响应会以&rdquo;-&ldquo;开头
+  &gt;-ERR unkown command &lsquo;ST&rsquo;\r\n
++ 数字(Integer)响应会以&rdquo;:&ldquo;开头
+  &gt;:2\r\n
++ 大字符串(Bulk Strings)会以&rdquo;$&ldquo;开头，并且随之标出字符串字节数
+  &gt;$13\r\nHello, World!\r\n
++ 数组类型(Arrays)类似与请求信息的序列化一致（在<code>HGETALL</code><code>LRANGE</code><code>MGET</code>命令中会返回)。</p>
+
+<h2 id="实例">实例</h2>
+
+<p>接下来，我们将用go实现一个简单的redis客户端</p>
+
+<pre><code class="language-go">// file is kv.go
+package main
+
+import (
+	&quot;log&quot;
+	&quot;net&quot;
+	&quot;os&quot;
+	&quot;strconv&quot;
+	&quot;strings&quot;
+)
+
+// serialize将待发送的命令按RESP协议处理成合法的字符串
+func serialize(args []string) []byte {
+	r := []string{
+		&quot;*&quot; + strconv.Itoa(len(args)),
 	}
-	stack := []int{}
-	for _, token := range tokens {
-		if operationfunc, had := operations[token]; had {
-			length := len(stack)
-			number1, number2 := stack[length-2], stack[length-1]
-			stack = stack[:length-2]
-			number := operationfunc(number1, number2)
-			stack = append(stack, number)
-		} else {
-			number, _ := strconv.Atoi(token)
-			stack = append(stack, number)
+
+	for _, arg := range args {
+		r = append(r, &quot;$&quot;+strconv.Itoa(len(arg)))
+		r = append(r, arg)
+	}
+
+	str := strings.Join(r, &quot;\r\n&quot;)
+	return []byte(str + &quot;\r\n&quot;)
+}
+
+// parseResponse解析响应信息
+func parseResponse(r []byte, n int) string {
+	flag := r[0]
+	switch flag {
+	case '+':
+		return string(r[1 : n-2])
+	case '-':
+		return string(r[1 : n-2])
+	case ':':
+		return string(r[1 : n-2])
+	case '$':
+		var pos int
+		for i, v := range r {
+			if v == '\n' {
+				pos = i
+				break
+			}
 		}
+		return string(r[pos+1 : n-2])
+	case '*':
+		out := []byte{}
+		canAdd := false
+		for _, current := range r {
+			if canAdd {
+				if current == '*' || current == '$' {
+					canAdd = false
+				} else {
+					if current != '\n' &amp;&amp; current != '\r' {
+						out = append(out, current)
+					}
+				}
+			} else {
+				if current == '\n' {
+					canAdd = true
+				}
+			}
+		}
+		return string(out)
+	default:
+		return &quot;&quot;
 	}
-	return stack[0]
+}
+
+func main() {
+	// 获取所需执行的命令
+	args := os.Args[1:]
+	if len(args) &lt;= 0 {
+		log.Fatalln(&quot;需要一个以上参数&quot;)
+	}
+
+	// 获取redis连接
+	redisConn, err := net.Dial(&quot;tcp&quot;, &quot;127.0.0.1:6379&quot;)
+	if err != nil {
+		log.Fatalln(err.Error())
+	}
+	defer redisConn.Close()
+
+	// 发送命令
+	command := serialize(args)
+	_, err = redisConn.Write(command)
+
+	// 获取响应
+	response := make([]byte, 1024)
+	n, err := redisConn.Read(response)
+	r := response[:n]
+
+	// 打印解析后的响应
+	log.Println(parseResponse(r, n))
 }
 </code></pre>
 
-<h2 id="python3-5">Python3.5</h2>
-
-<pre><code class="language-Python">class Solution:
-    def evalRPN(self, tokens):
-        &quot;&quot;&quot;
-        :type tokens: List[str]
-        :rtype: int
-        &quot;&quot;&quot;
-        stack = []
-        operations = {
-            &quot;+&quot;: &quot;ADD&quot;,
-            &quot;-&quot;: &quot;SUB&quot;,
-            &quot;*&quot;: &quot;MUL&quot;,
-            &quot;/&quot;: &quot;DIV&quot;,
-        }
-        for token in tokens:
-            if token not in operations:
-                stack.append(int(token))
-            else:
-                operation = operations[token]
-                number2, number1 = stack.pop(), stack.pop()
-                if operation == &quot;ADD&quot;:
-                    number = number1 + number2
-                elif operation == &quot;SUB&quot;:
-                    number = number1 - number2
-                elif operation == &quot;MUL&quot;:
-                    number = number1 * number2
-                else:
-                    number = int(number1 / number2)
-                stack.append(number)
-        return stack.pop()
-</code></pre>
-
-<p>需要值得注意的是，这里python版本的解法，在执行除法操作时，是<code>int(number1 / number2)</code>，而不是<code>number1 // number2</code>，这是因为官方给出的说明里:</p>
-
-<blockquote>
-<p>Division between two integers should truncate toward zero.</p>
-</blockquote>
-
-<p>这里的保留整数，是指简单的取数字的整数部分。在正整数除法范围内，<code>number1 // number2</code>不会出现问题，但是在异号相除时，比如<code>-1/2</code>，官方期待的答案是<code>0</code>, 但是采用<code>number1 // number2</code>会得出<code>1</code>这个答案，这里是需要注意的地方。</p>
+<p>执行<code>go run kv.go set a &quot;hello world&quot;</code>,将看到返回<code>OK</code>。</p>
 
                         </div>
 
@@ -184,15 +252,15 @@
     <h2>See Also</h2>
     <ul class="listing">
         
+        <li><a href="/post/2018/12/28/%E8%B0%88%E8%B0%88golang%E4%B8%AD%E7%9A%84%E9%94%81/">谈谈golang中的锁</a></li>
+        
+        <li><a href="/post/2018/12/17/LeetCode150%E9%80%86%E6%B3%A2%E5%85%B0%E8%A1%A8%E8%BE%BE%E5%BC%8F%E6%B1%82%E5%80%BC/">[LeetCode]150:逆波兰表达式求值</a></li>
+        
         <li><a href="/about/">关于</a></li>
         
         <li><a href="/post/2018/03/7/%E5%8A%A8%E6%80%81%E5%8A%A0%E8%BD%BDDjango%E7%9A%84config%E9%85%8D%E7%BD%AE/">动态加载Django的config配置</a></li>
         
         <li><a href="/post/2018/01/25/%E4%BB%8E0%E5%BC%80%E5%A7%8B%E7%9A%84JS%E4%B9%8B%E6%97%85%E4%B8%89DOM%E6%93%8D%E4%BD%9C%E5%9F%BA%E7%A1%80/">从0开始的JS之旅（三）：DOM操作基础</a></li>
-        
-        <li><a href="/post/2018/01/25/%E4%BB%8E0%E5%BC%80%E5%A7%8B%E7%9A%84JS%E4%B9%8B%E6%97%85%E4%BA%8C%E9%9D%A2%E5%90%91%E5%AF%B9%E8%B1%A1%E7%BC%96%E7%A8%8B/">从0开始的JS之旅（二）：面向对象编程</a></li>
-        
-        <li><a href="/post/2018/01/25/%E4%BB%8E0%E5%BC%80%E5%A7%8B%E7%9A%84JS%E4%B9%8B%E6%97%85%E4%B8%80%E6%95%B0%E6%8D%AE%E7%B1%BB%E5%9E%8B%E6%B5%81%E7%A8%8B%E8%AF%AD%E5%8F%A5%E5%8F%8A%E5%87%BD%E6%95%B0/">从0开始的JS之旅（一）：数据类型，流程语句及函数</a></li>
         
     </ul>
 </div>
@@ -202,9 +270,9 @@
                             
                             <ul class="clearfix">
                                 
-                                <li><a href="https://xiongsyao.github.io/tags/leetcode">leetcode</a></li>
+                                <li><a href="https://xiongsyao.github.io/tags/Redis">Redis</a></li>
                                 
-                                <li><a href="https://xiongsyao.github.io/tags/stack">stack</a></li>
+                                <li><a href="https://xiongsyao.github.io/tags/%E5%8D%8F%E8%AE%AE">协议</a></li>
                                 
                             </ul>
                             

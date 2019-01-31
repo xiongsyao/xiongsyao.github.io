@@ -7,20 +7,20 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
 
-    <title>[LeetCode]150:逆波兰表达式求值 | Matrix</title>
-    <meta property="og:title" content="[LeetCode]150:逆波兰表达式求值 - Matrix">
+    <title>从0开始的JS之旅（二）：面向对象编程 | Matrix</title>
+    <meta property="og:title" content="从0开始的JS之旅（二）：面向对象编程 - Matrix">
     <meta property="og:type" content="article">
         
-    <meta property="article:published_time" content="2018-12-19T15:08:08&#43;08:00">
+    <meta property="article:published_time" content="2018-01-25T13:48:56&#43;08:00">
         
         
-    <meta property="article:modified_time" content="2018-12-19T15:08:08&#43;08:00">
+    <meta property="article:modified_time" content="2018-01-25T13:48:56&#43;08:00">
         
     <meta name="Keywords" content="golang,python">
-    <meta name="description" content="[LeetCode]150:逆波兰表达式求值">
+    <meta name="description" content="从0开始的JS之旅（二）：面向对象编程">
         
     <meta name="author" content="matrix">
-    <meta property="og:url" content="https://xiongsyao.github.io/post/2018/12/17/LeetCode150%E9%80%86%E6%B3%A2%E5%85%B0%E8%A1%A8%E8%BE%BE%E5%BC%8F%E6%B1%82%E5%80%BC/">
+    <meta property="og:url" content="https://xiongsyao.github.io/post/2018/01/25/%E4%BB%8E0%E5%BC%80%E5%A7%8B%E7%9A%84JS%E4%B9%8B%E6%97%85%E4%BA%8C%E9%9D%A2%E5%90%91%E5%AF%B9%E8%B1%A1%E7%BC%96%E7%A8%8B/">
     <link rel="shortcut icon" href="/favicon.ico" type="image/x-icon">
 
     <link rel="stylesheet" href="/css/normalize.css">
@@ -72,16 +72,16 @@
                 <div class="res-cons">
                     <article class="post">
                         <header>
-                            <h1 class="post-title">[LeetCode]150:逆波兰表达式求值</h1>
+                            <h1 class="post-title">从0开始的JS之旅（二）：面向对象编程</h1>
                         </header>
                         <date class="post-meta meta-date">
-                            2018年12月19日
+                            2018年1月25日
                         </date>
                         
                         <div class="post-meta meta-category">
                             |
                             
-                                <a href="https://xiongsyao.github.io/categories/leetcode">leetcode</a>
+                                <a href="https://xiongsyao.github.io/categories/JavaScript">JavaScript</a>
                             
                         </div>
                         
@@ -89,92 +89,181 @@
                         <div class="post-content">
                             
 
+<h1 id="从0开始的js之旅-二">从0开始的JS之旅（二）</h1>
+
+<h2 id="面向对象">面向对象</h2>
+
+<h3 id="类">类</h3>
+
 <blockquote>
-<p>本章代码: <strong><a href="https://github.com/erds8806/leetcode/tree/master/150_Evaluate_Reverse_Polish_Notation">这里</a></strong></p>
+<p>JavaScript是一种基于原型的语言，它没类的声明语句，比如C+ +或Java中用的。这有时会对习惯使用有类申明语句语言的程序员产生困扰。相反，JavaScript可用方法作类。定义一个类跟定义一个函数一样简单。在下面的例子中，我们定义了一个新类Person。</p>
+
+<pre><code class="language-JS">function Person() {...}
+
+var Person = function() {...}
+</code></pre>
+
+<p>类名采用<strong>首字母大写</strong>的方式，以此来与函数声明区分开。</p>
+
+<h3 id="对象">对象</h3>
+
+<p>对象是类的实例，一般通过<code>new obj</code>的方式创建，下面演示了如何创建一个类的实例。</p>
+
+<pre><code class="language-JS">function Person() {...}
+var person1 = new Person();
+var person2 = new Person();
+</code></pre>
+
+<h3 id="构造器">构造器</h3>
+
+<p>构造器指在实例创建时执行的方法，类似于python的<strong>init</strong>方法。</p>
+
+<pre><code class="language-JS">function Person() {
+    console.log(&quot;init&quot;)
+};
+
+var person1 = new Person(); // -&gt; init
+</code></pre>
+
+<h3 id="属性">属性</h3>
+
+<p>属性就是 类中包含的变量;每一个对象实例有若干个属性. 为了正确的继承，属性应该被定义在类的原型属性 (函数)中。可以使用 关键字 this调用类中的属性, this是对当前对象的引用。从外部存取(读/写)其属性的语法是: InstanceName.Property。</p>
+
+<pre><code class="language-JS">function Person(name) {
+    this.name = name;
+    console.log(this.name);
+}
+
+var person1 = new Person('Xiong') // -&gt; Xiong
+console.log(person1.name) // -&gt; Xiong
+</code></pre>
+
+<h3 id="方法">方法</h3>
+
+<p>方法指的是类中的方法</p>
+
+<pre><code class="language-JS">function Person(name) {
+    this.name = name;
+    this.greeting = function() {
+        console.log(this.name)
+    }
+}
+var person = new Person(&quot;xiong&quot;);
+person.greeting(); // -&gt; xiong
+</code></pre>
+
+<h3 id="继承">继承</h3>
+
+<ul>
+<li>构造函数继承</li>
+</ul>
 </blockquote>
 
-<h2 id="思路">思路</h2>
+<p>同其他语言的面向对象一样，JS同样支持继承，它的继承，来源于<strong>原型链</strong><code>prototype</code></p>
 
-<p>leetcode第150题： 根据逆波兰表示法，求表达式的值。(题目具体信息文章顶部的链接代码里有)</p>
+<pre><code class="language-JS">function Person(name) {
+    this.name = name;
+    this.greeting = function() {
+        console.log(this.name)
+    }
+}
 
-<p>这是一道运用<strong>栈</strong>来求解的题。</p>
-
-<p>通过分析题目意思，我们很容易想出这样的做法：</p>
-
-<ol>
-<li>遍历字符，每当遇到非操作符(即数字)时，我们将此数字入栈。</li>
-<li>当遇到操作符时(即<code>+</code> <code>-</code> <code>*</code> <code>/</code>), 我们将栈顶的两个元素出栈，并按顺序与操作符执行运算，例如，当前操作符为<code>/</code>，出栈元素为依次为n2, n1, 则n3 = n2 / n1,并将计算结果n3入栈。</li>
-<li>当遍历完输入后，栈中只剩一个最终的元素，此元素极为表达式最终的结果。</li>
-</ol>
-
-<h2 id="代码">代码</h2>
-
-<h3 id="go">Go</h3>
-
-<pre><code class="language-Go">func evalRPN(tokens []string) int {
-	operations := map[string]func(int, int) int{
-		&quot;+&quot;: func(number1, number2 int) int {return number1+number2},
-		&quot;-&quot;: func(number1, number2 int) int {return number1-number2},
-		&quot;*&quot;: func(number1, number2 int) int {return number1*number2},
-		&quot;/&quot;: func(number1, number2 int) int {return int(number1/number2)},
-	}
-	stack := []int{}
-	for _, token := range tokens {
-		if operationfunc, had := operations[token]; had {
-			length := len(stack)
-			number1, number2 := stack[length-2], stack[length-1]
-			stack = stack[:length-2]
-			number := operationfunc(number1, number2)
-			stack = append(stack, number)
-		} else {
-			number, _ := strconv.Atoi(token)
-			stack = append(stack, number)
-		}
-	}
-	return stack[0]
+function Woman(name) {
+    Person.call(this, name)
+    this.sex = &quot;woman&quot;
 }
 </code></pre>
 
-<h2 id="python3-5">Python3.5</h2>
+<p><code>Woman</code>继承自<code>Person</code>,它具备了<code>Person</code>的<code>name</code>属性和<code>greeting</code>方法，同时，扩展自己的属性<code>sex</code></p>
 
-<pre><code class="language-Python">class Solution:
-    def evalRPN(self, tokens):
-        &quot;&quot;&quot;
-        :type tokens: List[str]
-        :rtype: int
-        &quot;&quot;&quot;
-        stack = []
-        operations = {
-            &quot;+&quot;: &quot;ADD&quot;,
-            &quot;-&quot;: &quot;SUB&quot;,
-            &quot;*&quot;: &quot;MUL&quot;,
-            &quot;/&quot;: &quot;DIV&quot;,
-        }
-        for token in tokens:
-            if token not in operations:
-                stack.append(int(token))
-            else:
-                operation = operations[token]
-                number2, number1 = stack.pop(), stack.pop()
-                if operation == &quot;ADD&quot;:
-                    number = number1 + number2
-                elif operation == &quot;SUB&quot;:
-                    number = number1 - number2
-                elif operation == &quot;MUL&quot;:
-                    number = number1 * number2
-                else:
-                    number = int(number1 / number2)
-                stack.append(number)
-        return stack.pop()
+<p>运行下面代码</p>
+
+<pre><code class="language-JS">var lucy = new Woman(&quot;lucy&quot;)
+lucy.name // -&gt; lucy
+lucy.greeting(); // -&gt; lucy
+lucy.sex // -&gt; woman
 </code></pre>
 
-<p>需要值得注意的是，这里python版本的解法，在执行除法操作时，是<code>int(number1 / number2)</code>，而不是<code>number1 // number2</code>，这是因为官方给出的说明里:</p>
+<p>可以看到，<code>lucy</code>具备<code>Woman</code>从<code>Person</code>继承的方法和属性。</p>
 
-<blockquote>
-<p>Division between two integers should truncate toward zero.</p>
-</blockquote>
+<p>保持上面的代码别动，接着，我们为<code>Person</code>动态的增加一个新的方法</p>
 
-<p>这里的保留整数，是指简单的取数字的整数部分。在正整数除法范围内，<code>number1 // number2</code>不会出现问题，但是在异号相除时，比如<code>-1/2</code>，官方期待的答案是<code>0</code>, 但是采用<code>number1 // number2</code>会得出<code>1</code>这个答案，这里是需要注意的地方。</p>
+<pre><code class="language-JS">Person.prototype.eat = function() {
+    console.log(this.name + &quot; is eating&quot;)
+};
+
+lucy.eat(); // -&gt; error
+</code></pre>
+
+<p>在为<code>Person</code>新加方法后，其子类<code>Woman</code>的实例<code>lucy</code>并不具备这个方法。显然与我们预期的不一样，这里就需要用到另一种继承方式。
++ 原型链式继承
+&gt; 为了让子类继承父类的属性（也包括方法），首先需要定义一个构造函数。然后，将父类的新实例赋值给构造函数的原型。</p>
+
+<pre><code class="language-JS">function Parent(){
+    this.name = 'mike';
+}
+
+function Child(){
+    this.age = 12;
+}
+
+Child.prototype = new Parent(); // Child继承Parent，通过原型，形成链条
+
+var child = new Child()
+child.name // -&gt; 'mike'
+child.age  // -&gt; 12 
+
+Parent.prototype.eat = function() {
+    console.log(this.name + &quot; is eating&quot;)
+}  // 为Parent原型添加eat方法
+
+child.eat() // -&gt; mike is eating
+</code></pre>
+
+<p>这样，我们就实现了动态添加父类方法后，其子类的实例同时具备此方法，但是，使用原型继承主要由两个问题：字面量重写原型会中断关系，使用引用类型的原型，并且子类型还无法给超类型传递参数。所以一般情况下，我们会把构造函数与链式继承结合起来，称之为<strong>组合继承</strong>。
++ 组合继承</p>
+
+<p>对于<code>构造函数继承</code>一节的东西，我们运用组合继承，可以完美实现想要的效果，完整代码如下：</p>
+
+<pre><code class="language-JS">function Person(name) {
+    this.name = name;
+    this.greeting = function() {
+        console.log(this.name)
+    }
+}
+
+function Woman(name) {
+    Person.call(this, name) // 对象冒充，给超类型传参
+    this.sex = &quot;woman&quot;
+}
+Woman.prototype = Object.create(Person.prototype);  // 原型链继承
+
+var lucy = new Woman(&quot;lucy&quot;);
+
+Person.prototype.eat = function() {
+    console.log(this.name + &quot; is eating&quot;)
+};
+
+lucy.eat(); // -&gt; lucy is eating
+</code></pre>
+
+<p>其中，<code>Woman.prototype = Object.create(Person.prototype);</code>这一句，大体上是等同于<code>Woman.prototype = Person.prototype</code>，但是这样写更利于多态的表现，通常在组合继承中使用此类写法。</p>
+
+<h3 id="多态">多态</h3>
+
+<p>对于<strong>继承</strong>这一节，最后完整的例子中，要实现多态，例如，覆写<code>eat</code>方法，我们只需在原有的代码基础上，增加以下代码：</p>
+
+<pre><code class="language-JS">Woman.prototype.eat = function() {
+    Person.prototype.eat.call(this);
+    console.log(this.name + &quot;is&quot; + this.sex)
+}
+
+lucy.eat();
+// -&gt; lucy is eating
+// -&gt; lucy is woman
+</code></pre>
+
+<p>JS的面向对象其实是非常复杂的，这里只介绍了最基本的用法，另外，借助es6的<code>class</code>和<code>extend</code>，我们其实可以写出更优雅的代码，这一块会在之后的es6专题中讲到。</p>
 
                         </div>
 
@@ -184,15 +273,9 @@
     <h2>See Also</h2>
     <ul class="listing">
         
-        <li><a href="/about/">关于</a></li>
-        
-        <li><a href="/post/2018/03/7/%E5%8A%A8%E6%80%81%E5%8A%A0%E8%BD%BDDjango%E7%9A%84config%E9%85%8D%E7%BD%AE/">动态加载Django的config配置</a></li>
-        
-        <li><a href="/post/2018/01/25/%E4%BB%8E0%E5%BC%80%E5%A7%8B%E7%9A%84JS%E4%B9%8B%E6%97%85%E4%B8%89DOM%E6%93%8D%E4%BD%9C%E5%9F%BA%E7%A1%80/">从0开始的JS之旅（三）：DOM操作基础</a></li>
-        
-        <li><a href="/post/2018/01/25/%E4%BB%8E0%E5%BC%80%E5%A7%8B%E7%9A%84JS%E4%B9%8B%E6%97%85%E4%BA%8C%E9%9D%A2%E5%90%91%E5%AF%B9%E8%B1%A1%E7%BC%96%E7%A8%8B/">从0开始的JS之旅（二）：面向对象编程</a></li>
-        
         <li><a href="/post/2018/01/25/%E4%BB%8E0%E5%BC%80%E5%A7%8B%E7%9A%84JS%E4%B9%8B%E6%97%85%E4%B8%80%E6%95%B0%E6%8D%AE%E7%B1%BB%E5%9E%8B%E6%B5%81%E7%A8%8B%E8%AF%AD%E5%8F%A5%E5%8F%8A%E5%87%BD%E6%95%B0/">从0开始的JS之旅（一）：数据类型，流程语句及函数</a></li>
+        
+        <li><a href="/archives/">归档</a></li>
         
     </ul>
 </div>
@@ -202,9 +285,9 @@
                             
                             <ul class="clearfix">
                                 
-                                <li><a href="https://xiongsyao.github.io/tags/leetcode">leetcode</a></li>
+                                <li><a href="https://xiongsyao.github.io/tags/JavaScript%E5%9F%BA%E7%A1%80%E6%95%99%E7%A8%8B">JavaScript基础教程</a></li>
                                 
-                                <li><a href="https://xiongsyao.github.io/tags/stack">stack</a></li>
+                                <li><a href="https://xiongsyao.github.io/tags/JavaScript">JavaScript</a></li>
                                 
                             </ul>
                             

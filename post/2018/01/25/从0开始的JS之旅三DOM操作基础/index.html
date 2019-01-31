@@ -7,20 +7,20 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
 
-    <title>[LeetCode]150:逆波兰表达式求值 | Matrix</title>
-    <meta property="og:title" content="[LeetCode]150:逆波兰表达式求值 - Matrix">
+    <title>从0开始的JS之旅（三）：DOM操作基础 | Matrix</title>
+    <meta property="og:title" content="从0开始的JS之旅（三）：DOM操作基础 - Matrix">
     <meta property="og:type" content="article">
         
-    <meta property="article:published_time" content="2018-12-19T15:08:08&#43;08:00">
+    <meta property="article:published_time" content="2018-01-25T13:51:37&#43;08:00">
         
         
-    <meta property="article:modified_time" content="2018-12-19T15:08:08&#43;08:00">
+    <meta property="article:modified_time" content="2018-01-25T13:51:37&#43;08:00">
         
     <meta name="Keywords" content="golang,python">
-    <meta name="description" content="[LeetCode]150:逆波兰表达式求值">
+    <meta name="description" content="从0开始的JS之旅（三）：DOM操作基础">
         
     <meta name="author" content="matrix">
-    <meta property="og:url" content="https://xiongsyao.github.io/post/2018/12/17/LeetCode150%E9%80%86%E6%B3%A2%E5%85%B0%E8%A1%A8%E8%BE%BE%E5%BC%8F%E6%B1%82%E5%80%BC/">
+    <meta property="og:url" content="https://xiongsyao.github.io/post/2018/01/25/%E4%BB%8E0%E5%BC%80%E5%A7%8B%E7%9A%84JS%E4%B9%8B%E6%97%85%E4%B8%89DOM%E6%93%8D%E4%BD%9C%E5%9F%BA%E7%A1%80/">
     <link rel="shortcut icon" href="/favicon.ico" type="image/x-icon">
 
     <link rel="stylesheet" href="/css/normalize.css">
@@ -72,16 +72,16 @@
                 <div class="res-cons">
                     <article class="post">
                         <header>
-                            <h1 class="post-title">[LeetCode]150:逆波兰表达式求值</h1>
+                            <h1 class="post-title">从0开始的JS之旅（三）：DOM操作基础</h1>
                         </header>
                         <date class="post-meta meta-date">
-                            2018年12月19日
+                            2018年1月25日
                         </date>
                         
                         <div class="post-meta meta-category">
                             |
                             
-                                <a href="https://xiongsyao.github.io/categories/leetcode">leetcode</a>
+                                <a href="https://xiongsyao.github.io/categories/JavaScript">JavaScript</a>
                             
                         </div>
                         
@@ -89,92 +89,171 @@
                         <div class="post-content">
                             
 
+<h1 id="从0开始的js之旅-三">从0开始的JS之旅（三）</h1>
+
 <blockquote>
-<p>本章代码: <strong><a href="https://github.com/erds8806/leetcode/tree/master/150_Evaluate_Reverse_Polish_Notation">这里</a></strong></p>
+<p>前面讲了一些JS语言的基本语法，但是JS运用最广泛的地方就是前端开发了，肯定免不了操纵DOM节点，这章就讲讲DOM相关的东西</p>
+
+<h2 id="dom">DOM</h2>
+
+<p>究竟什么是DOM呢？文档对象模型 (DOM) 是HTML和XML文档的编程接口。它提供了对文档的结构化的表述，并定义了一种方式可以使从程序中对该结构进行访问，从而改变文档的结构，样式和内容。</p>
 </blockquote>
 
-<h2 id="思路">思路</h2>
+<p>我们从一个最简单的实例开始:</p>
 
-<p>leetcode第150题： 根据逆波兰表示法，求表达式的值。(题目具体信息文章顶部的链接代码里有)</p>
+<pre><code class="language-HTML">&lt;html&gt;
+    &lt;head&gt;
+    &lt;/head&gt;
+    &lt;body&gt;
+      &lt;p class=&quot;cls1&quot; id=&quot;ex1&quot;&gt;这是一句话&lt;/p&gt;
+      &lt;p class=&quot;cls2&quot; id=&quot;ex2&quot;&gt;这是一句不会出现的话&lt;/p&gt;
+      &lt;p class=&quot;cls3&quot; id=&quot;ex3&quot;&gt;这是一句话&lt;/p&gt;
+      &lt;button&gt;点我改变页面&lt;/button&gt;
+    &lt;/body&gt;
+    &lt;script&gt;
+        // 获取元素
+        var myText1 = document.getElementById(&quot;ex1&quot;)
+        console.log(myText1)
+        // 插入元素
+        var myBlod = document.createElement(&quot;b&quot;)
+        blod_text = document.createTextNode(&quot;加粗的话&quot;)
+        myBlod.appendChild(blod_text)
+        document.body.appendChild(myBlod)
+        // 删除元素
+        var myText2 = document.getElementsByClassName(&quot;cls2&quot;)[0]
+        document.body.removeChild(myText2)
+        // 改变元素
+        var myText3 = document.getElementById(&quot;ex3&quot;)
+        myText3.innerText = &quot;这是一句被改变的话&quot;
+        myText3.style.color = &quot;red&quot;
+        // 动态改变
+        var myButton = document.getElementsByTagName(&quot;button&quot;)[0]
+        myButton.addEventListener(&quot;click&quot;, function() {
+          myText1.classList.toggle(&quot;active&quot;)
+        })
+    &lt;/script&gt;
+    &lt;style&gt;
+     .active {
+       font-size: 1.5rem;
+       color: red;
+       border: 1px solid gray;
+     }
+    &lt;/style&gt;
+&lt;/html&gt;
+</code></pre>
 
-<p>这是一道运用<strong>栈</strong>来求解的题。</p>
+<p>上面演示了一些最基本的DOM节点操作，因为DOM操作的API繁多，这里就不一一列举，具体的可以看<a href="https://developer.mozilla.org/en-US/docs/Web/API/Document"><strong>MDN</strong></a>。
+这些DOM操作的API实际没必要去记忆，经常用的肯定会记住，为了之后的实战，这里会讲一些Canvas相关的东西。</p>
 
-<p>通过分析题目意思，我们很容易想出这样的做法：</p>
+<h2 id="canvas">Canvas</h2>
 
-<ol>
-<li>遍历字符，每当遇到非操作符(即数字)时，我们将此数字入栈。</li>
-<li>当遇到操作符时(即<code>+</code> <code>-</code> <code>*</code> <code>/</code>), 我们将栈顶的两个元素出栈，并按顺序与操作符执行运算，例如，当前操作符为<code>/</code>，出栈元素为依次为n2, n1, 则n3 = n2 / n1,并将计算结果n3入栈。</li>
-<li>当遍历完输入后，栈中只剩一个最终的元素，此元素极为表达式最终的结果。</li>
-</ol>
+<blockquote>
+<p><code>&lt;canvas&gt;</code>是一个特殊的html标签，它允许我们使用JS在其上绘图，这里我们介绍下<code>canvas</code>的一些基本API，然后接下来，我们就可以用它做一些有趣的事情。</p>
 
-<h2 id="代码">代码</h2>
+<h3 id="图形">图形</h3>
 
-<h3 id="go">Go</h3>
+<p>创建一个<code>canvas</code>元素：</p>
 
-<pre><code class="language-Go">func evalRPN(tokens []string) int {
-	operations := map[string]func(int, int) int{
-		&quot;+&quot;: func(number1, number2 int) int {return number1+number2},
-		&quot;-&quot;: func(number1, number2 int) int {return number1-number2},
-		&quot;*&quot;: func(number1, number2 int) int {return number1*number2},
-		&quot;/&quot;: func(number1, number2 int) int {return int(number1/number2)},
-	}
-	stack := []int{}
-	for _, token := range tokens {
-		if operationfunc, had := operations[token]; had {
-			length := len(stack)
-			number1, number2 := stack[length-2], stack[length-1]
-			stack = stack[:length-2]
-			number := operationfunc(number1, number2)
-			stack = append(stack, number)
-		} else {
-			number, _ := strconv.Atoi(token)
-			stack = append(stack, number)
-		}
-	}
-	return stack[0]
+<pre><code class="language-HTML">&lt;canvas id=&quot;tutorial&quot; width=&quot;150&quot; height=&quot;150&quot;&gt;&lt;/canvas&gt;
+</code></pre>
+
+<p>上述代码创建了一个<code>id</code>为<code>tutorial</code>，宽高均为150px的canvas画布。
+获取<code>canvas</code>对象,并且通过canvas的getContext方法获取“2d”渲染内容。</p>
+
+<pre><code class="language-JS">var canvas = document.getElementById('tutorial')
+var ctx = canvas.getContext('2d')
+</code></pre>
+
+<p>一个简单的实例：</p>
+
+<pre><code class="language-HTML">&lt;!DOCTYPE html&gt;
+&lt;html&gt;
+  &lt;head&gt;
+    &lt;meta charset=&quot;utf-8&quot;/&gt;
+    &lt;title&gt;Canvas tutorial&lt;/title&gt;
+  &lt;/head&gt;
+  &lt;body&gt;
+    &lt;canvas id=&quot;tutorial&quot; width=&quot;350&quot; height=&quot;350&quot;&gt;&lt;/canvas&gt;
+    &lt;script type=&quot;text/javascript&quot;&gt;
+      function draw(){
+        var canvas = document.getElementById('tutorial');
+        var ctx = canvas.getContext('2d');
+
+        // 红色正方形
+        ctx.beginPath();                   // 开始绘制
+        ctx.fillStyle = 'rgb(200, 0, 0)';  // 填充颜色
+        ctx.rect(10, 10, 50, 50);          // 定义图形(x, y, width, heigt), 前两个数字代表坐标，后两个代表宽高
+        ctx.fill();                        // 绘制
+        ctx.closePath();                   // 结束绘制
+        
+        // 黑色正方形
+        ctx.fillStyle = &quot;black&quot;;
+        ctx.fillRect(30, 30, 50, 50);      // 快速绘制方式
+
+        // 红色圆球
+        ctx.beginPath();                   
+        ctx.fillStyle = &quot;red&quot;; 
+        ctx.arc(175, 175, 20, 0, Math.PI*2, false);  // 定义图形(x, y, radiu, start_angle, end_angle, direction)         
+        ctx.fill(); 
+        ctx.closePath(); 
+      }
+      draw();
+    &lt;/script&gt;
+    &lt;style type=&quot;text/css&quot;&gt;
+      canvas { border: 1px solid black; }
+    &lt;/style&gt;
+  &lt;/body&gt;
+&lt;/html&gt;
+</code></pre>
+
+<p>这样我们就在画布上分别绘制了两个正方形和一个圆球。</p>
+
+<h3 id="运动">运动</h3>
+
+<p>上面我们只是创建了图形，但是怎么让图形动起来呢？一个简单的思路是：我们周期的去重绘图形，重绘的时候，去改变图形的坐标。这里，我们借助<code>setInterval</code>这个方法，这个方法创建了一个定时器。</p>
+
+<pre><code class="language-HTML">function draw() {
+  console.log(1)
 }
+setInterval(draw, 1000);
 </code></pre>
 
-<h2 id="python3-5">Python3.5</h2>
+<p>这样，每隔1s，就会打印1
+运用到我们的<code>canvas</code>上：</p>
 
-<pre><code class="language-Python">class Solution:
-    def evalRPN(self, tokens):
-        &quot;&quot;&quot;
-        :type tokens: List[str]
-        :rtype: int
-        &quot;&quot;&quot;
-        stack = []
-        operations = {
-            &quot;+&quot;: &quot;ADD&quot;,
-            &quot;-&quot;: &quot;SUB&quot;,
-            &quot;*&quot;: &quot;MUL&quot;,
-            &quot;/&quot;: &quot;DIV&quot;,
-        }
-        for token in tokens:
-            if token not in operations:
-                stack.append(int(token))
-            else:
-                operation = operations[token]
-                number2, number1 = stack.pop(), stack.pop()
-                if operation == &quot;ADD&quot;:
-                    number = number1 + number2
-                elif operation == &quot;SUB&quot;:
-                    number = number1 - number2
-                elif operation == &quot;MUL&quot;:
-                    number = number1 * number2
-                else:
-                    number = int(number1 / number2)
-                stack.append(number)
-        return stack.pop()
+<pre><code class="language-HTML">&lt;!DOCTYPE html&gt;
+&lt;html&gt;
+  &lt;head&gt;
+    &lt;meta charset=&quot;utf-8&quot;/&gt;
+    &lt;title&gt;Canvas tutorial&lt;/title&gt;
+  &lt;/head&gt;
+  &lt;body&gt;
+    &lt;canvas id=&quot;tutorial&quot; width=&quot;350&quot; height=&quot;350&quot;&gt;&lt;/canvas&gt;
+    &lt;script type=&quot;text/javascript&quot;&gt;
+      var x = 0, y = 0
+      function draw(){
+        var canvas = document.getElementById('tutorial');
+        var ctx = canvas.getContext('2d')
+        // clear
+        ctx.clearRect(0,0,canvas.width,canvas.height);  
+        // 红色圆球
+        ctx.beginPath();                   
+        ctx.fillStyle = &quot;red&quot;; 
+        ctx.arc(175+x, 175+y, 20, 0, Math.PI*2, false);  // 定义图形(x, y, radiu, start_angle, end_angle, direction)         
+        ctx.fill(); 
+        ctx.closePath();
+        x += 5
+        y += 5 
+      }
+      setInterval(draw, 500);
+    &lt;/script&gt;
+    &lt;style type=&quot;text/css&quot;&gt;
+      canvas { border: 1px solid black; }
+    &lt;/style&gt;
+  &lt;/body&gt;
+&lt;/html&gt;
 </code></pre>
-
-<p>需要值得注意的是，这里python版本的解法，在执行除法操作时，是<code>int(number1 / number2)</code>，而不是<code>number1 // number2</code>，这是因为官方给出的说明里:</p>
-
-<blockquote>
-<p>Division between two integers should truncate toward zero.</p>
 </blockquote>
-
-<p>这里的保留整数，是指简单的取数字的整数部分。在正整数除法范围内，<code>number1 // number2</code>不会出现问题，但是在异号相除时，比如<code>-1/2</code>，官方期待的答案是<code>0</code>, 但是采用<code>number1 // number2</code>会得出<code>1</code>这个答案，这里是需要注意的地方。</p>
 
                         </div>
 
@@ -184,15 +263,11 @@
     <h2>See Also</h2>
     <ul class="listing">
         
-        <li><a href="/about/">关于</a></li>
-        
-        <li><a href="/post/2018/03/7/%E5%8A%A8%E6%80%81%E5%8A%A0%E8%BD%BDDjango%E7%9A%84config%E9%85%8D%E7%BD%AE/">动态加载Django的config配置</a></li>
-        
-        <li><a href="/post/2018/01/25/%E4%BB%8E0%E5%BC%80%E5%A7%8B%E7%9A%84JS%E4%B9%8B%E6%97%85%E4%B8%89DOM%E6%93%8D%E4%BD%9C%E5%9F%BA%E7%A1%80/">从0开始的JS之旅（三）：DOM操作基础</a></li>
-        
         <li><a href="/post/2018/01/25/%E4%BB%8E0%E5%BC%80%E5%A7%8B%E7%9A%84JS%E4%B9%8B%E6%97%85%E4%BA%8C%E9%9D%A2%E5%90%91%E5%AF%B9%E8%B1%A1%E7%BC%96%E7%A8%8B/">从0开始的JS之旅（二）：面向对象编程</a></li>
         
         <li><a href="/post/2018/01/25/%E4%BB%8E0%E5%BC%80%E5%A7%8B%E7%9A%84JS%E4%B9%8B%E6%97%85%E4%B8%80%E6%95%B0%E6%8D%AE%E7%B1%BB%E5%9E%8B%E6%B5%81%E7%A8%8B%E8%AF%AD%E5%8F%A5%E5%8F%8A%E5%87%BD%E6%95%B0/">从0开始的JS之旅（一）：数据类型，流程语句及函数</a></li>
+        
+        <li><a href="/archives/">归档</a></li>
         
     </ul>
 </div>
@@ -202,9 +277,9 @@
                             
                             <ul class="clearfix">
                                 
-                                <li><a href="https://xiongsyao.github.io/tags/leetcode">leetcode</a></li>
+                                <li><a href="https://xiongsyao.github.io/tags/JavaScript%E5%9F%BA%E7%A1%80%E6%95%99%E7%A8%8B">JavaScript基础教程</a></li>
                                 
-                                <li><a href="https://xiongsyao.github.io/tags/stack">stack</a></li>
+                                <li><a href="https://xiongsyao.github.io/tags/JavaScript">JavaScript</a></li>
                                 
                             </ul>
                             

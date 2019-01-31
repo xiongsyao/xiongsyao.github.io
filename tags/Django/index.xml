@@ -13,10 +13,10 @@
     
     <item>
       <title>动态加载Django的config配置</title>
-      <link>https://xiongsyao.github.io/post/2018/3/7/%E5%8A%A8%E6%80%81%E5%8A%A0%E8%BD%BDDjango%E7%9A%84config%E9%85%8D%E7%BD%AE/</link>
+      <link>https://xiongsyao.github.io/post/2018/03/7/%E5%8A%A8%E6%80%81%E5%8A%A0%E8%BD%BDDjango%E7%9A%84config%E9%85%8D%E7%BD%AE/</link>
       <pubDate>Wed, 07 Mar 2018 14:29:58 +0800</pubDate>
       
-      <guid>https://xiongsyao.github.io/post/2018/3/7/%E5%8A%A8%E6%80%81%E5%8A%A0%E8%BD%BDDjango%E7%9A%84config%E9%85%8D%E7%BD%AE/</guid>
+      <guid>https://xiongsyao.github.io/post/2018/03/7/%E5%8A%A8%E6%80%81%E5%8A%A0%E8%BD%BDDjango%E7%9A%84config%E9%85%8D%E7%BD%AE/</guid>
       <description>github本章代码: 点这里
  前言 之前想新开的一个坑，目标是从0开始写一个CMS框架，将要实现的功能应该有：
  媒体库 导航栏配置 富文本页 文章及评论 自定义模版样式(换肤) 可视化编辑 &amp;hellip;  但是发现传统的单config.py文件记录配置信息，不方便在开发环境和生产环境中来回切换。
