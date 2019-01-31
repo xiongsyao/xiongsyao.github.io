@@ -24,7 +24,8 @@
 *3\r\n $3\r\n set\r\n $4\r\n test\r\n $2\r\n ok\r\n  以python为例:
 import redis r = redis.Redis() r.set(&#39;hello&#39;, &#39;world&#39;)  那么将发送的指令为*3\r\n$3\r\nset\r\n$5\r\nhello\r\n$5\r\nworld\r\n，收到的响应为+OK\r\n。
 响应信息 RESP协议中，不同类型的响应信息，会以不同的字符开头，比如上例中，+OK\r\n就以+开头。
- 简单字符串(Simple Strings)响应会以&amp;rdquo;+&amp;ldquo;开头 &amp;gt;+OK\r\n
+ 简单字符串(Simple Strings)响应会以&amp;rdquo;+&amp;ldquo;开头
+ +OK\r\n
  错误(Errors)响应会以&amp;rdquo;-&amp;ldquo;开头
  -ERR unkown command &amp;lsquo;ST&amp;rsquo;\r\n
  数字(Integer)响应会以&amp;rdquo;:&amp;ldquo;开头

@@ -133,8 +133,11 @@ r.set('hello', 'world')
 <p>RESP协议中，不同类型的响应信息，会以不同的字符开头，比如上例中，<code>+OK\r\n</code>就以<code>+</code>开头。</p>
 
 <ul>
-<li><p>简单字符串(Simple Strings)响应会以&rdquo;+&ldquo;开头
-&gt;+OK\r\n</p></li>
+<li><p>简单字符串(Simple Strings)响应会以&rdquo;+&ldquo;开头</p>
+
+<blockquote>
+<p>+OK\r\n</p>
+</blockquote></li>
 
 <li><p>错误(Errors)响应会以&rdquo;-&ldquo;开头</p>
 
