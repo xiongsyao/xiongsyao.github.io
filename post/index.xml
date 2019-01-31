@@ -23,9 +23,8 @@
  首先以每一个指令以*开头指明数组长度 以$开头指明下个元素的字符长度 每一个元素以间隔符号\r\n(CRLF)隔开  按这个规则,set test ok则为:
 *3\r\n $3\r\n set\r\n $4\r\n test\r\n $2\r\n ok\r\n  以python为例:
 import redis r = redis.Redis() r.set(&#39;hello&#39;, &#39;world&#39;)  那么将发送的指令为*3\r\n$3\r\nset\r\n$5\r\nhello\r\n$5\r\nworld\r\n，收到的响应为+OK\r\n。
-响应信息 RESP协议中，不同类型的响应信息，会以不同的字符开头，比如上例中，+OK\r\n就以+开头。 + 简单字符串(Simple Strings)响应会以&amp;rdquo;+&amp;ldquo;开头 &amp;gt;+OK\r\n + 错误(Errors)响应会以&amp;rdquo;-&amp;ldquo;开头 &amp;gt;-ERR unkown command &amp;lsquo;ST&amp;rsquo;\r\n + 数字(Integer)响应会以&amp;rdquo;:&amp;ldquo;开头 &amp;gt;:2\r\n + 大字符串(Bulk Strings)会以&amp;rdquo;$&amp;ldquo;开头，并且随之标出字符串字节数 &amp;gt;$13\r\nHello, World!\r\n + 数组类型(Arrays)类似与请求信息的序列化一致（在HGETALLLRANGEMGET命令中会返回)。
-实例 接下来，我们将用go实现一个简单的redis客户端
-// file is kv.go package main import ( &amp;quot;log&amp;quot; &amp;quot;net&amp;quot; &amp;quot;os&amp;quot; &amp;quot;strconv&amp;quot; &amp;quot;strings&amp;quot; ) // serialize将待发送的命令按RESP协议处理成合法的字符串 func serialize(args []string) []byte { r := []string{ &amp;quot;*&amp;quot; + strconv.</description>
+响应信息 RESP协议中，不同类型的响应信息，会以不同的字符开头，比如上例中，+OK\r\n就以+开头。 + 简单字符串(Simple Strings)响应会以&amp;rdquo;+&amp;ldquo;开头 &amp;gt; +OK\r\n + 错误(Errors)响应会以&amp;rdquo;-&amp;ldquo;开头 &amp;gt; -ERR unkown command &amp;lsquo;ST&amp;rsquo;\r\n + 数字(Integer)响应会以&amp;rdquo;:&amp;ldquo;开头 &amp;gt; :2\r\n + 大字符串(Bulk Strings)会以&amp;rdquo;$&amp;ldquo;开头，并且随之标出字符串字节数 &amp;gt; $13\r\nHello, World!\r\n + 数组类型(Arrays)类似与请求信息的序列化一致（在HGETALLLRANGEMGET命令中会返回)。
+实例 接下来，我们将用go实现一个简单的redis客户端</description>
     </item>
     
     <item>
