@@ -7,20 +7,20 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
 
-    <title>解读redis协议 | Matrix</title>
-    <meta property="og:title" content="解读redis协议 - Matrix">
+    <title>Redis持久化 | Matrix</title>
+    <meta property="og:title" content="Redis持久化 - Matrix">
     <meta property="og:type" content="article">
         
-    <meta property="article:published_time" content="2019-01-02T17:20:16&#43;08:00">
+    <meta property="article:published_time" content="2019-02-13T15:08:22&#43;08:00">
         
         
-    <meta property="article:modified_time" content="2019-01-02T17:20:16&#43;08:00">
+    <meta property="article:modified_time" content="2019-02-13T15:08:22&#43;08:00">
         
     <meta name="Keywords" content="golang,python">
-    <meta name="description" content="解读redis协议">
+    <meta name="description" content="Redis持久化">
         
     <meta name="author" content="matrix">
-    <meta property="og:url" content="https://xiongsyao.github.io/post/2019/01/02/%E8%A7%A3%E8%AF%BBredis%E5%8D%8F%E8%AE%AE/">
+    <meta property="og:url" content="https://xiongsyao.github.io/post/2019/02/13/Redis%E6%8C%81%E4%B9%85%E5%8C%96/">
     <link rel="shortcut icon" href="/favicon.ico" type="image/x-icon">
 
     <link rel="stylesheet" href="/css/normalize.css">
@@ -72,10 +72,10 @@
                 <div class="res-cons">
                     <article class="post">
                         <header>
-                            <h1 class="post-title">解读redis协议</h1>
+                            <h1 class="post-title">Redis持久化</h1>
                         </header>
                         <date class="post-meta meta-date">
-                            2019年1月2日
+                            2019年2月13日
                         </date>
                         
                         <div class="post-meta meta-category">
@@ -89,179 +89,86 @@
                         <div class="post-content">
                             
 
-<h2 id="前言">前言</h2>
+<h3 id="为什么需要持久化">为什么需要持久化？</h3>
 
-<p>Redis作为我们日常使用的key-value数据库，不光操作简单(例如<code>set get delete</code>等指令)，通信协议也简洁明了。
-本篇就会剖析Redis的通信协议，并且实现一个简单的Redis客户端。</p>
+<p>redis将数据存储在内存中，一旦redis重启，存储的数据丢失，会导致缓存失效，严重情况下引起缓存雪崩，故需要将存储内容持久化。</p>
 
-<h2 id="协议">协议</h2>
+<h3 id="持久化的方式">持久化的方式？</h3>
 
-<p>Redis服务端与客户端使用的基于TCP的文本协议(敲黑板，这里并没有使用效率更高的二进制协议)，称之为<code>RESP</code>(Redis Serialization Protocol)。区别于同样是文本协议的<code>HTTP</code>协议，<code>RESP</code>尤为简洁，其基础规则很容易理解。</p>
+<ol>
+<li>RDB:通过快照(snapshotting)完成，当符合一定条件时redis会自动将内存中的所有数据生成一份副本并存储在硬盘上。</li>
+<li>AOF(append only file): 每次redis执行会更改数据的命令时将命令本身记录下来。
+两种持久化方式可以单独使用其中一种，但经常两者结合使用。当同时启用时，Redis通过AOF恢复数据。</li>
+</ol>
 
-<h3 id="请求信息">请求信息</h3>
+<h3 id="rdb的原理">RDB的原理？</h3>
 
-<p>假如我们执行<code>set test ok</code>这样的命令，可以视为准备了一个<code>[&quot;set&quot;, &quot;test&quot;, &quot;ok&quot;]</code>这样的数组，随即将其序列化为字符串，序列化规则如下:</p>
+<p>Redis<strong>默认的</strong>会将快照文件存储在当前进程的工作目录中的dump.rdb文件中，可以通过配置dir和dbfilename两个参数指定存储路径和文件名。执行过程如下：
+1. Redis使用fork函数复制一份当前进程(父进程)和副本(子进程)；
+2. 父进程继续处理客户端请求，子进程开始将内存中数据写入硬盘中的临时文件；
+3. 当子进程写入完所有数据后会用该临时文件替换旧的RDB文件。</p>
 
-<ul>
-<li>首先以每一个指令以<code>*</code>开头指明数组长度</li>
-<li>以<code>$</code>开头指明下个元素的字符长度</li>
-<li>每一个元素以间隔符号<code>\r\n</code>(CRLF)隔开</li>
-</ul>
+<p>在执行fork使用<strong>写时复制</strong>(copy-on-write)策略，当fork函数发生的一刻父子进程共享内存，当父进程要更改其中某片内存时，操作系统会将该片数据复制一份(<strong>并不是所有内存数据</strong>)以保证子进程的数据不受影响。所以RDB文件存储是执行fork那一刻的内存数据。</p>
 
-<p>按这个规则,<code>set test ok</code>则为:</p>
+<p>一旦Redis异常退出，会丢失最后一次快照以后更改的所有数据。</p>
 
-<pre><code>*3\r\n
-$3\r\n
-set\r\n
-$4\r\n
-test\r\n
-$2\r\n
-ok\r\n
+<h3 id="触发rdb的时机">触发RDB的时机？</h3>
+
+<ol>
+<li><p>根据配置规则进行自动快照</p>
+
+<p>Redis允许用户自定义快照条件，当符合快照条件时，会自动执行快照操作。条件由用户在配置文件中定义，由两个参数构成: 时间窗口M和改动的键个数N。每当时间M内被改动的键个数大于N时，即会触发快照。可以配置多个条件，之间的关系是“或”。例如:
+<code>save 900 3</code>
+<code>save 300 1</code>
+<code>save 60 10000</code>
+则当900秒内有3个键改变或300秒内有一个键被改变或60秒内有10000个键被改变，都会触发快照。</p></li>
+
+<li><p>用户执行SAVE或BGSAVE命令</p>
+
+<p>当执行SAVE命令时，Redis会同步地进行快照，快照过程中会阻塞所有来自客户端的请求，可能会导致Redis长时间不响应，应当避免在生产环境中使用。</p>
+
+<p>BGSAVE命令在后台异步的进行快照，服务器依旧可以响应客户端请求。执行BGSAVE后Redis会立即返回OK表示开始快照。可以通过LASTSAVE命令获取最近一次成功执行快照的时间，以确定是否执行成功。</p></li>
+
+<li><p>执行FLUSHALL命令</p>
+
+<p>当执行FLUSHALL命令时，<strong>只要自动快照条件(不论条件是什么)不为空，就会执行一次快照操作</strong>,
+当不存在快照条件时，则不会触发。</p></li>
+
+<li><p>执行复制(replication)时</p>
+
+<p>当设置了主从模式时，Redis会在复制初始化时进行自动快照。</p></li>
+</ol>
+
+<h3 id="aof持久化怎么开启-如何去除冗余命令">AOF持久化怎么开启？如何去除冗余命令？</h3>
+
+<p>默认情况下Redis没有开启AOF方式的持久化，可以通过appendonly参数启用: <code>appendonly yes</code>。开启AOF持久化后每执行一条会更改Redis中数据的命令，就会将该命令写入硬盘的AOF文件，AOF文件的保存位置与RDB文件的位置一致，通过dir和appendfilename设置目录和文件名，默认为appendonly.conf。</p>
+
+<p>AOF文件以纯文本的形式记录Redis命令(<strong>这里指RESP协议化的命令</strong>)。随着执行命令越来越多，文件也会越来越大，中间会记录冗余的命令(例如对同一个键的多次SET操作)。通过在配置文件中更改设置，可以做到满足条件时，Redis自动重写AOF文件:</p>
+
+<pre><code>auto-aof-rewrite-percentage 100   # 当前AOF文件大小超过上一次重写时的AOF文件大小百分之多少时触发重写
+auto-aof-rewrite-min-size 64mb    # 当AOF文件小于这个值时不再触发重写
 </code></pre>
 
-<p>以<code>python</code>为例:</p>
+<p>也可以执行<code>BGREWRITEAOF</code>命令手动的异步执行AOF重写。</p>
 
-<pre><code class="language-python">import redis
-r = redis.Redis()
-r.set('hello', 'world')
+<h3 id="aof持久化是否必要-会有性能问题吗-如何避免性能问题">AOF持久化是否必要？会有性能问题吗？如何避免性能问题？</h3>
+
+<p>RDB方式实现持久化时，一旦Redis异常退出，会丢失最后一次快照以后更改的所有数据。若数据比较重要，就需要配合AOF方式进行持久化。</p>
+
+<p>AOF会将redis执行的每一条写命令追加到硬盘文件中，这一过程显然会降低redis的性能，但是大部分情况下这个情况是可以接受的，可以使用较快的硬盘提高AOF的性能。</p>
+
+<h3 id="aof方式持久化的数据一定不会丢失吗">AOF方式持久化的数据一定不会丢失吗？</h3>
+
+<p>虽然每次执行更改数据的操作时Redis都会将命令记录在AOF文件中，但事实上，由于操作系统的缓存机制，数据并没有真正的写入硬盘，而是进入了系统的硬盘缓存。在默认情况下系统每30秒执行一次同步操作，将硬盘缓存中的内容真正写入到硬盘中，在这30秒内，如果系统异常退出就会导致硬盘缓存中的数据丢失。</p>
+
+<p>可以通过修改Redis的appendfsync参数设置同步时机，使得Redis主动请求操作系统同步。</p>
+
+<pre><code># appendfsync always   # 每次执行写入都会要求同步
+appendfsync everysec   # 每秒请求一次同步
+# appendfsync no       # 不主动请求系统同步
 </code></pre>
 
-<p>那么将发送的指令为<code>*3\r\n$3\r\nset\r\n$5\r\nhello\r\n$5\r\nworld\r\n</code>，收到的响应为<code>+OK\r\n</code>。</p>
-
-<h3 id="响应信息">响应信息</h3>
-
-<p>RESP协议中，不同类型的响应信息，会以不同的字符开头，比如上例中，<code>+OK\r\n</code>就以<code>+</code>开头。</p>
-
-<ul>
-<li><p>简单字符串(Simple Strings)响应会以&rdquo;+&ldquo;开头</p>
-
-<blockquote>
-<p>+OK\r\n</p>
-</blockquote></li>
-
-<li><p>错误(Errors)响应会以&rdquo;-&ldquo;开头</p>
-
-<blockquote>
-<p>-ERR unkown command &lsquo;ST&rsquo;\r\n</p>
-</blockquote></li>
-
-<li><p>数字(Integer)响应会以&rdquo;:&ldquo;开头</p>
-
-<blockquote>
-<p>:2\r\n</p>
-</blockquote></li>
-
-<li><p>大字符串(Bulk Strings)会以&rdquo;$&ldquo;开头，并且随之标出字符串字节数</p>
-
-<blockquote>
-<p>$13\r\nHello, World!\r\n</p>
-</blockquote></li>
-
-<li><p>数组类型(Arrays)类似与请求信息的序列化一致（在<code>HGETALL</code><code>LRANGE</code><code>MGET</code>命令中会返回)。</p></li>
-</ul>
-
-<h2 id="实例">实例</h2>
-
-<p>接下来，我们将用go实现一个简单的redis客户端</p>
-
-<pre><code class="language-go">// file is kv.go
-package main
-
-import (
-	&quot;log&quot;
-	&quot;net&quot;
-	&quot;os&quot;
-	&quot;strconv&quot;
-	&quot;strings&quot;
-)
-
-// serialize将待发送的命令按RESP协议处理成合法的字符串
-func serialize(args []string) []byte {
-	r := []string{
-		&quot;*&quot; + strconv.Itoa(len(args)),
-	}
-
-	for _, arg := range args {
-		r = append(r, &quot;$&quot;+strconv.Itoa(len(arg)))
-		r = append(r, arg)
-	}
-
-	str := strings.Join(r, &quot;\r\n&quot;)
-	return []byte(str + &quot;\r\n&quot;)
-}
-
-// parseResponse解析响应信息
-func parseResponse(r []byte, n int) string {
-	flag := r[0]
-	switch flag {
-	case '+':
-		return string(r[1 : n-2])
-	case '-':
-		return string(r[1 : n-2])
-	case ':':
-		return string(r[1 : n-2])
-	case '$':
-		var pos int
-		for i, v := range r {
-			if v == '\n' {
-				pos = i
-				break
-			}
-		}
-		return string(r[pos+1 : n-2])
-	case '*':
-		out := []byte{}
-		canAdd := false
-		for _, current := range r {
-			if canAdd {
-				if current == '*' || current == '$' {
-					canAdd = false
-				} else {
-					if current != '\n' &amp;&amp; current != '\r' {
-						out = append(out, current)
-					}
-				}
-			} else {
-				if current == '\n' {
-					canAdd = true
-				}
-			}
-		}
-		return string(out)
-	default:
-		return &quot;&quot;
-	}
-}
-
-func main() {
-	// 获取所需执行的命令
-	args := os.Args[1:]
-	if len(args) &lt;= 0 {
-		log.Fatalln(&quot;需要一个以上参数&quot;)
-	}
-
-	// 获取redis连接
-	redisConn, err := net.Dial(&quot;tcp&quot;, &quot;127.0.0.1:6379&quot;)
-	if err != nil {
-		log.Fatalln(err.Error())
-	}
-	defer redisConn.Close()
-
-	// 发送命令
-	command := serialize(args)
-	_, err = redisConn.Write(command)
-
-	// 获取响应
-	response := make([]byte, 1024)
-	n, err := redisConn.Read(response)
-	r := response[:n]
-
-	// 打印解析后的响应
-	log.Println(parseResponse(r, n))
-}
-</code></pre>
-
-<p>执行<code>go run kv.go set a &quot;hello world&quot;</code>,将看到返回<code>OK</code>。</p>
+<p>一般来说，<code>appendfsync everysec</code>较为合理，既兼顾了性能，又保证了数据安全。</p>
 
                         </div>
 
@@ -271,6 +178,8 @@ func main() {
     <h2>See Also</h2>
     <ul class="listing">
         
+        <li><a href="/post/2019/01/02/%E8%A7%A3%E8%AF%BBredis%E5%8D%8F%E8%AE%AE/">解读redis协议</a></li>
+        
         <li><a href="/post/2018/12/28/%E8%B0%88%E8%B0%88golang%E4%B8%AD%E7%9A%84%E9%94%81/">谈谈golang中的锁</a></li>
         
         <li><a href="/post/2018/12/17/LeetCode150%E9%80%86%E6%B3%A2%E5%85%B0%E8%A1%A8%E8%BE%BE%E5%BC%8F%E6%B1%82%E5%80%BC/">[LeetCode]150:逆波兰表达式求值</a></li>
@@ -278,8 +187,6 @@ func main() {
         <li><a href="/about/">关于</a></li>
         
         <li><a href="/post/2018/03/7/%E5%8A%A8%E6%80%81%E5%8A%A0%E8%BD%BDDjango%E7%9A%84config%E9%85%8D%E7%BD%AE/">动态加载Django的config配置</a></li>
-        
-        <li><a href="/post/2018/01/25/%E4%BB%8E0%E5%BC%80%E5%A7%8B%E7%9A%84JS%E4%B9%8B%E6%97%85%E4%B8%89DOM%E6%93%8D%E4%BD%9C%E5%9F%BA%E7%A1%80/">从0开始的JS之旅（三）：DOM操作基础</a></li>
         
     </ul>
 </div>
@@ -290,8 +197,6 @@ func main() {
                             <ul class="clearfix">
                                 
                                 <li><a href="https://xiongsyao.github.io/tags/Redis">Redis</a></li>
-                                
-                                <li><a href="https://xiongsyao.github.io/tags/%E5%8D%8F%E8%AE%AE">协议</a></li>
                                 
                             </ul>
                             
