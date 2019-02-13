@@ -141,7 +141,7 @@
 
 <h3 id="aof持久化怎么开启-如何去除冗余命令">AOF持久化怎么开启？如何去除冗余命令？</h3>
 
-<p>默认情况下Redis没有开启AOF方式的持久化，可以通过appendonly参数启用: <code>appendonly yes</code>。开启AOF持久化后每执行一条会更改Redis中数据的命令，就会将该命令写入硬盘的AOF文件，AOF文件的保存位置与RDB文件的位置一致，通过dir和appendfilename设置目录和文件名，默认为appendonly.conf。</p>
+<p>默认情况下Redis没有开启AOF方式的持久化，可以通过appendonly参数启用: <code>appendonly yes</code>。开启AOF持久化后每执行一条会更改Redis中数据的命令，就会将该命令写入硬盘的AOF文件，AOF文件的保存位置与RDB文件的位置一致，通过dir和appendfilename设置目录和文件名，默认为appendonly.aof。</p>
 
 <p>AOF文件以纯文本的形式记录Redis命令(<strong>这里指RESP协议化的命令</strong>)。随着执行命令越来越多，文件也会越来越大，中间会记录冗余的命令(例如对同一个键的多次SET操作)。通过在配置文件中更改设置，可以做到满足条件时，Redis自动重写AOF文件:</p>
 

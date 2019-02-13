@@ -30,7 +30,7 @@ BGSAVE命令在后台异步的进行快照，服务器依旧可以响应客户�
 当执行FLUSHALL命令时，只要自动快照条件(不论条件是什么)不为空，就会执行一次快照操作, 当不存在快照条件时，则不会触发。
  执行复制(replication)时
 当设置了主从模式时，Redis会在复制初始化时进行自动快照。
-  AOF持久化怎么开启？如何去除冗余命令？ 默认情况下Redis没有开启AOF方式的持久化，可以通过appendonly参数启用: appendonly yes。开启AOF持久化后每执行一条会更改Redis中数据的命令，就会将该命令写入硬盘的AOF文件，AOF文件的保存位置与RDB文件的位置一致，通过dir和appendfilename设置目录和文件名，默认为appendonly.conf。
+  AOF持久化怎么开启？如何去除冗余命令？ 默认情况下Redis没有开启AOF方式的持久化，可以通过appendonly参数启用: appendonly yes。开启AOF持久化后每执行一条会更改Redis中数据的命令，就会将该命令写入硬盘的AOF文件，AOF文件的保存位置与RDB文件的位置一致，通过dir和appendfilename设置目录和文件名，默认为appendonly.aof。
 AOF文件以纯文本的形式记录Redis命令(这里指RESP协议化的命令)。随着执行命令越来越多，文件也会越来越大，中间会记录冗余的命令(例如对同一个键的多次SET操作)。通过在配置文件中更改设置，可以做到满足条件时，Redis自动重写AOF文件:
 auto-aof-rewrite-percentage 100 # 当前AOF文件大小超过上一次重写时的AOF文件大小百分之多少时触发重写 auto-aof-rewrite-min-size 64mb # 当AOF文件小于这个值时不再触发重写  也可以执行BGREWRITEAOF命令手动的异步执行AOF重写。
 AOF持久化是否必要？会有性能问题吗？如何避免性能问题？ RDB方式实现持久化时，一旦Redis异常退出，会丢失最后一次快照以后更改的所有数据。若数据比较重要，就需要配合AOF方式进行持久化。
