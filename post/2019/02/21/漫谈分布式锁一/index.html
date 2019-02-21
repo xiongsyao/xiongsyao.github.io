@@ -7,20 +7,20 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
 
-    <title>[LeetCode]150:逆波兰表达式求值 | Matrix</title>
-    <meta property="og:title" content="[LeetCode]150:逆波兰表达式求值 - Matrix">
+    <title>漫谈分布式锁（一） | Matrix</title>
+    <meta property="og:title" content="漫谈分布式锁（一） - Matrix">
     <meta property="og:type" content="article">
         
-    <meta property="article:published_time" content="2018-12-19T15:08:08&#43;08:00">
+    <meta property="article:published_time" content="2019-02-21T20:35:47&#43;08:00">
         
         
-    <meta property="article:modified_time" content="2018-12-19T15:08:08&#43;08:00">
+    <meta property="article:modified_time" content="2019-02-21T20:35:47&#43;08:00">
         
     <meta name="Keywords" content="golang,python">
-    <meta name="description" content="[LeetCode]150:逆波兰表达式求值">
+    <meta name="description" content="漫谈分布式锁（一）">
         
     <meta name="author" content="matrix">
-    <meta property="og:url" content="https://xiongsyao.github.io/post/2018/12/17/LeetCode150%E9%80%86%E6%B3%A2%E5%85%B0%E8%A1%A8%E8%BE%BE%E5%BC%8F%E6%B1%82%E5%80%BC/">
+    <meta property="og:url" content="https://xiongsyao.github.io/post/2019/02/21/%E6%BC%AB%E8%B0%88%E5%88%86%E5%B8%83%E5%BC%8F%E9%94%81%E4%B8%80/">
     <link rel="shortcut icon" href="/favicon.ico" type="image/x-icon">
 
     <link rel="stylesheet" href="/css/normalize.css">
@@ -72,16 +72,16 @@
                 <div class="res-cons">
                     <article class="post">
                         <header>
-                            <h1 class="post-title">[LeetCode]150:逆波兰表达式求值</h1>
+                            <h1 class="post-title">漫谈分布式锁（一）</h1>
                         </header>
                         <date class="post-meta meta-date">
-                            2018年12月19日
+                            2019年2月21日
                         </date>
                         
                         <div class="post-meta meta-category">
                             |
                             
-                                <a href="https://xiongsyao.github.io/categories/leetcode">leetcode</a>
+                                <a href="https://xiongsyao.github.io/categories/%E5%88%86%E5%B8%83%E5%BC%8F">分布式</a>
                             
                         </div>
                         
@@ -89,92 +89,133 @@
                         <div class="post-content">
                             
 
-<blockquote>
-<p>本章代码: <strong><a href="https://github.com/erds8806/leetcode/tree/master/150_Evaluate_Reverse_Polish_Notation">这里</a></strong></p>
-</blockquote>
+<h2 id="为什么需要分布式锁">为什么需要分布式锁</h2>
 
-<h2 id="思路">思路</h2>
+<p>之前介绍过Go中的锁，在多个协程(线程)抢占同一资源时，为了防止相互干扰，保持一致性，需要运用到锁机制，得益于线程的共享内存，大部分语言都在标准库中为我们提供了锁。但是在跨进程、跨主机程序协作中，就需要我们自己去实现，我们需要自己为所有进程提供一个&rdquo;共享内存&rdquo;，并在其中实现自己的“锁”。</p>
 
-<p>leetcode第150题： 根据逆波兰表示法，求表达式的值。(题目具体信息文章顶部的链接代码里有)</p>
-
-<p>这是一道运用<strong>栈</strong>来求解的题。</p>
-
-<p>通过分析题目意思，我们很容易想出这样的做法：</p>
+<h2 id="分布式锁需要实现的功能">分布式锁需要实现的功能</h2>
 
 <ol>
-<li>遍历字符，每当遇到非操作符(即数字)时，我们将此数字入栈。</li>
-<li>当遇到操作符时(即<code>+</code> <code>-</code> <code>*</code> <code>/</code>), 我们将栈顶的两个元素出栈，并按顺序与操作符执行运算，例如，当前操作符为<code>/</code>，出栈元素为依次为n2, n1, 则n3 = n2 / n1,并将计算结果n3入栈。</li>
-<li>当遍历完输入后，栈中只剩一个最终的元素，此元素极为表达式最终的结果。</li>
+<li>获取锁与释放锁的性能要好，足够快；</li>
+<li>获取锁必须是原子性的，否则会导致多个进程都持有锁；</li>
+<li>具备锁失效机制，当获取到锁的进程(线程)，因为网络问题或者自身异常退出，无法提交释放锁的请求时，锁应当自己清除掉；</li>
+<li>同一线程可以多次获取同一把锁，即可重入性；</li>
+<li>具备非阻塞锁和阻塞锁特性。当没有获取到锁时，非阻塞锁直接返回锁失败，阻塞锁会使线程继续等待获取锁。</li>
 </ol>
 
-<h2 id="代码">代码</h2>
+<h2 id="常见的分布式锁实现方案">常见的分布式锁实现方案</h2>
 
-<h3 id="go">Go</h3>
+<ol>
+<li>基于数据库实现;</li>
+<li>基于缓存(Redis)实现；</li>
+<li>基于zoomkeeper实现;</li>
+<li>基于etcd实现。</li>
+</ol>
 
-<pre><code class="language-Go">func evalRPN(tokens []string) int {
-	operations := map[string]func(int, int) int{
-		&quot;+&quot;: func(number1, number2 int) int {return number1+number2},
-		&quot;-&quot;: func(number1, number2 int) int {return number1-number2},
-		&quot;*&quot;: func(number1, number2 int) int {return number1*number2},
-		&quot;/&quot;: func(number1, number2 int) int {return int(number1/number2)},
-	}
-	stack := []int{}
-	for _, token := range tokens {
-		if operationfunc, had := operations[token]; had {
-			length := len(stack)
-			number1, number2 := stack[length-2], stack[length-1]
-			stack = stack[:length-2]
-			number := operationfunc(number1, number2)
-			stack = append(stack, number)
-		} else {
-			number, _ := strconv.Atoi(token)
-			stack = append(stack, number)
-		}
-	}
-	return stack[0]
-}
+<p>本篇先介绍基于数据库实现的分布式锁。</p>
+
+<h2 id="基于数据库的分布式锁">基于数据库的分布式锁</h2>
+
+<h3 id="利用唯一索引">利用唯一索引</h3>
+
+<p>该实现方式完全依靠数据库唯一索引来实现，当想要获得锁时，即向数据库中插入一条记录，释放锁时就删除这条记录。</p>
+
+<p>创建表:</p>
+
+<pre><code>CREATE TABLE `dbmutex` (
+  `name` varchar(64) NOT NULL,
+  `update_time` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`name`),
+  UNIQUE KEY `uidx_name` (`name`) USING BTREE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8
+
 </code></pre>
 
-<h2 id="python3-5">Python3.5</h2>
+<p>依赖于这张表，实现一个简单的DBMutex类</p>
 
-<pre><code class="language-Python">class Solution:
-    def evalRPN(self, tokens):
-        &quot;&quot;&quot;
-        :type tokens: List[str]
-        :rtype: int
-        &quot;&quot;&quot;
-        stack = []
-        operations = {
-            &quot;+&quot;: &quot;ADD&quot;,
-            &quot;-&quot;: &quot;SUB&quot;,
-            &quot;*&quot;: &quot;MUL&quot;,
-            &quot;/&quot;: &quot;DIV&quot;,
-        }
-        for token in tokens:
-            if token not in operations:
-                stack.append(int(token))
-            else:
-                operation = operations[token]
-                number2, number1 = stack.pop(), stack.pop()
-                if operation == &quot;ADD&quot;:
-                    number = number1 + number2
-                elif operation == &quot;SUB&quot;:
-                    number = number1 - number2
-                elif operation == &quot;MUL&quot;:
-                    number = number1 * number2
-                else:
-                    number = int(number1 / number2)
-                stack.append(number)
-        return stack.pop()
+<pre><code class="language-python">import MySQLdb
+
+class Driver:
+    def __init__(self, address=&quot;localhost&quot;, username=&quot;root&quot;, password=&quot;123456&quot;, dbname=&quot;LOCKER&quot;):
+        self.db = MySQLdb.connect(address, username, password, dbname, charset='utf8')
+        self.cursor = self.db.cursor()
+        
+    def __enter__(self):
+        return self
+        
+    def __exit__(self, exc_type, exc_value, tb):
+        self.db.close()
+
+
+class DBMutex:
+    def __init__(self, name=&quot;default&quot;):
+        self.name = name
+        self._locked = False 
+        
+    def lock(self):
+        with Driver() as driver:
+            driver.cursor.execute(&quot;INSERT INTO dbmutex(name) VALUES ('{}');&quot;.format(self.name))
+            driver.db.commit()
+            self._locked = True
+    
+    def unlock(self):
+        if not self._locked:
+            raise SyntaxError(&quot;Can't unlock before lock!&quot;)
+        with Driver() as driver:
+            driver.cursor.execute(&quot;DELETE FROM dbmutex WHERE name='{}';&quot;.format(self.name))
+            driver.db.commit()
+            self._locked = False
 </code></pre>
 
-<p>需要值得注意的是，这里python版本的解法，在执行除法操作时，是<code>int(number1 / number2)</code>，而不是<code>number1 // number2</code>，这是因为官方给出的说明里:</p>
+<p>这样，就实现了一个简单的基于MySQL的分布式锁。
+简单使用如下:</p>
 
-<blockquote>
-<p>Division between two integers should truncate toward zero.</p>
-</blockquote>
+<pre><code>mu = DBMutex()
+i = 0
+for i in range(10000):
+    mu.lock()
+    i += 1
+    mu.unlock()
+print(i)
+</code></pre>
 
-<p>这里的保留整数，是指简单的取数字的整数部分。在正整数除法范围内，<code>number1 // number2</code>不会出现问题，但是在异号相除时，比如<code>-1/2</code>，官方期待的答案是<code>0</code>, 但是采用<code>number1 // number2</code>会得出<code>1</code>这个答案，这里是需要注意的地方。</p>
+<p>这种方法有很大的缺陷:
+1. IO时间过长，获取锁与释放锁的过程远不如从内存中获取快。
+1. 锁没有失效时间，解锁失败会导致死锁，其他线程无法再获取到锁。
+2. 只能是非阻塞锁，insert失败直接就报错了，无法进入队列进行重试。
+3. 不可重入，同一线程在没有释放锁之前无法再获取到锁。</p>
+
+<h3 id="利用行级锁">利用行级锁</h3>
+
+<p>利用for update加显式的行锁，这样就能利用这个行级的排他锁来实现分布式锁了，同时unlock的时候只要释放commit这个事务，就能达到释放锁的目的。</p>
+
+<p>同样的，实现的RowMutex类如下:</p>
+
+<pre><code>class RowMutex:
+    def __init__(self, name=&quot;default&quot;):
+        self.name = name
+        self.__db = MySQLdb.connect(&quot;localhost&quot;, &quot;root&quot;, &quot;123456&quot;, &quot;test&quot;, charset='utf8')
+        self.__init_record()
+        
+    def __init_record(self):
+        &quot;&quot;&quot;插入name=当前name的行数据&quot;&quot;&quot;
+        cursor = self.db.cursor()
+        cursor.execute(&quot;SELECT name FROM mutex WHERE name='{}';&quot;.format(self.name))
+        if cursor.rowcount == 0:
+            cursor.execute(&quot;INSERT INTO mutex(name) VALUES('{}')&quot;.format(name))
+            self.db.commit()
+                
+    def lock(self):
+        cursor = self.db.cursor()
+        cursor.execute(&quot;SELECT name FROM mutex WHERE name='{}' FOR UPDATE;&quot;.format(self.name))
+        if cursor.rowcount == 0:
+            raise RuntimeError(&quot;Can't find locker named {}&quot;.format(self.name))
+    
+    def unlock(self):
+        self.db.commit()
+</code></pre>
+
+<p>使用行锁的话，与上例相反，此时是一个阻塞锁，其他线程会持续等待获取锁，并且依旧有上述的1、2、4的缺点。同时，当线程数过多时，会存在连接池耗尽的风向。此外，当数据库解析未命中索引时，会使行锁升级为表锁，所以不建议使用此方案。</p>
 
                         </div>
 
@@ -184,15 +225,15 @@
     <h2>See Also</h2>
     <ul class="listing">
         
+        <li><a href="/post/2018/12/28/%E8%B0%88%E8%B0%88golang%E4%B8%AD%E7%9A%84%E9%94%81/">谈谈golang中的锁</a></li>
+        
+        <li><a href="/post/2019/02/13/Redis%E6%8C%81%E4%B9%85%E5%8C%96/">Redis持久化</a></li>
+        
+        <li><a href="/post/2019/01/02/%E8%A7%A3%E8%AF%BBredis%E5%8D%8F%E8%AE%AE/">解读redis协议</a></li>
+        
+        <li><a href="/post/2018/12/17/LeetCode150%E9%80%86%E6%B3%A2%E5%85%B0%E8%A1%A8%E8%BE%BE%E5%BC%8F%E6%B1%82%E5%80%BC/">[LeetCode]150:逆波兰表达式求值</a></li>
+        
         <li><a href="/about/">关于</a></li>
-        
-        <li><a href="/post/2018/03/7/%E5%8A%A8%E6%80%81%E5%8A%A0%E8%BD%BDDjango%E7%9A%84config%E9%85%8D%E7%BD%AE/">动态加载Django的config配置</a></li>
-        
-        <li><a href="/post/2018/01/25/%E4%BB%8E0%E5%BC%80%E5%A7%8B%E7%9A%84JS%E4%B9%8B%E6%97%85%E4%B8%89DOM%E6%93%8D%E4%BD%9C%E5%9F%BA%E7%A1%80/">从0开始的JS之旅（三）：DOM操作基础</a></li>
-        
-        <li><a href="/post/2018/01/25/%E4%BB%8E0%E5%BC%80%E5%A7%8B%E7%9A%84JS%E4%B9%8B%E6%97%85%E4%BA%8C%E9%9D%A2%E5%90%91%E5%AF%B9%E8%B1%A1%E7%BC%96%E7%A8%8B/">从0开始的JS之旅（二）：面向对象编程</a></li>
-        
-        <li><a href="/post/2018/01/25/%E4%BB%8E0%E5%BC%80%E5%A7%8B%E7%9A%84JS%E4%B9%8B%E6%97%85%E4%B8%80%E6%95%B0%E6%8D%AE%E7%B1%BB%E5%9E%8B%E6%B5%81%E7%A8%8B%E8%AF%AD%E5%8F%A5%E5%8F%8A%E5%87%BD%E6%95%B0/">从0开始的JS之旅（一）：数据类型，流程语句及函数</a></li>
         
     </ul>
 </div>
@@ -202,9 +243,9 @@
                             
                             <ul class="clearfix">
                                 
-                                <li><a href="https://xiongsyao.github.io/tags/leetcode">leetcode</a></li>
+                                <li><a href="https://xiongsyao.github.io/tags/%E9%94%81">锁</a></li>
                                 
-                                <li><a href="https://xiongsyao.github.io/tags/stack">stack</a></li>
+                                <li><a href="https://xiongsyao.github.io/tags/%E5%88%86%E5%B8%83%E5%BC%8F">分布式</a></li>
                                 
                             </ul>
                             
