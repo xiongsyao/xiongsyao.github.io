@@ -179,11 +179,14 @@ for i in range(10000):
 print(i)
 </code></pre>
 
-<p>这种方法有很大的缺陷:
-1. IO时间过长，获取锁与释放锁的过程远不如从内存中获取快。
-1. 锁没有失效时间，解锁失败会导致死锁，其他线程无法再获取到锁。
-2. 只能是非阻塞锁，insert失败直接就报错了，无法进入队列进行重试。
-3. 不可重入，同一线程在没有释放锁之前无法再获取到锁。</p>
+<p>这种方法有很大的缺陷:</p>
+
+<ol>
+<li>IO时间过长，获取锁与释放锁的过程远不如从内存中获取快。</li>
+<li>锁没有失效时间，解锁失败会导致死锁，其他线程无法再获取到锁。</li>
+<li>只能是非阻塞锁，insert失败直接就报错了，无法进入队列进行重试。</li>
+<li>不可重入，同一线程在没有释放锁之前无法再获取到锁。</li>
+</ol>
 
 <h3 id="利用行级锁">利用行级锁</h3>
 
@@ -199,20 +202,20 @@ print(i)
         
     def __init_record(self):
         &quot;&quot;&quot;插入name=当前name的行数据&quot;&quot;&quot;
-        cursor = self.db.cursor()
+        cursor = self.__db.cursor()
         cursor.execute(&quot;SELECT name FROM mutex WHERE name='{}';&quot;.format(self.name))
         if cursor.rowcount == 0:
             cursor.execute(&quot;INSERT INTO mutex(name) VALUES('{}')&quot;.format(name))
-            self.db.commit()
+            self.__db.commit()
                 
     def lock(self):
-        cursor = self.db.cursor()
+        cursor = self.__db.cursor()
         cursor.execute(&quot;SELECT name FROM mutex WHERE name='{}' FOR UPDATE;&quot;.format(self.name))
         if cursor.rowcount == 0:
             raise RuntimeError(&quot;Can't find locker named {}&quot;.format(self.name))
     
     def unlock(self):
-        self.db.commit()
+        self.__db.commit()
 </code></pre>
 
 <p>使用行锁的话，与上例相反，此时是一个阻塞锁，其他线程会持续等待获取锁，并且依旧有上述的1、2、4的缺点。同时，当线程数过多时，会存在连接池耗尽的风向。此外，当数据库解析未命中索引时，会使行锁升级为表锁，所以不建议使用此方案。</p>
