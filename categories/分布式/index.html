@@ -78,6 +78,40 @@
                         <article class="post">
                             <header>
                                 <h1 class="post-title">
+                                    <a href="https://xiongsyao.github.io/post/2019/02/25/%E6%BC%AB%E8%B0%88%E5%88%86%E5%B8%83%E5%BC%8F%E9%94%81%E4%BA%8C/">漫谈分布式锁（二）</a>
+                                </h1>
+                            </header>
+                            <date class="post-meta meta-date">
+                                2019年2月25日
+                            </date>
+                            
+                            <div class="post-meta meta-category">
+                                |
+                                
+                                    <a href="https://xiongsyao.github.io/categories/%E5%88%86%E5%B8%83%E5%BC%8F">分布式</a>
+                                
+                            </div>
+                            
+                            <div class="post-content">
+                                <h2 id="回顾">回顾</h2>
+
+<p>在上一节中，我们利用MySQL实现了一个简单的分布式锁，但是，这样实现的分布式锁存在以下缺点：</p>
+
+<ol>
+<li>IO时间过长，获取锁与释放锁的过程远不如从内存中获取快。</li>
+<li>锁没有失效时间，解锁失败会导致死锁，其他线程无法再获取到锁。</li>
+<li>只能是阻塞锁或非阻塞锁。</li>
+<li>不可重入，同一线程在没有释放锁之前无法再获取到锁。</li>
+</ol>
+
+<p>这一节，我们尝试用Redis实现，看看是否能解决上 …</p>
+                                <p class="readmore"><a href="https://xiongsyao.github.io/post/2019/02/25/%E6%BC%AB%E8%B0%88%E5%88%86%E5%B8%83%E5%BC%8F%E9%94%81%E4%BA%8C/">阅读全文</a></p>
+                            </div>
+                        </article>
+                    
+                        <article class="post">
+                            <header>
+                                <h1 class="post-title">
                                     <a href="https://xiongsyao.github.io/post/2019/02/21/%E6%BC%AB%E8%B0%88%E5%88%86%E5%B8%83%E5%BC%8F%E9%94%81%E4%B8%80/">漫谈分布式锁（一）</a>
                                 </h1>
                             </header>
@@ -122,6 +156,10 @@
     <section class="widget">
         <h3 class="widget-title">最近文章</h3>
 <ul class="widget-list">
+    
+    <li>
+        <a href="https://xiongsyao.github.io/post/2019/02/25/%E6%BC%AB%E8%B0%88%E5%88%86%E5%B8%83%E5%BC%8F%E9%94%81%E4%BA%8C/" title="漫谈分布式锁（二）">漫谈分布式锁（二）</a>
+    </li>
     
     <li>
         <a href="https://xiongsyao.github.io/post/2019/02/21/%E6%BC%AB%E8%B0%88%E5%88%86%E5%B8%83%E5%BC%8F%E9%94%81%E4%B8%80/" title="漫谈分布式锁（一）">漫谈分布式锁（一）</a>
@@ -189,7 +227,7 @@
     </li>
     
     <li>
-        <a href="https://xiongsyao.github.io/categories/%E5%88%86%E5%B8%83%E5%BC%8F/">分布式(1)</a>
+        <a href="https://xiongsyao.github.io/categories/%E5%88%86%E5%B8%83%E5%BC%8F/">分布式(2)</a>
     </li>
     
 </ul>

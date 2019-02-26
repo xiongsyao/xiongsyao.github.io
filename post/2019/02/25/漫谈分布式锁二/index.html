@@ -7,20 +7,20 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
 
-    <title>Redis持久化 | Matrix</title>
-    <meta property="og:title" content="Redis持久化 - Matrix">
+    <title>漫谈分布式锁（二） | Matrix</title>
+    <meta property="og:title" content="漫谈分布式锁（二） - Matrix">
     <meta property="og:type" content="article">
         
-    <meta property="article:published_time" content="2019-02-13T15:08:22&#43;08:00">
+    <meta property="article:published_time" content="2019-02-25T17:20:58&#43;08:00">
         
         
-    <meta property="article:modified_time" content="2019-02-13T15:08:22&#43;08:00">
+    <meta property="article:modified_time" content="2019-02-25T17:20:58&#43;08:00">
         
     <meta name="Keywords" content="golang,python">
-    <meta name="description" content="Redis持久化">
+    <meta name="description" content="漫谈分布式锁（二）">
         
     <meta name="author" content="matrix">
-    <meta property="og:url" content="https://xiongsyao.github.io/post/2019/02/13/Redis%E6%8C%81%E4%B9%85%E5%8C%96/">
+    <meta property="og:url" content="https://xiongsyao.github.io/post/2019/02/25/%E6%BC%AB%E8%B0%88%E5%88%86%E5%B8%83%E5%BC%8F%E9%94%81%E4%BA%8C/">
     <link rel="shortcut icon" href="/favicon.ico" type="image/x-icon">
 
     <link rel="stylesheet" href="/css/normalize.css">
@@ -72,16 +72,16 @@
                 <div class="res-cons">
                     <article class="post">
                         <header>
-                            <h1 class="post-title">Redis持久化</h1>
+                            <h1 class="post-title">漫谈分布式锁（二）</h1>
                         </header>
                         <date class="post-meta meta-date">
-                            2019年2月13日
+                            2019年2月25日
                         </date>
                         
                         <div class="post-meta meta-category">
                             |
                             
-                                <a href="https://xiongsyao.github.io/categories/Redis">Redis</a>
+                                <a href="https://xiongsyao.github.io/categories/%E5%88%86%E5%B8%83%E5%BC%8F">分布式</a>
                             
                         </div>
                         
@@ -89,86 +89,137 @@
                         <div class="post-content">
                             
 
-<h3 id="为什么需要持久化">为什么需要持久化？</h3>
+<h2 id="回顾">回顾</h2>
 
-<p>redis将数据存储在内存中，一旦redis重启，存储的数据丢失，会导致缓存失效，严重情况下引起缓存雪崩，故需要将存储内容持久化。</p>
-
-<h3 id="持久化的方式">持久化的方式？</h3>
+<p>在上一节中，我们利用MySQL实现了一个简单的分布式锁，但是，这样实现的分布式锁存在以下缺点：</p>
 
 <ol>
-<li>RDB:通过快照(snapshotting)完成，当符合一定条件时redis会自动将内存中的所有数据生成一份副本并存储在硬盘上。</li>
-<li>AOF(append only file): 每次redis执行会更改数据的命令时将命令本身记录下来。
-两种持久化方式可以单独使用其中一种，但经常两者结合使用。当同时启用时，Redis通过AOF恢复数据。</li>
+<li>IO时间过长，获取锁与释放锁的过程远不如从内存中获取快。</li>
+<li>锁没有失效时间，解锁失败会导致死锁，其他线程无法再获取到锁。</li>
+<li>只能是阻塞锁或非阻塞锁。</li>
+<li>不可重入，同一线程在没有释放锁之前无法再获取到锁。</li>
 </ol>
 
-<h3 id="rdb的原理">RDB的原理？</h3>
+<p>这一节，我们尝试用Redis实现，看看是否能解决上述问题。</p>
 
-<p>Redis<strong>默认的</strong>会将快照文件存储在当前进程的工作目录中的dump.rdb文件中，可以通过配置dir和dbfilename两个参数指定存储路径和文件名。执行过程如下：
-1. Redis使用fork函数复制一份当前进程(父进程)和副本(子进程)；
-2. 父进程继续处理客户端请求，子进程开始将内存中数据写入硬盘中的临时文件；
-3. 当子进程写入完所有数据后会用该临时文件替换旧的RDB文件。</p>
+<h2 id="单机实现">单机实现</h2>
 
-<p>在执行fork使用<strong>写时复制</strong>(copy-on-write)策略，当fork函数发生的一刻父子进程共享内存，当父进程要更改其中某片内存时，操作系统会将该片数据复制一份(<strong>并不是所有内存数据</strong>)以保证子进程的数据不受影响。所以RDB文件存储是执行fork那一刻的内存数据。</p>
+<p>类比MySQL的方案1，我们可以快速给出一个粗糙的思路：</p>
 
-<p>一旦Redis异常退出，会丢失最后一次快照以后更改的所有数据。</p>
+<p>在Redis中只需要在加锁时设置(setnx, set if not exists)一个唯一的key，并且值也为特殊生成的uuid，更具setnx的特性，假如这个key已存在，则加锁失败，不存在，则枷锁成功。同时，针对MySQL加锁的问题2，我们可以利用expire为这个key主动设置失效时间。释放锁时，通过比较<code>GET key</code>的值与线程的锁的uuid是否一致，如果相等，则说明是同一把锁，通过<code>delete</code>就可以删除这把锁，不一致，就表示可能业务逻辑超时或者网络延迟，导致锁已经失效，此时不做任何处理，防止影响其他线程正常使用锁。</p>
 
-<h3 id="触发rdb的时机">触发RDB的时机？</h3>
+<p>假如我们需要占用一把名为Rlocker的锁，用Redis命令表示出来为:</p>
+
+<pre><code class="language-sh">&gt; SETNX Rlocker uuid  # 加锁：SETNX仅当key不存在时，才会设置成功，返回1， 否则返回0
+(integer) 1
+&gt; EXPIRE Rlocker 1    # 设置失效时间: EXPIRE设置当前key失效时间，单位为秒，PEXPIRE单位为毫秒
+(integer) 1
+&gt; DEL Rlocker         # 释放锁
+(integer) 0
+</code></pre>
+
+<p>实现一个简单的ReMutex类:</p>
+
+<pre><code class="language-python">import uuid
+import redis
+
+r = redis.Redis(host=&quot;localhost&quot;, port=6379, db=0)
+
+class ReMutex:
+    def __init__(self, name, pexpire=500):
+        self.name = name
+        self._key = &quot;re:locker:{}&quot;.format(name)
+        self._uuid = str(uuid.uuid1())  # 这里最好替换成其他的id生成算法
+        self._pexpire = pexpire
+
+    def lock(self):
+        if r.setnx(self._key, self._uuid):
+            r.pexpire(self._key, self._pexpire)
+        raise Exception(&quot;Locker is used by other one!&quot;)
+
+    def unlock(self):
+        if r.get(self._key) == self._uuid:
+            r.delete(self._key)
+</code></pre>
+
+<p>仔细思考一下，这样的代码真的正确吗？假如在<code>SETNX</code>后客户端异常，导致没有发出<code>EXPIRE</code>命令，会形成死锁；亦或是<code>GET</code>请求后，恰好key过期，另一个线程获取了锁，错误的删除了另一个线程持有的锁。归根结底，这样的代码是没办法保证原子性的。</p>
+
+<p>首先，我们需要整合<code>SETNX</code>与<code>EXPIRE</code>命令。</p>
+
+<p>这个很好解决，采用Redis2.6.12版本后提供的set，它提供了一系列选项</p>
+
+<ul>
+<li>EX seconds - 设置key的过期时间，单位为秒</li>
+<li>PX milliseconds - 设置ke的过期时间，单位为毫秒</li>
+<li>NX - 只有key不存在时才设置key的值</li>
+<li>XX - 只有key存在时才设置key的值</li>
+</ul>
+
+<p>上述的步骤可以整合成一个原子性的命令:<code>SET Rlocker uuid EX 1 NX</code>。</p>
+
+<p>其次，<code>GET</code>的值判断与<code>DELETE</code>我们可以借助<code>lua</code>整合成一个命令，确保其原子性。</p>
+
+<pre><code class="language-lua">if redis.call('get', KEYS[1]) == ARGV[1] then 
+    return redis.call('del', KEYS[1]) 
+else 
+    return 0 
+end
+</code></pre>
+
+<p>这样，修改后的ReMutex类为:</p>
+
+<pre><code class="language-python">class ReMutex:
+    def __init__(self, name, pexpire=500):
+        self.name = name
+        self._key = &quot;re:locker:{}&quot;.format(name)
+        self._uuid = str(uuid.uuid1())  # 这里最好替换成其他的id生成算法
+        self._pexpire = pexpire
+
+    def lock(self):
+        if not r.set(self._key, self._uuid, px=self._pexpire, nx=True):
+            raise Exception(&quot;Locker is used by other one!&quot;)
+
+    def unlock(self):
+        slua = &quot;&quot;&quot;
+        if redis.call('get', KEYS[1]) == ARGV[1] then 
+            return redis.call('del', KEYS[1]) 
+        else 
+            return 0 
+        end
+        &quot;&quot;&quot;
+        get_then_delete = r.register_script(slua)
+        return get_then_delete(keys=[self._key], args=[self._uuid])
+</code></pre>
+
+<p>新的ReMutex加锁与解锁的操作都具备原子性。这样的一个实例，解决了使用MySQL的前两个问题。为了能够获取锁失败后继续等待，我们也可以通过while实现一个自旋锁。</p>
+
+<h2 id="redlock算法">RedLock算法</h2>
+
+<p>RedLock算法是Redis作者推荐的一种分布式锁算法。这里我们仅介绍下其内容，并不具体实现。</p>
 
 <ol>
-<li><p>根据配置规则进行自动快照</p>
-
-<p>Redis允许用户自定义快照条件，当符合快照条件时，会自动执行快照操作。条件由用户在配置文件中定义，由两个参数构成: 时间窗口M和改动的键个数N。每当时间M内被改动的键个数大于N时，即会触发快照。可以配置多个条件，之间的关系是“或”。例如:
-<code>save 900 3</code>
-<code>save 300 1</code>
-<code>save 60 10000</code>
-则当900秒内有3个键改变或300秒内有一个键被改变或60秒内有10000个键被改变，都会触发快照。</p></li>
-
-<li><p>用户执行SAVE或BGSAVE命令</p>
-
-<p>当执行SAVE命令时，Redis会同步地进行快照，快照过程中会阻塞所有来自客户端的请求，可能会导致Redis长时间不响应，应当避免在生产环境中使用。</p>
-
-<p>BGSAVE命令在后台异步的进行快照，服务器依旧可以响应客户端请求。执行BGSAVE后Redis会立即返回OK表示开始快照。可以通过LASTSAVE命令获取最近一次成功执行快照的时间，以确定是否执行成功。</p></li>
-
-<li><p>执行FLUSHALL命令</p>
-
-<p>当执行FLUSHALL命令时，<strong>只要自动快照条件(不论条件是什么)不为空，就会执行一次快照操作</strong>,
-当不存在快照条件时，则不会触发。</p></li>
-
-<li><p>执行复制(replication)时</p>
-
-<p>当设置了主从模式时，Redis会在复制初始化时进行自动快照。</p></li>
+<li>获取当前时间；</li>
+<li>尝试从5个相互独立redis客户端获取锁；</li>
+<li>计算获取所有锁消耗的时间，当且仅当客户端从多数节点获取锁，并且获取锁的时间小于锁的有效时间，认为获得锁；</li>
+<li>重新计算有效期时间，原有效时间减去获取锁消耗的时间；</li>
+<li>删除所有实例的锁。</li>
 </ol>
 
-<h3 id="aof持久化怎么开启-如何去除冗余命令">AOF持久化怎么开启？如何去除冗余命令？</h3>
+<p>RedLock算法相对于单节点redis锁可靠性要更高，但是实现起来条件也较为苛刻。
+它的实现如此复杂，其中有一些显而易见的问题:</p>
 
-<p>默认情况下Redis没有开启AOF方式的持久化，可以通过appendonly参数启用: <code>appendonly yes</code>。开启AOF持久化后每执行一条会更改Redis中数据的命令，就会将该命令写入硬盘的AOF文件，AOF文件的保存位置与RDB文件的位置一致，通过dir和appendfilename设置目录和文件名，默认为appendonly.aof。</p>
+<ul>
+<li>必须部署5个节点才能让Redlock的可靠性更强，</li>
+<li>需要并发请求5个节点才能获取到锁，</li>
+<li>如果5个节点有2个宕机，此时锁的可用性会极大降低，首先必须等待这两个宕机节点的结果超时才能返回，</li>
+<li>如果出现网络分区，那么可能出现客户端永远也无法获取锁的情况</li>
+</ul>
 
-<p>AOF文件以纯文本的形式记录Redis命令(<strong>这里指RESP协议化的命令</strong>)。随着执行命令越来越多，文件也会越来越大，中间会记录冗余的命令(例如对同一个键的多次SET操作)。通过在配置文件中更改设置，可以做到满足条件时，Redis自动重写AOF文件:</p>
+<p>虽然RedLock算法使Redis实现的分布式锁更可靠，但其所需的成本太高了，并且没有解决后续问题。</p>
 
-<pre><code>auto-aof-rewrite-percentage 100   # 当前AOF文件大小超过上一次重写时的AOF文件大小百分之多少时触发重写
-auto-aof-rewrite-min-size 64mb    # 当AOF文件小于这个值时不再触发重写
-</code></pre>
+<p>在不是很重要的业务场景上，使用单节点的Redis分布式锁，是一个性价比很高的选择。</p>
 
-<p>也可以执行<code>BGREWRITEAOF</code>命令手动的异步执行AOF重写。</p>
-
-<h3 id="aof持久化是否必要-会有性能问题吗-如何避免性能问题">AOF持久化是否必要？会有性能问题吗？如何避免性能问题？</h3>
-
-<p>RDB方式实现持久化时，一旦Redis异常退出，会丢失最后一次快照以后更改的所有数据。若数据比较重要，就需要配合AOF方式进行持久化。</p>
-
-<p>AOF会将redis执行的每一条写命令追加到硬盘文件中，这一过程显然会降低redis的性能，但是大部分情况下这个情况是可以接受的，可以使用较快的硬盘提高AOF的性能。</p>
-
-<h3 id="aof方式持久化的数据一定不会丢失吗">AOF方式持久化的数据一定不会丢失吗？</h3>
-
-<p>虽然每次执行更改数据的操作时Redis都会将命令记录在AOF文件中，但事实上，由于操作系统的缓存机制，数据并没有真正的写入硬盘，而是进入了系统的硬盘缓存。在默认情况下系统每30秒执行一次同步操作，将硬盘缓存中的内容真正写入到硬盘中，在这30秒内，如果系统异常退出就会导致硬盘缓存中的数据丢失。</p>
-
-<p>可以通过修改Redis的appendfsync参数设置同步时机，使得Redis主动请求操作系统同步。</p>
-
-<pre><code># appendfsync always   # 每次执行写入都会要求同步
-appendfsync everysec   # 每秒请求一次同步
-# appendfsync no       # 不主动请求系统同步
-</code></pre>
-
-<p>一般来说，<code>appendfsync everysec</code>较为合理，既兼顾了性能，又保证了数据安全。</p>
+<p>下一节，我们看看通过zookeeper实现的分布式锁。</p>
 
                         </div>
 
@@ -178,15 +229,15 @@ appendfsync everysec   # 每秒请求一次同步
     <h2>See Also</h2>
     <ul class="listing">
         
-        <li><a href="/post/2019/01/02/%E8%A7%A3%E8%AF%BBredis%E5%8D%8F%E8%AE%AE/">解读redis协议</a></li>
+        <li><a href="/post/2019/02/21/%E6%BC%AB%E8%B0%88%E5%88%86%E5%B8%83%E5%BC%8F%E9%94%81%E4%B8%80/">漫谈分布式锁（一）</a></li>
         
         <li><a href="/post/2018/12/28/%E8%B0%88%E8%B0%88golang%E4%B8%AD%E7%9A%84%E9%94%81/">谈谈golang中的锁</a></li>
         
+        <li><a href="/post/2019/02/13/Redis%E6%8C%81%E4%B9%85%E5%8C%96/">Redis持久化</a></li>
+        
+        <li><a href="/post/2019/01/02/%E8%A7%A3%E8%AF%BBredis%E5%8D%8F%E8%AE%AE/">解读redis协议</a></li>
+        
         <li><a href="/post/2018/12/17/LeetCode150%E9%80%86%E6%B3%A2%E5%85%B0%E8%A1%A8%E8%BE%BE%E5%BC%8F%E6%B1%82%E5%80%BC/">[LeetCode]150:逆波兰表达式求值</a></li>
-        
-        <li><a href="/about/">关于</a></li>
-        
-        <li><a href="/post/2018/03/7/%E5%8A%A8%E6%80%81%E5%8A%A0%E8%BD%BDDjango%E7%9A%84config%E9%85%8D%E7%BD%AE/">动态加载Django的config配置</a></li>
         
     </ul>
 </div>
@@ -196,7 +247,9 @@ appendfsync everysec   # 每秒请求一次同步
                             
                             <ul class="clearfix">
                                 
-                                <li><a href="https://xiongsyao.github.io/tags/Redis">Redis</a></li>
+                                <li><a href="https://xiongsyao.github.io/tags/%E9%94%81">锁</a></li>
+                                
+                                <li><a href="https://xiongsyao.github.io/tags/%E5%88%86%E5%B8%83%E5%BC%8F">分布式</a></li>
                                 
                             </ul>
                             

@@ -68,6 +68,40 @@
                         <article class="post">
                             <header>
                                 <h1 class="post-title">
+                                    <a href="https://xiongsyao.github.io/post/2019/02/25/%E6%BC%AB%E8%B0%88%E5%88%86%E5%B8%83%E5%BC%8F%E9%94%81%E4%BA%8C/" title="漫谈分布式锁（二）" >漫谈分布式锁（二）</a>
+                                </h1>
+                            </header>
+                            <date class="post-meta meta-date">
+                                2019年2月25日
+                            </date>
+                            
+                            <div class="post-meta meta-category">
+                                |
+                                
+                                    <a href="https://xiongsyao.github.io/categories/%E5%88%86%E5%B8%83%E5%BC%8F">分布式</a>
+                                
+                            </div>
+                            
+                            <div class="post-content">
+                                <h2 id="回顾">回顾</h2>
+
+<p>在上一节中，我们利用MySQL实现了一个简单的分布式锁，但是，这样实现的分布式锁存在以下缺点：</p>
+
+<ol>
+<li>IO时间过长，获取锁与释放锁的过程远不如从内存中获取快。</li>
+<li>锁没有失效时间，解锁失败会导致死锁，其他线程无法再获取到锁。</li>
+<li>只能是阻塞锁或非阻塞锁。</li>
+<li>不可重入，同一线程在没有释放锁之前无法再获取到锁。</li>
+</ol>
+
+<p>这一节，我们尝试用Redis实现，看看是否能解决上 …</p>
+                            </div>
+                            <p class="readmore"><a href="https://xiongsyao.github.io/post/2019/02/25/%E6%BC%AB%E8%B0%88%E5%88%86%E5%B8%83%E5%BC%8F%E9%94%81%E4%BA%8C/">阅读全文</a></p>
+                        </article>
+                    
+                        <article class="post">
+                            <header>
+                                <h1 class="post-title">
                                     <a href="https://xiongsyao.github.io/post/2019/02/21/%E6%BC%AB%E8%B0%88%E5%88%86%E5%B8%83%E5%BC%8F%E9%94%81%E4%B8%80/" title="漫谈分布式锁（一）" >漫谈分布式锁（一）</a>
                                 </h1>
                             </header>
@@ -327,55 +361,6 @@ func do() {
                             <p class="readmore"><a href="https://xiongsyao.github.io/post/2018/01/25/%E4%BB%8E0%E5%BC%80%E5%A7%8B%E7%9A%84JS%E4%B9%8B%E6%97%85%E4%BA%8C%E9%9D%A2%E5%90%91%E5%AF%B9%E8%B1%A1%E7%BC%96%E7%A8%8B/">阅读全文</a></p>
                         </article>
                     
-                        <article class="post">
-                            <header>
-                                <h1 class="post-title">
-                                    <a href="https://xiongsyao.github.io/post/2018/01/25/%E4%BB%8E0%E5%BC%80%E5%A7%8B%E7%9A%84JS%E4%B9%8B%E6%97%85%E4%B8%80%E6%95%B0%E6%8D%AE%E7%B1%BB%E5%9E%8B%E6%B5%81%E7%A8%8B%E8%AF%AD%E5%8F%A5%E5%8F%8A%E5%87%BD%E6%95%B0/" title="从0开始的JS之旅（一）：数据类型，流程语句及函数" >从0开始的JS之旅（一）：数据类型，流程语句及函数</a>
-                                </h1>
-                            </header>
-                            <date class="post-meta meta-date">
-                                2018年1月25日
-                            </date>
-                            
-                            <div class="post-meta meta-category">
-                                |
-                                
-                                    <a href="https://xiongsyao.github.io/categories/JavaScript">JavaScript</a>
-                                
-                            </div>
-                            
-                            <div class="post-content">
-                                <h1 id="从0开始的js之旅-一">从0开始的JS之旅（一）</h1>
-
-<blockquote>
-<p>半年多之前学的JS，结果后来一直在写python，现在趁着有些空闲时间，准备重新学习一遍JS，故记录下来，方便自己以后回顾，同时希望能对别人有所帮助</p>
-</blockquote>
-
-<h2 id="数据类型">数据类型</h2>
-
-<table>
-<thead>
-<tr>
-<th>类型</th>
-<th>描述</th>
-<th>示例</th>
-</tr>
-</thead>
-
-<tbody>
-<tr>
-<td>String</td>
-<td>字符串，一段文本。</td>
-<td>&lsquo;hello world&rsquo;</td>
-</tr>
-
-<tr>
-<td>Number</td>
-<td>数字， …</td></tr></tbody></table>
-                            </div>
-                            <p class="readmore"><a href="https://xiongsyao.github.io/post/2018/01/25/%E4%BB%8E0%E5%BC%80%E5%A7%8B%E7%9A%84JS%E4%B9%8B%E6%97%85%E4%B8%80%E6%95%B0%E6%8D%AE%E7%B1%BB%E5%9E%8B%E6%B5%81%E7%A8%8B%E8%AF%AD%E5%8F%A5%E5%8F%8A%E5%87%BD%E6%95%B0/">阅读全文</a></p>
-                        </article>
-                    
 
                     
 
@@ -418,6 +403,10 @@ func do() {
     <section class="widget">
         <h3 class="widget-title">最近文章</h3>
 <ul class="widget-list">
+    
+    <li>
+        <a href="https://xiongsyao.github.io/post/2019/02/25/%E6%BC%AB%E8%B0%88%E5%88%86%E5%B8%83%E5%BC%8F%E9%94%81%E4%BA%8C/" title="漫谈分布式锁（二）">漫谈分布式锁（二）</a>
+    </li>
     
     <li>
         <a href="https://xiongsyao.github.io/post/2019/02/21/%E6%BC%AB%E8%B0%88%E5%88%86%E5%B8%83%E5%BC%8F%E9%94%81%E4%B8%80/" title="漫谈分布式锁（一）">漫谈分布式锁（一）</a>
@@ -485,7 +474,7 @@ func do() {
     </li>
     
     <li>
-        <a href="https://xiongsyao.github.io/categories/%E5%88%86%E5%B8%83%E5%BC%8F/">分布式(1)</a>
+        <a href="https://xiongsyao.github.io/categories/%E5%88%86%E5%B8%83%E5%BC%8F/">分布式(2)</a>
     </li>
     
 </ul>
