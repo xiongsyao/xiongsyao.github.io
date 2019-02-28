@@ -122,7 +122,7 @@
 
 <p>创建表:</p>
 
-<pre><code>CREATE TABLE `dbmutex` (
+<pre><code class="language-sql">CREATE TABLE `dbmutex` (
   `name` varchar(64) NOT NULL,
   `update_time` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`name`),
@@ -170,7 +170,7 @@ class DBMutex:
 <p>这样，就实现了一个简单的基于MySQL的分布式锁。
 简单使用如下:</p>
 
-<pre><code>mu = DBMutex()
+<pre><code class="language-python">mu = DBMutex()
 i = 0
 for i in range(10000):
     mu.lock()
@@ -194,7 +194,7 @@ print(i)
 
 <p>同样的，实现的RowMutex类如下:</p>
 
-<pre><code>class RowMutex:
+<pre><code class="language-python">class RowMutex:
     def __init__(self, name=&quot;default&quot;):
         self.name = name
         self.__db = MySQLdb.connect(&quot;localhost&quot;, &quot;root&quot;, &quot;123456&quot;, &quot;test&quot;, charset='utf8')
