@@ -1,212 +1,121 @@
-<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
     <title>Matrix</title>
-    <link>https://xiongsyao.github.io/</link>
+    <link>https://xsymphony.github.io/</link>
     <description>Recent content on Matrix</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>zh-CH</language>
     <lastBuildDate>Wed, 27 Feb 2019 15:00:16 +0800</lastBuildDate>
     
-	<atom:link href="https://xiongsyao.github.io/index.xml" rel="self" type="application/rss+xml" />
+	<atom:link href="https://xsymphony.github.io/index.xml" rel="self" type="application/rss+xml" />
     
     
     <item>
       <title>漫谈分布式锁（三）</title>
-      <link>https://xiongsyao.github.io/post/2019/02/27/%E6%BC%AB%E8%B0%88%E5%88%86%E5%B8%83%E5%BC%8F%E9%94%81%E4%B8%89/</link>
+      <link>https://xsymphony.github.io/post/2019/02/27/%E6%BC%AB%E8%B0%88%E5%88%86%E5%B8%83%E5%BC%8F%E9%94%81%E4%B8%89/</link>
       <pubDate>Wed, 27 Feb 2019 15:00:16 +0800</pubDate>
       
-      <guid>https://xiongsyao.github.io/post/2019/02/27/%E6%BC%AB%E8%B0%88%E5%88%86%E5%B8%83%E5%BC%8F%E9%94%81%E4%B8%89/</guid>
-      <description>在上一节中，我们利用Redis实现了分布式互斥锁。虽然相较于基于MySQL的解决方案，它已经解决了很多问题，但是仍然有一些不足（不讨论RedLock解放方案）:
- 非高可用，一旦Redis服务挂了，极大影响锁的使用。 没有正确估计锁的过期时间pexpire时，很容易造成，业务逻辑处理时间过长，导致频繁产生解锁失败的错误。若设置过长，会影响获取锁的效率。 持有锁的工作线程出错后，必须等待过期时间结束才能释放锁，并不能立即释放。 阻塞锁的实现方式需要通过while循环实现。  在这一节中，我们通过Zookeeper实现分布式互斥锁。
-优势 Zookeeper作为一个分布式应用协调程序，常用来做配置管理、服务发现。它的所有写入动作会在Leader节点持久化，并在集群过半数节点写入成功才会返回，它也能够支持节点的崩溃恢复以及客户端的最终一致性视图。得益于这一特性，基于zk实现的分布式锁，只要节点数大于等于三，就是天然高可用的。
-zk的这些特性可以用于分布式锁中:
- 永久节点: 节点创建之后，不会因为会话失效而消失，需要主动删除。用来作为锁的根节点。
- 临时节点: 临时节点将在当前客户端与服务端建立的session到期时自动删除，这个特性可以保障客户端创建的分布式锁节点在客户端宕机或者网络通讯中断一段时间后自动释放该临时节点，从而避免分布式锁由于客户端或网络原因导致的死锁问题。
- 顺序节点: 顺序节点将自动在客户端指定的节点名后面添加一个单调递增序号来确保多个客户端同时创建相同的节点名时能够创建成功，并且保障越早创建的节点的序号越小。利用该特性可以实现锁的互斥性和公平性，即同一时刻只有一个客户端能够成功获取到锁（序号最小的一个获取到锁），获取锁失败的节点可以按照创建顺序进行锁等待。
- 监视器（watcher）: 当创建一个节点时，当前客户端可以注册一个该节点的监视器，当节点状态改变（删除或更新）时，zk将会向此客户端发送一条通知。应用watcher机制，正在等待锁的客户端就可以及时得知锁被释放，进行抢占锁的动作。
-  实现思路  创建锁目录lock。 希望获得锁的客户端在lock目录下创建临时顺序节点。 获取锁目录下所有子节点，拿到最小子节点，并判断最小子节点是不是与自身的节点相同，若是，则获取锁。否则，监听比自己次小的节点(这里不是监听最小节点，为了防止“羊群效应”)，当比自己次小的节点被删除时，重复此步骤知道获取锁。 客户端处理完业务，删除自己的节点，释放锁。  具体实现 因为Zookeeper常用于作为分布式锁，所有很多语言的Zookeeper包都为我们内置了lock。以python为例:
-import time from kazoo.client import KazooClient zk = KazooClient(&amp;quot;127.0.0.1:2181&amp;quot;) zk.start() lock = zk.Lock(&amp;quot;/lockpath&amp;quot;, &amp;quot;my-identifier&amp;quot;) with lock: # blocks waiting for lock acquisition # do something with the lock time.sleep(5)  kazoo还为我们提供了除互斥锁外更多种类的锁，可以看官方文档了解下。</description>
+      <guid>https://xsymphony.github.io/post/2019/02/27/%E6%BC%AB%E8%B0%88%E5%88%86%E5%B8%83%E5%BC%8F%E9%94%81%E4%B8%89/</guid>
+      <description>在上一节中，我们利用Redis实现了分布式互斥锁。虽然相较于基于MySQL的解决方案，它已经解决了很多问题，但是仍然有一些不足（不讨论RedLock解放方案）: 非高可用，一旦Redis服务挂了，极大影响锁的使用。 没有正确估计锁的过期时间pexpire时，很容易造成，业务逻辑处理时</description>
     </item>
     
     <item>
       <title>漫谈分布式锁（二）</title>
-      <link>https://xiongsyao.github.io/post/2019/02/25/%E6%BC%AB%E8%B0%88%E5%88%86%E5%B8%83%E5%BC%8F%E9%94%81%E4%BA%8C/</link>
+      <link>https://xsymphony.github.io/post/2019/02/25/%E6%BC%AB%E8%B0%88%E5%88%86%E5%B8%83%E5%BC%8F%E9%94%81%E4%BA%8C/</link>
       <pubDate>Mon, 25 Feb 2019 17:20:58 +0800</pubDate>
       
-      <guid>https://xiongsyao.github.io/post/2019/02/25/%E6%BC%AB%E8%B0%88%E5%88%86%E5%B8%83%E5%BC%8F%E9%94%81%E4%BA%8C/</guid>
-      <description>回顾 在上一节中，我们利用MySQL实现了一个简单的分布式锁，但是，这样实现的分布式锁存在以下缺点：
- IO时间过长，获取锁与释放锁的过程远不如从内存中获取快。 锁没有失效时间，解锁失败会导致死锁，其他线程无法再获取到锁。 只能是阻塞锁或非阻塞锁。 不可重入，同一线程在没有释放锁之前无法再获取到锁。  这一节，我们尝试用Redis实现，看看是否能解决上述问题。
-单机实现 类比MySQL的方案1，我们可以快速给出一个粗糙的思路：
-在Redis中只需要在加锁时设置(setnx, set if not exists)一个唯一的key，并且值也为特殊生成的uuid，更具setnx的特性，假如这个key已存在，则加锁失败，不存在，则枷锁成功。同时，针对MySQL加锁的问题2，我们可以利用expire为这个key主动设置失效时间。释放锁时，通过比较GET key的值与线程的锁的uuid是否一致，如果相等，则说明是同一把锁，通过delete就可以删除这把锁，不一致，就表示可能业务逻辑超时或者网络延迟，导致锁已经失效，此时不做任何处理，防止影响其他线程正常使用锁。
-假如我们需要占用一把名为Rlocker的锁，用Redis命令表示出来为:
-&amp;gt; SETNX Rlocker uuid # 加锁：SETNX仅当key不存在时，才会设置成功，返回1， 否则返回0 (integer) 1 &amp;gt; EXPIRE Rlocker 1 # 设置失效时间: EXPIRE设置当前key失效时间，单位为秒，PEXPIRE单位为毫秒 (integer) 1 &amp;gt; DEL Rlocker # 释放锁 (integer) 0  实现一个简单的ReMutex类:
-import uuid import redis r = redis.Redis(host=&amp;quot;localhost&amp;quot;, port=6379, db=0) class ReMutex: def __init__(self, name, pexpire=500): self.name = name self._key = &amp;quot;re:locker:{}&amp;quot;.format(name) self._uuid = str(uuid.uuid1()) # 这里最好替换成其他的id生成算法 self.</description>
+      <guid>https://xsymphony.github.io/post/2019/02/25/%E6%BC%AB%E8%B0%88%E5%88%86%E5%B8%83%E5%BC%8F%E9%94%81%E4%BA%8C/</guid>
+      <description>回顾 在上一节中，我们利用MySQL实现了一个简单的分布式锁，但是，这样实现的分布式锁存在以下缺点： IO时间过长，获取锁与释放锁的过程远不如从内存中获取快。 锁没有失效时间，解锁失败会导致死锁，其他线程无法再获取到锁。 只能是阻塞锁或非阻塞锁。 不可重入，同一线程在没有释放锁之前无法再获</description>
     </item>
     
     <item>
       <title>漫谈分布式锁（一）</title>
-      <link>https://xiongsyao.github.io/post/2019/02/21/%E6%BC%AB%E8%B0%88%E5%88%86%E5%B8%83%E5%BC%8F%E9%94%81%E4%B8%80/</link>
+      <link>https://xsymphony.github.io/post/2019/02/21/%E6%BC%AB%E8%B0%88%E5%88%86%E5%B8%83%E5%BC%8F%E9%94%81%E4%B8%80/</link>
       <pubDate>Thu, 21 Feb 2019 20:35:47 +0800</pubDate>
       
-      <guid>https://xiongsyao.github.io/post/2019/02/21/%E6%BC%AB%E8%B0%88%E5%88%86%E5%B8%83%E5%BC%8F%E9%94%81%E4%B8%80/</guid>
-      <description>为什么需要分布式锁 之前介绍过Go中的锁，在多个协程(线程)抢占同一资源时，为了防止相互干扰，保持一致性，需要运用到锁机制，得益于线程的共享内存，大部分语言都在标准库中为我们提供了锁。但是在跨进程、跨主机程序协作中，就需要我们自己去实现，我们需要自己为所有进程提供一个&amp;rdquo;共享内存&amp;rdquo;，并在其中实现自己的“锁”。
-分布式锁需要实现的功能  获取锁与释放锁的性能要好，足够快； 获取锁必须是原子性的，否则会导致多个进程都持有锁； 具备锁失效机制，当获取到锁的进程(线程)，因为网络问题或者自身异常退出，无法提交释放锁的请求时，锁应当自己清除掉； 同一线程可以多次获取同一把锁，即可重入性； 具备非阻塞锁和阻塞锁特性。当没有获取到锁时，非阻塞锁直接返回锁失败，阻塞锁会使线程继续等待获取锁。  常见的分布式锁实现方案  基于数据库实现; 基于缓存(Redis)实现； 基于Zookeeper实现; 基于etcd实现。  本篇先介绍基于数据库实现的分布式锁。
-基于数据库的分布式锁 利用唯一索引 该实现方式完全依靠数据库唯一索引来实现，当想要获得锁时，即向数据库中插入一条记录，释放锁时就删除这条记录。
-创建表:
-CREATE TABLE `dbmutex` ( `name` varchar(64) NOT NULL, `update_time` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP, PRIMARY KEY (`name`), UNIQUE KEY `uidx_name` (`name`) USING BTREE ) ENGINE=InnoDB DEFAULT CHARSET=utf8  依赖于这张表，实现一个简单的DBMutex类
-import MySQLdb class Driver: def __init__(self, address=&amp;quot;localhost&amp;quot;, username=&amp;quot;root&amp;quot;, password=&amp;quot;123456&amp;quot;, dbname=&amp;quot;LOCKER&amp;quot;): self.db = MySQLdb.connect(address, username, password, dbname, charset=&#39;utf8&#39;) self.</description>
+      <guid>https://xsymphony.github.io/post/2019/02/21/%E6%BC%AB%E8%B0%88%E5%88%86%E5%B8%83%E5%BC%8F%E9%94%81%E4%B8%80/</guid>
+      <description>为什么需要分布式锁 之前介绍过Go中的锁，在多个协程(线程)抢占同一资源时，为了防止相互干扰，保持一致性，需要运用到锁机制，得益于线程的共享内存，大部分语言都在标准库中为我们提供了锁。但是在跨进程、跨主机程序协作中，就需要我们自己去实现，我们需要自己为所有进程提供一个&amp;quot;共</description>
     </item>
     
     <item>
       <title>Redis持久化</title>
-      <link>https://xiongsyao.github.io/post/2019/02/13/Redis%E6%8C%81%E4%B9%85%E5%8C%96/</link>
+      <link>https://xsymphony.github.io/post/2019/02/13/Redis%E6%8C%81%E4%B9%85%E5%8C%96/</link>
       <pubDate>Wed, 13 Feb 2019 15:08:22 +0800</pubDate>
       
-      <guid>https://xiongsyao.github.io/post/2019/02/13/Redis%E6%8C%81%E4%B9%85%E5%8C%96/</guid>
-      <description>为什么需要持久化？ redis将数据存储在内存中，一旦redis重启，存储的数据丢失，会导致缓存失效，严重情况下引起缓存雪崩，故需要将存储内容持久化。
-持久化的方式？  RDB:通过快照(snapshotting)完成，当符合一定条件时redis会自动将内存中的所有数据生成一份副本并存储在硬盘上。 AOF(append only file): 每次redis执行会更改数据的命令时将命令本身记录下来。 两种持久化方式可以单独使用其中一种，但经常两者结合使用。当同时启用时，Redis通过AOF恢复数据。  RDB的原理？ Redis默认的会将快照文件存储在当前进程的工作目录中的dump.rdb文件中，可以通过配置dir和dbfilename两个参数指定存储路径和文件名。执行过程如下： 1. Redis使用fork函数复制一份当前进程(父进程)和副本(子进程)； 2. 父进程继续处理客户端请求，子进程开始将内存中数据写入硬盘中的临时文件； 3. 当子进程写入完所有数据后会用该临时文件替换旧的RDB文件。
-在执行fork使用写时复制(copy-on-write)策略，当fork函数发生的一刻父子进程共享内存，当父进程要更改其中某片内存时，操作系统会将该片数据复制一份(并不是所有内存数据)以保证子进程的数据不受影响。所以RDB文件存储是执行fork那一刻的内存数据。
-一旦Redis异常退出，会丢失最后一次快照以后更改的所有数据。
-触发RDB的时机？  根据配置规则进行自动快照
-Redis允许用户自定义快照条件，当符合快照条件时，会自动执行快照操作。条件由用户在配置文件中定义，由两个参数构成: 时间窗口M和改动的键个数N。每当时间M内被改动的键个数大于N时，即会触发快照。可以配置多个条件，之间的关系是“或”。例如: save 900 3 save 300 1 save 60 10000 则当900秒内有3个键改变或300秒内有一个键被改变或60秒内有10000个键被改变，都会触发快照。
- 用户执行SAVE或BGSAVE命令
-当执行SAVE命令时，Redis会同步地进行快照，快照过程中会阻塞所有来自客户端的请求，可能会导致Redis长时间不响应，应当避免在生产环境中使用。
-BGSAVE命令在后台异步的进行快照，服务器依旧可以响应客户端请求。执行BGSAVE后Redis会立即返回OK表示开始快照。可以通过LASTSAVE命令获取最近一次成功执行快照的时间，以确定是否执行成功。
- 执行FLUSHALL命令
-当执行FLUSHALL命令时，只要自动快照条件(不论条件是什么)不为空，就会执行一次快照操作, 当不存在快照条件时，则不会触发。
- 执行复制(replication)时
-当设置了主从模式时，Redis会在复制初始化时进行自动快照。
-  AOF持久化怎么开启？如何去除冗余命令？ 默认情况下Redis没有开启AOF方式的持久化，可以通过appendonly参数启用: appendonly yes。开启AOF持久化后每执行一条会更改Redis中数据的命令，就会将该命令写入硬盘的AOF文件，AOF文件的保存位置与RDB文件的位置一致，通过dir和appendfilename设置目录和文件名，默认为appendonly.aof。
-AOF文件以纯文本的形式记录Redis命令(这里指RESP协议化的命令)。随着执行命令越来越多，文件也会越来越大，中间会记录冗余的命令(例如对同一个键的多次SET操作)。通过在配置文件中更改设置，可以做到满足条件时，Redis自动重写AOF文件:
-auto-aof-rewrite-percentage 100 # 当前AOF文件大小超过上一次重写时的AOF文件大小百分之多少时触发重写 auto-aof-rewrite-min-size 64mb # 当AOF文件小于这个值时不再触发重写  也可以执行BGREWRITEAOF命令手动的异步执行AOF重写。
-AOF持久化是否必要？会有性能问题吗？如何避免性能问题？ RDB方式实现持久化时，一旦Redis异常退出，会丢失最后一次快照以后更改的所有数据。若数据比较重要，就需要配合AOF方式进行持久化。
-AOF会将redis执行的每一条写命令追加到硬盘文件中，这一过程显然会降低redis的性能，但是大部分情况下这个情况是可以接受的，可以使用较快的硬盘提高AOF的性能。
-AOF方式持久化的数据一定不会丢失吗？ 虽然每次执行更改数据的操作时Redis都会将命令记录在AOF文件中，但事实上，由于操作系统的缓存机制，数据并没有真正的写入硬盘，而是进入了系统的硬盘缓存。在默认情况下系统每30秒执行一次同步操作，将硬盘缓存中的内容真正写入到硬盘中，在这30秒内，如果系统异常退出就会导致硬盘缓存中的数据丢失。</description>
+      <guid>https://xsymphony.github.io/post/2019/02/13/Redis%E6%8C%81%E4%B9%85%E5%8C%96/</guid>
+      <description>为什么需要持久化？ redis将数据存储在内存中，一旦redis重启，存储的数据丢失，会导致缓存失效，严重情况下引起缓存雪崩，故需要将存储内容持久化。 持久化的方式？ RDB:通过快照(snapshotting)完成，当符合一定条件时redis会自动将内存中的所有数据生成一份副本并存储</description>
     </item>
     
     <item>
       <title>解读redis协议</title>
-      <link>https://xiongsyao.github.io/post/2019/01/02/%E8%A7%A3%E8%AF%BBredis%E5%8D%8F%E8%AE%AE/</link>
+      <link>https://xsymphony.github.io/post/2019/01/02/%E8%A7%A3%E8%AF%BBredis%E5%8D%8F%E8%AE%AE/</link>
       <pubDate>Wed, 02 Jan 2019 17:20:16 +0800</pubDate>
       
-      <guid>https://xiongsyao.github.io/post/2019/01/02/%E8%A7%A3%E8%AF%BBredis%E5%8D%8F%E8%AE%AE/</guid>
-      <description>前言 Redis作为我们日常使用的key-value数据库，不光操作简单(例如set get delete等指令)，通信协议也简洁明了。 本篇就会剖析Redis的通信协议，并且实现一个简单的Redis客户端。
-协议 Redis服务端与客户端使用的基于TCP的文本协议(敲黑板，这里并没有使用效率更高的二进制协议)，称之为RESP(Redis Serialization Protocol)。区别于同样是文本协议的HTTP协议，RESP尤为简洁，其基础规则很容易理解。
-请求信息 假如我们执行set test ok这样的命令，可以视为准备了一个[&amp;quot;set&amp;quot;, &amp;quot;test&amp;quot;, &amp;quot;ok&amp;quot;]这样的数组，随即将其序列化为字符串，序列化规则如下:
- 首先以每一个指令以*开头指明数组长度 以$开头指明下个元素的字符长度 每一个元素以间隔符号\r\n(CRLF)隔开  按这个规则,set test ok则为:
-*3\r\n $3\r\n set\r\n $4\r\n test\r\n $2\r\n ok\r\n  以python为例:
-import redis r = redis.Redis() r.set(&#39;hello&#39;, &#39;world&#39;)  那么将发送的指令为*3\r\n$3\r\nset\r\n$5\r\nhello\r\n$5\r\nworld\r\n，收到的响应为+OK\r\n。
-响应信息 RESP协议中，不同类型的响应信息，会以不同的字符开头，比如上例中，+OK\r\n就以+开头。
- 简单字符串(Simple Strings)响应会以&amp;rdquo;+&amp;ldquo;开头
- +OK\r\n
- 错误(Errors)响应会以&amp;rdquo;-&amp;ldquo;开头
- -ERR unkown command &amp;lsquo;ST&amp;rsquo;\r\n
- 数字(Integer)响应会以&amp;rdquo;:&amp;ldquo;开头
- :2\r\n
- 大字符串(Bulk Strings)会以&amp;rdquo;$&amp;ldquo;开头，并且随之标出字符串字节数
- $13\r\nHello, World!\r\n
- 数组类型(Arrays)类似与请求信息的序列化一致（在HGETALLLRANGEMGET命令中会返回)。
-  实例 接下来，我们将用go实现一个简单的redis客户端</description>
+      <guid>https://xsymphony.github.io/post/2019/01/02/%E8%A7%A3%E8%AF%BBredis%E5%8D%8F%E8%AE%AE/</guid>
+      <description>前言 Redis作为我们日常使用的key-value数据库，不光操作简单(例如set get delete等指令)，通信协议也简洁明了。 本篇就会剖析Redis的通信协议，并且实现一个简单的Redis客户端。 协议 Redis服务端与客户端使用的基于TCP的文本协议(敲黑板，这里并没有使用效率更</description>
     </item>
     
     <item>
       <title>谈谈golang中的锁</title>
-      <link>https://xiongsyao.github.io/post/2018/12/28/%E8%B0%88%E8%B0%88golang%E4%B8%AD%E7%9A%84%E9%94%81/</link>
+      <link>https://xsymphony.github.io/post/2018/12/28/%E8%B0%88%E8%B0%88golang%E4%B8%AD%E7%9A%84%E9%94%81/</link>
       <pubDate>Fri, 28 Dec 2018 15:26:58 +0800</pubDate>
       
-      <guid>https://xiongsyao.github.io/post/2018/12/28/%E8%B0%88%E8%B0%88golang%E4%B8%AD%E7%9A%84%E9%94%81/</guid>
-      <description>得益于go的goroutine，go的并发变得十分容易，只需要go关键字，就可以启动一个新的协程。 例如一下程序:
-package main import ( &amp;quot;fmt&amp;quot; &amp;quot;time&amp;quot; ) func do() { time.Sleep(1 * time.Second) count++ } var count int // 10秒后会看到打印出10 func main() { for i := 0; i &amp;lt; 10; i++ { do() } fmt.Println(count) }  在以上例子中，我们对count执行累加操作，这个例子，可以用go关键字并发操作do,如下:
-package main import ( &amp;quot;fmt&amp;quot; &amp;quot;sync&amp;quot; &amp;quot;time&amp;quot; ) var count int var wg sync.WaitGroup func do() { time.Sleep(1 * time.Second) count++ // 通知协程执行完毕 wg.Done() } // 1秒后打印出10（不保证一定为0) func main() { n := 10 for i := 0; i &amp;lt; n; i++ { // 记录新增一个协程 wg.</description>
+      <guid>https://xsymphony.github.io/post/2018/12/28/%E8%B0%88%E8%B0%88golang%E4%B8%AD%E7%9A%84%E9%94%81/</guid>
+      <description>得益于go的goroutine，go的并发变得十分容易，只需要go关键字，就可以启动一个新的协程。 例如一下程序: 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 package main import ( &amp;#34;fmt&amp;#34; &amp;#34;time&amp;#34; ) func do() { time.Sleep(1 * time.Second) count++ } var count int // 10秒后会看到打印出10 func main() { for i := 0; i &amp;lt; 10; i++ { do() } fmt.Println(count) } 在以上例子中，我们对count执</description>
     </item>
     
     <item>
       <title>[LeetCode]150:逆波兰表达式求值</title>
-      <link>https://xiongsyao.github.io/post/2018/12/17/LeetCode150%E9%80%86%E6%B3%A2%E5%85%B0%E8%A1%A8%E8%BE%BE%E5%BC%8F%E6%B1%82%E5%80%BC/</link>
+      <link>https://xsymphony.github.io/post/2018/12/17/LeetCode150%E9%80%86%E6%B3%A2%E5%85%B0%E8%A1%A8%E8%BE%BE%E5%BC%8F%E6%B1%82%E5%80%BC/</link>
       <pubDate>Wed, 19 Dec 2018 15:08:08 +0800</pubDate>
       
-      <guid>https://xiongsyao.github.io/post/2018/12/17/LeetCode150%E9%80%86%E6%B3%A2%E5%85%B0%E8%A1%A8%E8%BE%BE%E5%BC%8F%E6%B1%82%E5%80%BC/</guid>
-      <description>本章代码: 这里
- 思路 leetcode第150题： 根据逆波兰表示法，求表达式的值。(题目具体信息文章顶部的链接代码里有)
-这是一道运用栈来求解的题。
-通过分析题目意思，我们很容易想出这样的做法：
- 遍历字符，每当遇到非操作符(即数字)时，我们将此数字入栈。 当遇到操作符时(即+ - * /), 我们将栈顶的两个元素出栈，并按顺序与操作符执行运算，例如，当前操作符为/，出栈元素为依次为n2, n1, 则n3 = n2 / n1,并将计算结果n3入栈。 当遍历完输入后，栈中只剩一个最终的元素，此元素极为表达式最终的结果。  代码 Go func evalRPN(tokens []string) int { operations := map[string]func(int, int) int{ &amp;quot;+&amp;quot;: func(number1, number2 int) int {return number1+number2}, &amp;quot;-&amp;quot;: func(number1, number2 int) int {return number1-number2}, &amp;quot;*&amp;quot;: func(number1, number2 int) int {return number1*number2}, &amp;quot;/&amp;quot;: func(number1, number2 int) int {return int(number1/number2)}, } stack := []int{} for _, token := range tokens { if operationfunc, had := operations[token]; had { length := len(stack) number1, number2 := stack[length-2], stack[length-1] stack = stack[:length-2] number := operationfunc(number1, number2) stack = append(stack, number) } else { number, _ := strconv.</description>
+      <guid>https://xsymphony.github.io/post/2018/12/17/LeetCode150%E9%80%86%E6%B3%A2%E5%85%B0%E8%A1%A8%E8%BE%BE%E5%BC%8F%E6%B1%82%E5%80%BC/</guid>
+      <description>本章代码: 这里 思路 leetcode第150题： 根据逆波兰表示法，求表达式的值。(题目具体信息文章顶部的链接代码里有) 这是一道运用栈来求解的题。 通过分析题目意思，我们很容易想出这样的做法： 遍历字符，每当遇到非操作符(即数字)时，我们将此数字入栈。 当遇到操作符时(即+ - * /), 我们将栈顶</description>
     </item>
     
     <item>
       <title>关于</title>
-      <link>https://xiongsyao.github.io/about/</link>
+      <link>https://xsymphony.github.io/about/</link>
       <pubDate>Wed, 19 Dec 2018 11:30:05 +0800</pubDate>
       
-      <guid>https://xiongsyao.github.io/about/</guid>
+      <guid>https://xsymphony.github.io/about/</guid>
       <description>about me</description>
     </item>
     
     <item>
-      <title>动态加载Django的config配置</title>
-      <link>https://xiongsyao.github.io/post/2018/03/7/%E5%8A%A8%E6%80%81%E5%8A%A0%E8%BD%BDDjango%E7%9A%84config%E9%85%8D%E7%BD%AE/</link>
-      <pubDate>Wed, 07 Mar 2018 14:29:58 +0800</pubDate>
-      
-      <guid>https://xiongsyao.github.io/post/2018/03/7/%E5%8A%A8%E6%80%81%E5%8A%A0%E8%BD%BDDjango%E7%9A%84config%E9%85%8D%E7%BD%AE/</guid>
-      <description>github本章代码: 点这里
- 前言 之前想新开的一个坑，目标是从0开始写一个CMS框架，将要实现的功能应该有：
- 媒体库 导航栏配置 富文本页 文章及评论 自定义模版样式(换肤) 可视化编辑 &amp;hellip;  但是发现传统的单config.py文件记录配置信息，不方便在开发环境和生产环境中来回切换。
-这里，提出一种方式，依据环境变量，自动加载当前模式下的配置
-开始 在开始项目前，我们需要了解下开发的基本情况
- 项目基于python3.6，django 2.0 一些配置会使用到环境变量，一些帐号密码之类的配置，采用环境变量来设置是极为合理的（尤其是对于开源项目），如何设置环境变量？  windows: set KEY=VALUE Linux or Mac OS: export KEY=VALUE   项目配置 django 的startproject命令创建的项目，结构不太合理，因为开发中与实际上线，会有一些配置上的差异，所以我们修改settings.py文件为config文件夹，来加载开发配置与生产配置。
-以开发模式为例，development.py文件里的内容
-from configs.default import * DEBUG = True  我们设置DEBUG=True，而在production.py中设置DEBUG=False
-同时，修改manage.py文件中
-os.environ.setdefault(&amp;quot;DJANGO_SETTINGS_MODULE&amp;quot;, &amp;quot;settings.py&amp;quot;)  为
-env = os.getenv(&#39;DJANGO_CMS&#39;, &#39;development&#39;) os.environ.setdefault(&amp;quot;DJANGO_SETTINGS_MODULE&amp;quot;, &amp;quot;configs.{}&amp;quot;.format(env))  这样便实现了通过环境变量控制应用配置。
-生产环境中，django 自带的server功能太弱，一般会使用uwsgi或者gunicore之类的server，所以还需要修改wsgi.py文件里配置，方法同上。
-HELLO 创建名为django_cms的数据库，之后clone项目，为项目创建虚拟环境并激活，然后进入项目文件夹，依次执行：
- set MYSQL_USER=&amp;lt;your username&amp;gt; set MYSQL_PASSWOR=&amp;lt;your password&amp;gt; python manage.</description>
-    </item>
-    
-    <item>
       <title>从0开始的JS之旅（三）：DOM操作基础</title>
-      <link>https://xiongsyao.github.io/post/2018/01/25/%E4%BB%8E0%E5%BC%80%E5%A7%8B%E7%9A%84JS%E4%B9%8B%E6%97%85%E4%B8%89DOM%E6%93%8D%E4%BD%9C%E5%9F%BA%E7%A1%80/</link>
+      <link>https://xsymphony.github.io/post/2018/01/25/%E4%BB%8E0%E5%BC%80%E5%A7%8B%E7%9A%84JS%E4%B9%8B%E6%97%85%E4%B8%89DOM%E6%93%8D%E4%BD%9C%E5%9F%BA%E7%A1%80/</link>
       <pubDate>Thu, 25 Jan 2018 13:51:37 +0800</pubDate>
       
-      <guid>https://xiongsyao.github.io/post/2018/01/25/%E4%BB%8E0%E5%BC%80%E5%A7%8B%E7%9A%84JS%E4%B9%8B%E6%97%85%E4%B8%89DOM%E6%93%8D%E4%BD%9C%E5%9F%BA%E7%A1%80/</guid>
-      <description>从0开始的JS之旅（三）  前面讲了一些JS语言的基本语法，但是JS运用最广泛的地方就是前端开发了，肯定免不了操纵DOM节点，这章就讲讲DOM相关的东西
-DOM 究竟什么是DOM呢？文档对象模型 (DOM) 是HTML和XML文档的编程接口。它提供了对文档的结构化的表述，并定义了一种方式可以使从程序中对该结构进行访问，从而改变文档的结构，样式和内容。
- 我们从一个最简单的实例开始:
-&amp;lt;html&amp;gt; &amp;lt;head&amp;gt; &amp;lt;/head&amp;gt; &amp;lt;body&amp;gt; &amp;lt;p class=&amp;quot;cls1&amp;quot; id=&amp;quot;ex1&amp;quot;&amp;gt;这是一句话&amp;lt;/p&amp;gt; &amp;lt;p class=&amp;quot;cls2&amp;quot; id=&amp;quot;ex2&amp;quot;&amp;gt;这是一句不会出现的话&amp;lt;/p&amp;gt; &amp;lt;p class=&amp;quot;cls3&amp;quot; id=&amp;quot;ex3&amp;quot;&amp;gt;这是一句话&amp;lt;/p&amp;gt; &amp;lt;button&amp;gt;点我改变页面&amp;lt;/button&amp;gt; &amp;lt;/body&amp;gt; &amp;lt;script&amp;gt; // 获取元素 var myText1 = document.getElementById(&amp;quot;ex1&amp;quot;) console.log(myText1) // 插入元素 var myBlod = document.createElement(&amp;quot;b&amp;quot;) blod_text = document.createTextNode(&amp;quot;加粗的话&amp;quot;) myBlod.appendChild(blod_text) document.body.appendChild(myBlod) // 删除元素 var myText2 = document.getElementsByClassName(&amp;quot;cls2&amp;quot;)[0] document.body.removeChild(myText2) // 改变元素 var myText3 = document.getElementById(&amp;quot;ex3&amp;quot;) myText3.innerText = &amp;quot;这是一句被改变的话&amp;quot; myText3.style.color = &amp;quot;red&amp;quot; // 动态改变 var myButton = document.getElementsByTagName(&amp;quot;button&amp;quot;)[0] myButton.addEventListener(&amp;quot;click&amp;quot;, function() { myText1.</description>
+      <guid>https://xsymphony.github.io/post/2018/01/25/%E4%BB%8E0%E5%BC%80%E5%A7%8B%E7%9A%84JS%E4%B9%8B%E6%97%85%E4%B8%89DOM%E6%93%8D%E4%BD%9C%E5%9F%BA%E7%A1%80/</guid>
+      <description>从0开始的JS之旅（三） 前面讲了一些JS语言的基本语法，但是JS运用最广泛的地方就是前端开发了，肯定免不了操纵DOM节点，这章就讲讲DOM相关的东西 DOM 究竟什么是DOM呢？文档对象模型 (DOM) 是HTML和XML文档的编程接口。它提供了对文档的结构化的表述，并定义了一种方式可以使从程序中对</description>
     </item>
     
     <item>
       <title>从0开始的JS之旅（二）：面向对象编程</title>
-      <link>https://xiongsyao.github.io/post/2018/01/25/%E4%BB%8E0%E5%BC%80%E5%A7%8B%E7%9A%84JS%E4%B9%8B%E6%97%85%E4%BA%8C%E9%9D%A2%E5%90%91%E5%AF%B9%E8%B1%A1%E7%BC%96%E7%A8%8B/</link>
+      <link>https://xsymphony.github.io/post/2018/01/25/%E4%BB%8E0%E5%BC%80%E5%A7%8B%E7%9A%84JS%E4%B9%8B%E6%97%85%E4%BA%8C%E9%9D%A2%E5%90%91%E5%AF%B9%E8%B1%A1%E7%BC%96%E7%A8%8B/</link>
       <pubDate>Thu, 25 Jan 2018 13:48:56 +0800</pubDate>
       
-      <guid>https://xiongsyao.github.io/post/2018/01/25/%E4%BB%8E0%E5%BC%80%E5%A7%8B%E7%9A%84JS%E4%B9%8B%E6%97%85%E4%BA%8C%E9%9D%A2%E5%90%91%E5%AF%B9%E8%B1%A1%E7%BC%96%E7%A8%8B/</guid>
-      <description>从0开始的JS之旅（二） 面向对象 类  JavaScript是一种基于原型的语言，它没类的声明语句，比如C+ +或Java中用的。这有时会对习惯使用有类申明语句语言的程序员产生困扰。相反，JavaScript可用方法作类。定义一个类跟定义一个函数一样简单。在下面的例子中，我们定义了一个新类Person。
-function Person() {...} var Person = function() {...}  类名采用首字母大写的方式，以此来与函数声明区分开。
-对象 对象是类的实例，一般通过new obj的方式创建，下面演示了如何创建一个类的实例。
-function Person() {...} var person1 = new Person(); var person2 = new Person();  构造器 构造器指在实例创建时执行的方法，类似于python的init方法。
-function Person() { console.log(&amp;quot;init&amp;quot;) }; var person1 = new Person(); // -&amp;gt; init  属性 属性就是 类中包含的变量;每一个对象实例有若干个属性. 为了正确的继承，属性应该被定义在类的原型属性 (函数)中。可以使用 关键字 this调用类中的属性, this是对当前对象的引用。从外部存取(读/写)其属性的语法是: InstanceName.Property。
-function Person(name) { this.name = name; console.log(this.name); } var person1 = new Person(&#39;Xiong&#39;) // -&amp;gt; Xiong console.</description>
+      <guid>https://xsymphony.github.io/post/2018/01/25/%E4%BB%8E0%E5%BC%80%E5%A7%8B%E7%9A%84JS%E4%B9%8B%E6%97%85%E4%BA%8C%E9%9D%A2%E5%90%91%E5%AF%B9%E8%B1%A1%E7%BC%96%E7%A8%8B/</guid>
+      <description>从0开始的JS之旅（二） 面向对象 类 JavaScript是一种基于原型的语言，它没类的声明语句，比如C+ +或Java中用的。这有时会对习惯使用有类申明语句语言的程序员产生困扰。相反，JavaScript可用方法作类。定义一个类跟定义一个函数一样简单。在下面的例子中，我们定义了一个新</description>
     </item>
     
     <item>
       <title>从0开始的JS之旅（一）：数据类型，流程语句及函数</title>
-      <link>https://xiongsyao.github.io/post/2018/01/25/%E4%BB%8E0%E5%BC%80%E5%A7%8B%E7%9A%84JS%E4%B9%8B%E6%97%85%E4%B8%80%E6%95%B0%E6%8D%AE%E7%B1%BB%E5%9E%8B%E6%B5%81%E7%A8%8B%E8%AF%AD%E5%8F%A5%E5%8F%8A%E5%87%BD%E6%95%B0/</link>
+      <link>https://xsymphony.github.io/post/2018/01/25/%E4%BB%8E0%E5%BC%80%E5%A7%8B%E7%9A%84JS%E4%B9%8B%E6%97%85%E4%B8%80%E6%95%B0%E6%8D%AE%E7%B1%BB%E5%9E%8B%E6%B5%81%E7%A8%8B%E8%AF%AD%E5%8F%A5%E5%8F%8A%E5%87%BD%E6%95%B0/</link>
       <pubDate>Thu, 25 Jan 2018 13:39:21 +0800</pubDate>
       
-      <guid>https://xiongsyao.github.io/post/2018/01/25/%E4%BB%8E0%E5%BC%80%E5%A7%8B%E7%9A%84JS%E4%B9%8B%E6%97%85%E4%B8%80%E6%95%B0%E6%8D%AE%E7%B1%BB%E5%9E%8B%E6%B5%81%E7%A8%8B%E8%AF%AD%E5%8F%A5%E5%8F%8A%E5%87%BD%E6%95%B0/</guid>
-      <description>从0开始的JS之旅（一）  半年多之前学的JS，结果后来一直在写python，现在趁着有些空闲时间，准备重新学习一遍JS，故记录下来，方便自己以后回顾，同时希望能对别人有所帮助
- 数据类型    类型 描述 示例     String 字符串，一段文本。 &amp;lsquo;hello world&amp;rsquo;   Number 数字，不需要引号包裹 666   Boolean 布尔型，代表是或否 True/False   Null 代表空， 仅有一种表示方式，即null null   Undefined 未赋值的量 undefined   Array 数组 (1, &amp;ldquo;wow&amp;rdquo;, 0)   Symbol es6引入的新数据类型，类似于function 看这里    基本数据类型的操作 Number 数字  toSting(len) 将数字转化为指定长度的字符串 toFixed(len) 将小数转化为小数点后指定位数的数字 toPrecision(len) 将数字转化为指定精度的数字 valueOf() 返回数字的原始数值  String 字符串  length 返回字符串的字符数目 JS var txt = &amp;quot;yes i do&amp;quot; console.</description>
+      <guid>https://xsymphony.github.io/post/2018/01/25/%E4%BB%8E0%E5%BC%80%E5%A7%8B%E7%9A%84JS%E4%B9%8B%E6%97%85%E4%B8%80%E6%95%B0%E6%8D%AE%E7%B1%BB%E5%9E%8B%E6%B5%81%E7%A8%8B%E8%AF%AD%E5%8F%A5%E5%8F%8A%E5%87%BD%E6%95%B0/</guid>
+      <description>从0开始的JS之旅（一） 半年多之前学的JS，结果后来一直在写python，现在趁着有些空闲时间，准备重新学习一遍JS，故记录下来，方便自己以后回顾，同时希望能对别人有所帮助 数据类型 类型 描述 示例 String 字符串，一段文本。 &amp;lsquo;hello world&amp;rsquo; Number 数字，不需要引号包裹 666 Boolean 布尔型，代表是或否 True/False Null 代表空， 仅有一种</description>
     </item>
     
     <item>
       <title>归档</title>
-      <link>https://xiongsyao.github.io/archives/</link>
+      <link>https://xsymphony.github.io/archives/</link>
       <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
       
-      <guid>https://xiongsyao.github.io/archives/</guid>
+      <guid>https://xsymphony.github.io/archives/</guid>
       <description></description>
     </item>
     

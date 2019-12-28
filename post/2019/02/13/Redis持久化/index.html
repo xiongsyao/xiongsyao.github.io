@@ -3,7 +3,6 @@
 <head>
 
     <meta charset="utf-8">
-    <meta name="generator" content="Hugo 0.52" />
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
 
@@ -11,24 +10,21 @@
     <meta property="og:title" content="Redis持久化 - Matrix">
     <meta property="og:type" content="article">
         
-    <meta property="article:published_time" content="2019-02-13T15:08:22&#43;08:00">
+    <meta property="article:published_time" content='2019-02-13T15:08:22&#43;08:00'>
         
         
-    <meta property="article:modified_time" content="2019-02-13T15:08:22&#43;08:00">
+    <meta property="article:modified_time" content='2019-02-13T15:08:22&#43;08:00'>
         
     <meta name="Keywords" content="golang,python">
     <meta name="description" content="Redis持久化">
         
     <meta name="author" content="matrix">
-    <meta property="og:url" content="https://xiongsyao.github.io/post/2019/02/13/Redis%E6%8C%81%E4%B9%85%E5%8C%96/">
+    <meta property="og:url" content="https://xsymphony.github.io/post/2019/02/13/Redis%E6%8C%81%E4%B9%85%E5%8C%96/">
     <link rel="shortcut icon" href="/favicon.ico" type="image/x-icon">
 
-    <link rel="stylesheet" href="/css/normalize.css">
-    
-        <link rel="stylesheet" href="/css/prism.css">
-    
-    <link rel="stylesheet" href="/css/style.css">
-    <script type="text/javascript" src="//cdn.bootcss.com/jquery/3.2.1/jquery.min.js"></script>
+    <link rel="stylesheet" href='/css/normalize.css'>
+    <link rel="stylesheet" href='/css/style.css'>
+    <script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
 
     
 
@@ -37,13 +33,14 @@
     
 </head>
 
+
 <body>
-<header id="header" class="clearfix">
+    <header id="header" class="clearfix">
     <div class="container">
         <div class="col-group">
             <div class="site-name ">
                 
-                    <a id="logo" href="https://xiongsyao.github.io/">
+                    <a id="logo" href="https://xsymphony.github.io/">
                         Matrix
                     </a>
                 
@@ -51,11 +48,11 @@
             </div>
             <div>
                 <nav id="nav-menu" class="clearfix">
-                    <a class="current" href="https://xiongsyao.github.io/">首页</a>
+                    <a class="current" href="https://xsymphony.github.io/">首页</a>
                     
-                    <a  href="https://xiongsyao.github.io/archives/" title="归档">归档</a>
+                    <a  href="https://xsymphony.github.io/archives/" title="归档">归档</a>
                     
-                    <a  href="https://xiongsyao.github.io/about/" title="关于">关于</a>
+                    <a  href="https://xsymphony.github.io/about/" title="关于">关于</a>
                     
                 </nav>
             </div>
@@ -63,116 +60,97 @@
     </div>
 </header>
 
+    <div id="body">
+        <div class="container">
+            <div class="col-group">
 
-<div id="body">
-    <div class="container">
-        <div class="col-group">
-
-            <div class="col-8" id="main">
-                <div class="res-cons">
-                    <article class="post">
-                        <header>
-                            <h1 class="post-title">Redis持久化</h1>
-                        </header>
-                        <date class="post-meta meta-date">
-                            2019年2月13日
-                        </date>
-                        
-                        <div class="post-meta meta-category">
-                            |
-                            
-                                <a href="https://xiongsyao.github.io/categories/Redis">Redis</a>
-                            
-                        </div>
-                        
-                        
-                        <div class="post-content">
-                            
-
-<h3 id="为什么需要持久化">为什么需要持久化？</h3>
-
+                <div class="col-8" id="main">
+                    
+<div class="res-cons">
+    
+    <article class="post">
+        <header>
+            <h1 class="post-title">Redis持久化</h1>
+        </header>
+        <date class="post-meta meta-date">
+            2019年2月13日
+        </date>
+        
+        <div class="post-meta">
+            <span>|</span>
+            
+            <span class="meta-category"><a href='https://xsymphony.github.io/categories/Redis'>Redis</a></span>
+            
+        </div>
+        
+        
+        
+        <div class="post-content">
+            <h3 id="heading">为什么需要持久化？</h3>
 <p>redis将数据存储在内存中，一旦redis重启，存储的数据丢失，会导致缓存失效，严重情况下引起缓存雪崩，故需要将存储内容持久化。</p>
-
-<h3 id="持久化的方式">持久化的方式？</h3>
-
+<h3 id="heading-1">持久化的方式？</h3>
 <ol>
 <li>RDB:通过快照(snapshotting)完成，当符合一定条件时redis会自动将内存中的所有数据生成一份副本并存储在硬盘上。</li>
 <li>AOF(append only file): 每次redis执行会更改数据的命令时将命令本身记录下来。
 两种持久化方式可以单独使用其中一种，但经常两者结合使用。当同时启用时，Redis通过AOF恢复数据。</li>
 </ol>
-
-<h3 id="rdb的原理">RDB的原理？</h3>
-
-<p>Redis<strong>默认的</strong>会将快照文件存储在当前进程的工作目录中的dump.rdb文件中，可以通过配置dir和dbfilename两个参数指定存储路径和文件名。执行过程如下：
-1. Redis使用fork函数复制一份当前进程(父进程)和副本(子进程)；
-2. 父进程继续处理客户端请求，子进程开始将内存中数据写入硬盘中的临时文件；
-3. 当子进程写入完所有数据后会用该临时文件替换旧的RDB文件。</p>
-
-<p>在执行fork使用<strong>写时复制</strong>(copy-on-write)策略，当fork函数发生的一刻父子进程共享内存，当父进程要更改其中某片内存时，操作系统会将该片数据复制一份(<strong>并不是所有内存数据</strong>)以保证子进程的数据不受影响。所以RDB文件存储是执行fork那一刻的内存数据。</p>
-
-<p>一旦Redis异常退出，会丢失最后一次快照以后更改的所有数据。</p>
-
-<h3 id="触发rdb的时机">触发RDB的时机？</h3>
-
+<h3 id="rdb">RDB的原理？</h3>
+<p>Redis<strong>默认的</strong>会将快照文件存储在当前进程的工作目录中的dump.rdb文件中，可以通过配置dir和dbfilename两个参数指定存储路径和文件名。执行过程如下：</p>
 <ol>
-<li><p>根据配置规则进行自动快照</p>
-
+<li>Redis使用fork函数复制一份当前进程(父进程)和副本(子进程)；</li>
+<li>父进程继续处理客户端请求，子进程开始将内存中数据写入硬盘中的临时文件；</li>
+<li>当子进程写入完所有数据后会用该临时文件替换旧的RDB文件。</li>
+</ol>
+<p>在执行fork使用<strong>写时复制</strong>(copy-on-write)策略，当fork函数发生的一刻父子进程共享内存，当父进程要更改其中某片内存时，操作系统会将该片数据复制一份(<strong>并不是所有内存数据</strong>)以保证子进程的数据不受影响。所以RDB文件存储是执行fork那一刻的内存数据。</p>
+<p>一旦Redis异常退出，会丢失最后一次快照以后更改的所有数据。</p>
+<h3 id="rdb-1">触发RDB的时机？</h3>
+<ol>
+<li>
+<p>根据配置规则进行自动快照</p>
 <p>Redis允许用户自定义快照条件，当符合快照条件时，会自动执行快照操作。条件由用户在配置文件中定义，由两个参数构成: 时间窗口M和改动的键个数N。每当时间M内被改动的键个数大于N时，即会触发快照。可以配置多个条件，之间的关系是“或”。例如:
 <code>save 900 3</code>
 <code>save 300 1</code>
 <code>save 60 10000</code>
-则当900秒内有3个键改变或300秒内有一个键被改变或60秒内有10000个键被改变，都会触发快照。</p></li>
-
-<li><p>用户执行SAVE或BGSAVE命令</p>
-
+则当900秒内有3个键改变或300秒内有一个键被改变或60秒内有10000个键被改变，都会触发快照。</p>
+</li>
+<li>
+<p>用户执行SAVE或BGSAVE命令</p>
 <p>当执行SAVE命令时，Redis会同步地进行快照，快照过程中会阻塞所有来自客户端的请求，可能会导致Redis长时间不响应，应当避免在生产环境中使用。</p>
-
-<p>BGSAVE命令在后台异步的进行快照，服务器依旧可以响应客户端请求。执行BGSAVE后Redis会立即返回OK表示开始快照。可以通过LASTSAVE命令获取最近一次成功执行快照的时间，以确定是否执行成功。</p></li>
-
-<li><p>执行FLUSHALL命令</p>
-
+<p>BGSAVE命令在后台异步的进行快照，服务器依旧可以响应客户端请求。执行BGSAVE后Redis会立即返回OK表示开始快照。可以通过LASTSAVE命令获取最近一次成功执行快照的时间，以确定是否执行成功。</p>
+</li>
+<li>
+<p>执行FLUSHALL命令</p>
 <p>当执行FLUSHALL命令时，<strong>只要自动快照条件(不论条件是什么)不为空，就会执行一次快照操作</strong>,
-当不存在快照条件时，则不会触发。</p></li>
-
-<li><p>执行复制(replication)时</p>
-
-<p>当设置了主从模式时，Redis会在复制初始化时进行自动快照。</p></li>
+当不存在快照条件时，则不会触发。</p>
+</li>
+<li>
+<p>执行复制(replication)时</p>
+<p>当设置了主从模式时，Redis会在复制初始化时进行自动快照。</p>
+</li>
 </ol>
-
-<h3 id="aof持久化怎么开启-如何去除冗余命令">AOF持久化怎么开启？如何去除冗余命令？</h3>
-
+<h3 id="aof">AOF持久化怎么开启？如何去除冗余命令？</h3>
 <p>默认情况下Redis没有开启AOF方式的持久化，可以通过appendonly参数启用: <code>appendonly yes</code>。开启AOF持久化后每执行一条会更改Redis中数据的命令，就会将该命令写入硬盘的AOF文件，AOF文件的保存位置与RDB文件的位置一致，通过dir和appendfilename设置目录和文件名，默认为appendonly.aof。</p>
-
 <p>AOF文件以纯文本的形式记录Redis命令(<strong>这里指RESP协议化的命令</strong>)。随着执行命令越来越多，文件也会越来越大，中间会记录冗余的命令(例如对同一个键的多次SET操作)。通过在配置文件中更改设置，可以做到满足条件时，Redis自动重写AOF文件:</p>
-
 <pre><code>auto-aof-rewrite-percentage 100   # 当前AOF文件大小超过上一次重写时的AOF文件大小百分之多少时触发重写
 auto-aof-rewrite-min-size 64mb    # 当AOF文件小于这个值时不再触发重写
-</code></pre>
-
-<p>也可以执行<code>BGREWRITEAOF</code>命令手动的异步执行AOF重写。</p>
-
-<h3 id="aof持久化是否必要-会有性能问题吗-如何避免性能问题">AOF持久化是否必要？会有性能问题吗？如何避免性能问题？</h3>
-
+</code></pre><p>也可以执行<code>BGREWRITEAOF</code>命令手动的异步执行AOF重写。</p>
+<h3 id="aof-1">AOF持久化是否必要？会有性能问题吗？如何避免性能问题？</h3>
 <p>RDB方式实现持久化时，一旦Redis异常退出，会丢失最后一次快照以后更改的所有数据。若数据比较重要，就需要配合AOF方式进行持久化。</p>
-
 <p>AOF会将redis执行的每一条写命令追加到硬盘文件中，这一过程显然会降低redis的性能，但是大部分情况下这个情况是可以接受的，可以使用较快的硬盘提高AOF的性能。</p>
-
-<h3 id="aof方式持久化的数据一定不会丢失吗">AOF方式持久化的数据一定不会丢失吗？</h3>
-
+<h3 id="aof-2">AOF方式持久化的数据一定不会丢失吗？</h3>
 <p>虽然每次执行更改数据的操作时Redis都会将命令记录在AOF文件中，但事实上，由于操作系统的缓存机制，数据并没有真正的写入硬盘，而是进入了系统的硬盘缓存。在默认情况下系统每30秒执行一次同步操作，将硬盘缓存中的内容真正写入到硬盘中，在这30秒内，如果系统异常退出就会导致硬盘缓存中的数据丢失。</p>
-
 <p>可以通过修改Redis的appendfsync参数设置同步时机，使得Redis主动请求操作系统同步。</p>
-
 <pre><code># appendfsync always   # 每次执行写入都会要求同步
 appendfsync everysec   # 每秒请求一次同步
 # appendfsync no       # 不主动请求系统同步
-</code></pre>
+</code></pre><p>一般来说，<code>appendfsync everysec</code>较为合理，既兼顾了性能，又保证了数据安全。</p>
 
-<p>一般来说，<code>appendfsync everysec</code>较为合理，既兼顾了性能，又保证了数据安全。</p>
+        </div>
 
-                        </div>
+        
 
-                        
+
+        
 
 <div class="post-archive">
     <h2>See Also</h2>
@@ -186,30 +164,30 @@ appendfsync everysec   # 每秒请求一次同步
         
         <li><a href="/about/">关于</a></li>
         
-        <li><a href="/post/2018/03/7/%E5%8A%A8%E6%80%81%E5%8A%A0%E8%BD%BDDjango%E7%9A%84config%E9%85%8D%E7%BD%AE/">动态加载Django的config配置</a></li>
+        <li><a href="/post/2018/01/25/%E4%BB%8E0%E5%BC%80%E5%A7%8B%E7%9A%84JS%E4%B9%8B%E6%97%85%E4%B8%89DOM%E6%93%8D%E4%BD%9C%E5%9F%BA%E7%A1%80/">从0开始的JS之旅（三）：DOM操作基础</a></li>
         
     </ul>
 </div>
 
 
-                        <div class="post-meta meta-tags">
-                            
-                            <ul class="clearfix">
-                                
-                                <li><a href="https://xiongsyao.github.io/tags/Redis">Redis</a></li>
-                                
-                            </ul>
-                            
-                        </div>
-                    </article>
-                    
+        <div class="post-meta meta-tags">
+            
+            <ul class="clearfix">
+                
+                <li><a href='https://xsymphony.github.io/tags/Redis'>Redis</a></li>
+                
+            </ul>
+            
+        </div>
+    </article>
+    
     
 
     
     
     <div class="post bg-white">
       <script src="https://utteranc.es/client.js"
-            repo= "xiongsyao/comments"
+            repo= "xsymphony/comments"
             issue-term="pathname"
             theme="github-light"
             crossorigin="anonymous"
@@ -217,14 +195,16 @@ appendfsync everysec   # 每秒请求一次同步
       </script>
     </div>
     
+</div>
+
                 </div>
-            </div>
-            <div id="secondary">
+
+                <div id="secondary">
     <section class="widget">
-        <form id="search" action="//www.google.com/search" method="get" accept-charset="utf-8" target="_blank" _lpchecked="1">
+        <form id="search" action='//www.google.com/search' method="get" accept-charset="utf-8" target="_blank" _lpchecked="1">
       
       <input type="text" name="q" maxlength="20" placeholder="Search">
-      <input type="hidden" name="sitesearch" value="https://xiongsyao.github.io/">
+      <input type="hidden" name="sitesearch" value="https://xsymphony.github.io/">
       <button type="submit" class="submit icon-search"></button>
 </form>
     </section>
@@ -234,43 +214,43 @@ appendfsync everysec   # 每秒请求一次同步
 <ul class="widget-list">
     
     <li>
-        <a href="https://xiongsyao.github.io/post/2019/02/27/%E6%BC%AB%E8%B0%88%E5%88%86%E5%B8%83%E5%BC%8F%E9%94%81%E4%B8%89/" title="漫谈分布式锁（三）">漫谈分布式锁（三）</a>
+        <a href="https://xsymphony.github.io/post/2019/02/27/%E6%BC%AB%E8%B0%88%E5%88%86%E5%B8%83%E5%BC%8F%E9%94%81%E4%B8%89/" title="漫谈分布式锁（三）">漫谈分布式锁（三）</a>
     </li>
     
     <li>
-        <a href="https://xiongsyao.github.io/post/2019/02/25/%E6%BC%AB%E8%B0%88%E5%88%86%E5%B8%83%E5%BC%8F%E9%94%81%E4%BA%8C/" title="漫谈分布式锁（二）">漫谈分布式锁（二）</a>
+        <a href="https://xsymphony.github.io/post/2019/02/25/%E6%BC%AB%E8%B0%88%E5%88%86%E5%B8%83%E5%BC%8F%E9%94%81%E4%BA%8C/" title="漫谈分布式锁（二）">漫谈分布式锁（二）</a>
     </li>
     
     <li>
-        <a href="https://xiongsyao.github.io/post/2019/02/21/%E6%BC%AB%E8%B0%88%E5%88%86%E5%B8%83%E5%BC%8F%E9%94%81%E4%B8%80/" title="漫谈分布式锁（一）">漫谈分布式锁（一）</a>
+        <a href="https://xsymphony.github.io/post/2019/02/21/%E6%BC%AB%E8%B0%88%E5%88%86%E5%B8%83%E5%BC%8F%E9%94%81%E4%B8%80/" title="漫谈分布式锁（一）">漫谈分布式锁（一）</a>
     </li>
     
     <li>
-        <a href="https://xiongsyao.github.io/post/2019/02/13/Redis%E6%8C%81%E4%B9%85%E5%8C%96/" title="Redis持久化">Redis持久化</a>
+        <a href="https://xsymphony.github.io/post/2019/02/13/Redis%E6%8C%81%E4%B9%85%E5%8C%96/" title="Redis持久化">Redis持久化</a>
     </li>
     
     <li>
-        <a href="https://xiongsyao.github.io/post/2019/01/02/%E8%A7%A3%E8%AF%BBredis%E5%8D%8F%E8%AE%AE/" title="解读redis协议">解读redis协议</a>
+        <a href="https://xsymphony.github.io/post/2019/01/02/%E8%A7%A3%E8%AF%BBredis%E5%8D%8F%E8%AE%AE/" title="解读redis协议">解读redis协议</a>
     </li>
     
     <li>
-        <a href="https://xiongsyao.github.io/post/2018/12/28/%E8%B0%88%E8%B0%88golang%E4%B8%AD%E7%9A%84%E9%94%81/" title="谈谈golang中的锁">谈谈golang中的锁</a>
+        <a href="https://xsymphony.github.io/post/2018/12/28/%E8%B0%88%E8%B0%88golang%E4%B8%AD%E7%9A%84%E9%94%81/" title="谈谈golang中的锁">谈谈golang中的锁</a>
     </li>
     
     <li>
-        <a href="https://xiongsyao.github.io/post/2018/12/17/LeetCode150%E9%80%86%E6%B3%A2%E5%85%B0%E8%A1%A8%E8%BE%BE%E5%BC%8F%E6%B1%82%E5%80%BC/" title="[LeetCode]150:逆波兰表达式求值">[LeetCode]150:逆波兰表达式求值</a>
+        <a href="https://xsymphony.github.io/post/2018/12/17/LeetCode150%E9%80%86%E6%B3%A2%E5%85%B0%E8%A1%A8%E8%BE%BE%E5%BC%8F%E6%B1%82%E5%80%BC/" title="[LeetCode]150:逆波兰表达式求值">[LeetCode]150:逆波兰表达式求值</a>
     </li>
     
     <li>
-        <a href="https://xiongsyao.github.io/post/2018/03/7/%E5%8A%A8%E6%80%81%E5%8A%A0%E8%BD%BDDjango%E7%9A%84config%E9%85%8D%E7%BD%AE/" title="动态加载Django的config配置">动态加载Django的config配置</a>
+        <a href="https://xsymphony.github.io/post/2018/01/25/%E4%BB%8E0%E5%BC%80%E5%A7%8B%E7%9A%84JS%E4%B9%8B%E6%97%85%E4%B8%89DOM%E6%93%8D%E4%BD%9C%E5%9F%BA%E7%A1%80/" title="从0开始的JS之旅（三）：DOM操作基础">从0开始的JS之旅（三）：DOM操作基础</a>
     </li>
     
     <li>
-        <a href="https://xiongsyao.github.io/post/2018/01/25/%E4%BB%8E0%E5%BC%80%E5%A7%8B%E7%9A%84JS%E4%B9%8B%E6%97%85%E4%B8%89DOM%E6%93%8D%E4%BD%9C%E5%9F%BA%E7%A1%80/" title="从0开始的JS之旅（三）：DOM操作基础">从0开始的JS之旅（三）：DOM操作基础</a>
+        <a href="https://xsymphony.github.io/post/2018/01/25/%E4%BB%8E0%E5%BC%80%E5%A7%8B%E7%9A%84JS%E4%B9%8B%E6%97%85%E4%BA%8C%E9%9D%A2%E5%90%91%E5%AF%B9%E8%B1%A1%E7%BC%96%E7%A8%8B/" title="从0开始的JS之旅（二）：面向对象编程">从0开始的JS之旅（二）：面向对象编程</a>
     </li>
     
     <li>
-        <a href="https://xiongsyao.github.io/post/2018/01/25/%E4%BB%8E0%E5%BC%80%E5%A7%8B%E7%9A%84JS%E4%B9%8B%E6%97%85%E4%BA%8C%E9%9D%A2%E5%90%91%E5%AF%B9%E8%B1%A1%E7%BC%96%E7%A8%8B/" title="从0开始的JS之旅（二）：面向对象编程">从0开始的JS之旅（二）：面向对象编程</a>
+        <a href="https://xsymphony.github.io/post/2018/01/25/%E4%BB%8E0%E5%BC%80%E5%A7%8B%E7%9A%84JS%E4%B9%8B%E6%97%85%E4%B8%80%E6%95%B0%E6%8D%AE%E7%B1%BB%E5%9E%8B%E6%B5%81%E7%A8%8B%E8%AF%AD%E5%8F%A5%E5%8F%8A%E5%87%BD%E6%95%B0/" title="从0开始的JS之旅（一）：数据类型，流程语句及函数">从0开始的JS之旅（一）：数据类型，流程语句及函数</a>
     </li>
     
 </ul>
@@ -282,29 +262,15 @@ appendfsync everysec   # 每秒请求一次同步
         <h3 class="widget-title">分类</h3>
 <ul class="widget-list">
     
-    <li>
-        <a href="https://xiongsyao.github.io/categories/Django/">Django(1)</a>
-    </li>
+    <li><a href="https://xsymphony.github.io/categories/JavaScript/">JavaScript (3)</a></li>
     
-    <li>
-        <a href="https://xiongsyao.github.io/categories/JavaScript/">JavaScript(3)</a>
-    </li>
+    <li><a href="https://xsymphony.github.io/categories/Redis/">Redis (2)</a></li>
     
-    <li>
-        <a href="https://xiongsyao.github.io/categories/Redis/">Redis(2)</a>
-    </li>
+    <li><a href="https://xsymphony.github.io/categories/golang/">golang (1)</a></li>
     
-    <li>
-        <a href="https://xiongsyao.github.io/categories/golang/">golang(1)</a>
-    </li>
+    <li><a href="https://xsymphony.github.io/categories/leetcode/">leetcode (1)</a></li>
     
-    <li>
-        <a href="https://xiongsyao.github.io/categories/leetcode/">leetcode(1)</a>
-    </li>
-    
-    <li>
-        <a href="https://xiongsyao.github.io/categories/%E5%88%86%E5%B8%83%E5%BC%8F/">分布式(3)</a>
-    </li>
+    <li><a href="https://xsymphony.github.io/categories/%E5%88%86%E5%B8%83%E5%BC%8F/">分布式 (3)</a></li>
     
 </ul>
     </section>
@@ -313,29 +279,27 @@ appendfsync everysec   # 每秒请求一次同步
         <h3 class="widget-title">标签</h3>
 <div class="tagcloud">
     
-    <a href="https://xiongsyao.github.io/tags/Django/">Django</a>
+    <a href="https://xsymphony.github.io/tags/JavaScript/">JavaScript</a>
     
-    <a href="https://xiongsyao.github.io/tags/JavaScript/">JavaScript</a>
+    <a href="https://xsymphony.github.io/tags/JavaScript%E5%9F%BA%E7%A1%80%E6%95%99%E7%A8%8B/">JavaScript基础教程</a>
     
-    <a href="https://xiongsyao.github.io/tags/JavaScript%E5%9F%BA%E7%A1%80%E6%95%99%E7%A8%8B/">JavaScript基础教程</a>
+    <a href="https://xsymphony.github.io/tags/Redis/">Redis</a>
     
-    <a href="https://xiongsyao.github.io/tags/Redis/">Redis</a>
+    <a href="https://xsymphony.github.io/tags/Zookeeper/">Zookeeper</a>
     
-    <a href="https://xiongsyao.github.io/tags/Zookeeper/">Zookeeper</a>
+    <a href="https://xsymphony.github.io/tags/golang/">golang</a>
     
-    <a href="https://xiongsyao.github.io/tags/golang/">golang</a>
+    <a href="https://xsymphony.github.io/tags/leetcode/">leetcode</a>
     
-    <a href="https://xiongsyao.github.io/tags/leetcode/">leetcode</a>
+    <a href="https://xsymphony.github.io/tags/stack/">stack</a>
     
-    <a href="https://xiongsyao.github.io/tags/stack/">stack</a>
+    <a href="https://xsymphony.github.io/tags/%E5%88%86%E5%B8%83%E5%BC%8F/">分布式</a>
     
-    <a href="https://xiongsyao.github.io/tags/%E5%88%86%E5%B8%83%E5%BC%8F/">分布式</a>
+    <a href="https://xsymphony.github.io/tags/%E5%8D%8F%E8%AE%AE/">协议</a>
     
-    <a href="https://xiongsyao.github.io/tags/%E5%8D%8F%E8%AE%AE/">协议</a>
+    <a href="https://xsymphony.github.io/tags/%E5%B9%B6%E5%8F%91/">并发</a>
     
-    <a href="https://xiongsyao.github.io/tags/%E5%B9%B6%E5%8F%91/">并发</a>
-    
-    <a href="https://xiongsyao.github.io/tags/%E9%94%81/">锁</a>
+    <a href="https://xsymphony.github.io/tags/%E9%94%81/">锁</a>
     
 </div>
     </section>
@@ -345,41 +309,37 @@ appendfsync everysec   # 每秒请求一次同步
     <section class="widget">
         <h3 class="widget-title">其它</h3>
         <ul class="widget-list">
-            <li><a href="https://xiongsyao.github.io/index.xml">文章 RSS</a></li>
+            <li><a href="https://xsymphony.github.io/index.xml">文章 RSS</a></li>
         </ul>
     </section>
 </div>
+            </div>
         </div>
     </div>
-</div>
-<footer id="footer">
+    <footer id="footer">
     <div class="container">
-        &copy; 2018 <a href="https://xiongsyao.github.io/">Matrix By matrix</a>.
+        &copy; 2019 <a href="https://xsymphony.github.io/">Matrix By matrix</a>.
         Powered by <a rel="nofollow noreferer noopener" href="https://gohugo.io" target="_blank">Hugo</a>.
-        <a href="http://www.flysnow.org/" target="_blank">Theme</a> based on <a href="https://github.com/rujews/maupassant-hugo" target="_blank">maupassant</a>.
+        <a href="https://www.flysnow.org/" target="_blank">Theme</a> based on <a href="https://github.com/flysnow-org/maupassant-hugo" target="_blank">maupassant</a>.
         
     </div>
 </footer>
 
 
-    <script type="text/javascript">
     
-    (function(){
-        $("pre code").parent().addClass("line-numbers")
-    }())
-
-    window.MathJax = {
-        tex2jax: {
-            inlineMath: [ ['$','$'] ],
-            processEscapes: true
-        }
-    };
+    <script type="text/javascript">
+        window.MathJax = {
+            tex2jax: {
+                inlineMath: [['$', '$']],
+                processEscapes: true
+                }
+            };
     </script>
-    <script type="text/javascript" src="/js/prism.js" async="true"></script>
     <script src='https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-MML-AM_CHTML' async></script>
 
+
 <a id="rocket" href="#top"></a>
-<script type="text/javascript" src="/js/totop.js?v=0.0.0" async=""></script>
+<script type="text/javascript" src='/js/totop.js?v=0.0.0' async=""></script>
 
 
 
@@ -387,4 +347,5 @@ appendfsync everysec   # 每秒请求一次同步
 
 
 </body>
+
 </html>

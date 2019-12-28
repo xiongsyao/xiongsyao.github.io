@@ -1,39 +1,23 @@
-<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
     <title>协议 on Matrix</title>
-    <link>https://xiongsyao.github.io/tags/%E5%8D%8F%E8%AE%AE/</link>
+    <link>https://xsymphony.github.io/tags/%E5%8D%8F%E8%AE%AE/</link>
     <description>Recent content in 协议 on Matrix</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>zh-CH</language>
     <lastBuildDate>Wed, 02 Jan 2019 17:20:16 +0800</lastBuildDate>
     
-	<atom:link href="https://xiongsyao.github.io/tags/%E5%8D%8F%E8%AE%AE/index.xml" rel="self" type="application/rss+xml" />
+	<atom:link href="https://xsymphony.github.io/tags/%E5%8D%8F%E8%AE%AE/index.xml" rel="self" type="application/rss+xml" />
     
     
     <item>
       <title>解读redis协议</title>
-      <link>https://xiongsyao.github.io/post/2019/01/02/%E8%A7%A3%E8%AF%BBredis%E5%8D%8F%E8%AE%AE/</link>
+      <link>https://xsymphony.github.io/post/2019/01/02/%E8%A7%A3%E8%AF%BBredis%E5%8D%8F%E8%AE%AE/</link>
       <pubDate>Wed, 02 Jan 2019 17:20:16 +0800</pubDate>
       
-      <guid>https://xiongsyao.github.io/post/2019/01/02/%E8%A7%A3%E8%AF%BBredis%E5%8D%8F%E8%AE%AE/</guid>
-      <description>前言 Redis作为我们日常使用的key-value数据库，不光操作简单(例如set get delete等指令)，通信协议也简洁明了。 本篇就会剖析Redis的通信协议，并且实现一个简单的Redis客户端。
-协议 Redis服务端与客户端使用的基于TCP的文本协议(敲黑板，这里并没有使用效率更高的二进制协议)，称之为RESP(Redis Serialization Protocol)。区别于同样是文本协议的HTTP协议，RESP尤为简洁，其基础规则很容易理解。
-请求信息 假如我们执行set test ok这样的命令，可以视为准备了一个[&amp;quot;set&amp;quot;, &amp;quot;test&amp;quot;, &amp;quot;ok&amp;quot;]这样的数组，随即将其序列化为字符串，序列化规则如下:
- 首先以每一个指令以*开头指明数组长度 以$开头指明下个元素的字符长度 每一个元素以间隔符号\r\n(CRLF)隔开  按这个规则,set test ok则为:
-*3\r\n $3\r\n set\r\n $4\r\n test\r\n $2\r\n ok\r\n  以python为例:
-import redis r = redis.Redis() r.set(&#39;hello&#39;, &#39;world&#39;)  那么将发送的指令为*3\r\n$3\r\nset\r\n$5\r\nhello\r\n$5\r\nworld\r\n，收到的响应为+OK\r\n。
-响应信息 RESP协议中，不同类型的响应信息，会以不同的字符开头，比如上例中，+OK\r\n就以+开头。
- 简单字符串(Simple Strings)响应会以&amp;rdquo;+&amp;ldquo;开头
- +OK\r\n
- 错误(Errors)响应会以&amp;rdquo;-&amp;ldquo;开头
- -ERR unkown command &amp;lsquo;ST&amp;rsquo;\r\n
- 数字(Integer)响应会以&amp;rdquo;:&amp;ldquo;开头
- :2\r\n
- 大字符串(Bulk Strings)会以&amp;rdquo;$&amp;ldquo;开头，并且随之标出字符串字节数
- $13\r\nHello, World!\r\n
- 数组类型(Arrays)类似与请求信息的序列化一致（在HGETALLLRANGEMGET命令中会返回)。
-  实例 接下来，我们将用go实现一个简单的redis客户端</description>
+      <guid>https://xsymphony.github.io/post/2019/01/02/%E8%A7%A3%E8%AF%BBredis%E5%8D%8F%E8%AE%AE/</guid>
+      <description>前言 Redis作为我们日常使用的key-value数据库，不光操作简单(例如set get delete等指令)，通信协议也简洁明了。 本篇就会剖析Redis的通信协议，并且实现一个简单的Redis客户端。 协议 Redis服务端与客户端使用的基于TCP的文本协议(敲黑板，这里并没有使用效率更</description>
     </item>
     
   </channel>

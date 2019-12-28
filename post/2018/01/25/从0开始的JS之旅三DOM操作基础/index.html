@@ -3,7 +3,6 @@
 <head>
 
     <meta charset="utf-8">
-    <meta name="generator" content="Hugo 0.52" />
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
 
@@ -11,24 +10,21 @@
     <meta property="og:title" content="从0开始的JS之旅（三）：DOM操作基础 - Matrix">
     <meta property="og:type" content="article">
         
-    <meta property="article:published_time" content="2018-01-25T13:51:37&#43;08:00">
+    <meta property="article:published_time" content='2018-01-25T13:51:37&#43;08:00'>
         
         
-    <meta property="article:modified_time" content="2018-01-25T13:51:37&#43;08:00">
+    <meta property="article:modified_time" content='2018-01-25T13:51:37&#43;08:00'>
         
     <meta name="Keywords" content="golang,python">
     <meta name="description" content="从0开始的JS之旅（三）：DOM操作基础">
         
     <meta name="author" content="matrix">
-    <meta property="og:url" content="https://xiongsyao.github.io/post/2018/01/25/%E4%BB%8E0%E5%BC%80%E5%A7%8B%E7%9A%84JS%E4%B9%8B%E6%97%85%E4%B8%89DOM%E6%93%8D%E4%BD%9C%E5%9F%BA%E7%A1%80/">
+    <meta property="og:url" content="https://xsymphony.github.io/post/2018/01/25/%E4%BB%8E0%E5%BC%80%E5%A7%8B%E7%9A%84JS%E4%B9%8B%E6%97%85%E4%B8%89DOM%E6%93%8D%E4%BD%9C%E5%9F%BA%E7%A1%80/">
     <link rel="shortcut icon" href="/favicon.ico" type="image/x-icon">
 
-    <link rel="stylesheet" href="/css/normalize.css">
-    
-        <link rel="stylesheet" href="/css/prism.css">
-    
-    <link rel="stylesheet" href="/css/style.css">
-    <script type="text/javascript" src="//cdn.bootcss.com/jquery/3.2.1/jquery.min.js"></script>
+    <link rel="stylesheet" href='/css/normalize.css'>
+    <link rel="stylesheet" href='/css/style.css'>
+    <script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
 
     
 
@@ -37,13 +33,14 @@
     
 </head>
 
+
 <body>
-<header id="header" class="clearfix">
+    <header id="header" class="clearfix">
     <div class="container">
         <div class="col-group">
             <div class="site-name ">
                 
-                    <a id="logo" href="https://xiongsyao.github.io/">
+                    <a id="logo" href="https://xsymphony.github.io/">
                         Matrix
                     </a>
                 
@@ -51,11 +48,11 @@
             </div>
             <div>
                 <nav id="nav-menu" class="clearfix">
-                    <a class="current" href="https://xiongsyao.github.io/">首页</a>
+                    <a class="current" href="https://xsymphony.github.io/">首页</a>
                     
-                    <a  href="https://xiongsyao.github.io/archives/" title="归档">归档</a>
+                    <a  href="https://xsymphony.github.io/archives/" title="归档">归档</a>
                     
-                    <a  href="https://xiongsyao.github.io/about/" title="关于">关于</a>
+                    <a  href="https://xsymphony.github.io/about/" title="关于">关于</a>
                     
                 </nav>
             </div>
@@ -63,201 +60,330 @@
     </div>
 </header>
 
+    <div id="body">
+        <div class="container">
+            <div class="col-group">
 
-<div id="body">
-    <div class="container">
-        <div class="col-group">
-
-            <div class="col-8" id="main">
-                <div class="res-cons">
-                    <article class="post">
-                        <header>
-                            <h1 class="post-title">从0开始的JS之旅（三）：DOM操作基础</h1>
-                        </header>
-                        <date class="post-meta meta-date">
-                            2018年1月25日
-                        </date>
-                        
-                        <div class="post-meta meta-category">
-                            |
-                            
-                                <a href="https://xiongsyao.github.io/categories/JavaScript">JavaScript</a>
-                            
-                        </div>
-                        
-                        
-                        <div class="post-content">
-                            
-
-<h1 id="从0开始的js之旅-三">从0开始的JS之旅（三）</h1>
-
+                <div class="col-8" id="main">
+                    
+<div class="res-cons">
+    
+    <article class="post">
+        <header>
+            <h1 class="post-title">从0开始的JS之旅（三）：DOM操作基础</h1>
+        </header>
+        <date class="post-meta meta-date">
+            2018年1月25日
+        </date>
+        
+        <div class="post-meta">
+            <span>|</span>
+            
+            <span class="meta-category"><a href='https://xsymphony.github.io/categories/JavaScript'>JavaScript</a></span>
+            
+        </div>
+        
+        
+        
+        <div class="post-content">
+            <h1 id="0js">从0开始的JS之旅（三）</h1>
 <blockquote>
 <p>前面讲了一些JS语言的基本语法，但是JS运用最广泛的地方就是前端开发了，肯定免不了操纵DOM节点，这章就讲讲DOM相关的东西</p>
-
+</blockquote>
 <h2 id="dom">DOM</h2>
-
+<blockquote>
 <p>究竟什么是DOM呢？文档对象模型 (DOM) 是HTML和XML文档的编程接口。它提供了对文档的结构化的表述，并定义了一种方式可以使从程序中对该结构进行访问，从而改变文档的结构，样式和内容。</p>
 </blockquote>
-
 <p>我们从一个最简单的实例开始:</p>
-
-<pre><code class="language-HTML">&lt;html&gt;
-    &lt;head&gt;
-    &lt;/head&gt;
-    &lt;body&gt;
-      &lt;p class=&quot;cls1&quot; id=&quot;ex1&quot;&gt;这是一句话&lt;/p&gt;
-      &lt;p class=&quot;cls2&quot; id=&quot;ex2&quot;&gt;这是一句不会出现的话&lt;/p&gt;
-      &lt;p class=&quot;cls3&quot; id=&quot;ex3&quot;&gt;这是一句话&lt;/p&gt;
-      &lt;button&gt;点我改变页面&lt;/button&gt;
-    &lt;/body&gt;
-    &lt;script&gt;
-        // 获取元素
-        var myText1 = document.getElementById(&quot;ex1&quot;)
+<div class="highlight"><div style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 5
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 6
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 7
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 8
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 9
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">10
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">11
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">12
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">13
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">14
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">15
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">16
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">17
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">18
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">19
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">20
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">21
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">22
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">23
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">24
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">25
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">26
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">27
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">28
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">29
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">30
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">31
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">32
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">33
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">34
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">35
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">36
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">37
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">38
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">39
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-HTML" data-lang="HTML">&lt;<span style="color:#000080">html</span>&gt;
+    &lt;<span style="color:#000080">head</span>&gt;
+    &lt;/<span style="color:#000080">head</span>&gt;
+    &lt;<span style="color:#000080">body</span>&gt;
+      &lt;<span style="color:#000080">p</span> <span style="color:#008080">class</span><span style="color:#000;font-weight:bold">=</span><span style="color:#d14">&#34;cls1&#34;</span> <span style="color:#008080">id</span><span style="color:#000;font-weight:bold">=</span><span style="color:#d14">&#34;ex1&#34;</span>&gt;这是一句话&lt;/<span style="color:#000080">p</span>&gt;
+      &lt;<span style="color:#000080">p</span> <span style="color:#008080">class</span><span style="color:#000;font-weight:bold">=</span><span style="color:#d14">&#34;cls2&#34;</span> <span style="color:#008080">id</span><span style="color:#000;font-weight:bold">=</span><span style="color:#d14">&#34;ex2&#34;</span>&gt;这是一句不会出现的话&lt;/<span style="color:#000080">p</span>&gt;
+      &lt;<span style="color:#000080">p</span> <span style="color:#008080">class</span><span style="color:#000;font-weight:bold">=</span><span style="color:#d14">&#34;cls3&#34;</span> <span style="color:#008080">id</span><span style="color:#000;font-weight:bold">=</span><span style="color:#d14">&#34;ex3&#34;</span>&gt;这是一句话&lt;/<span style="color:#000080">p</span>&gt;
+      &lt;<span style="color:#000080">button</span>&gt;点我改变页面&lt;/<span style="color:#000080">button</span>&gt;
+    &lt;/<span style="color:#000080">body</span>&gt;
+    &lt;<span style="color:#000080">script</span>&gt;
+        <span style="color:#998;font-style:italic">// 获取元素
+</span><span style="color:#998;font-style:italic"></span>        <span style="color:#000;font-weight:bold">var</span> myText1 <span style="color:#000;font-weight:bold">=</span> <span style="color:#0086b3">document</span>.getElementById(<span style="color:#d14">&#34;ex1&#34;</span>)
         console.log(myText1)
-        // 插入元素
-        var myBlod = document.createElement(&quot;b&quot;)
-        blod_text = document.createTextNode(&quot;加粗的话&quot;)
+        <span style="color:#998;font-style:italic">// 插入元素
+</span><span style="color:#998;font-style:italic"></span>        <span style="color:#000;font-weight:bold">var</span> myBlod <span style="color:#000;font-weight:bold">=</span> <span style="color:#0086b3">document</span>.createElement(<span style="color:#d14">&#34;b&#34;</span>)
+        blod_text <span style="color:#000;font-weight:bold">=</span> <span style="color:#0086b3">document</span>.createTextNode(<span style="color:#d14">&#34;加粗的话&#34;</span>)
         myBlod.appendChild(blod_text)
-        document.body.appendChild(myBlod)
-        // 删除元素
-        var myText2 = document.getElementsByClassName(&quot;cls2&quot;)[0]
-        document.body.removeChild(myText2)
-        // 改变元素
-        var myText3 = document.getElementById(&quot;ex3&quot;)
-        myText3.innerText = &quot;这是一句被改变的话&quot;
-        myText3.style.color = &quot;red&quot;
-        // 动态改变
-        var myButton = document.getElementsByTagName(&quot;button&quot;)[0]
-        myButton.addEventListener(&quot;click&quot;, function() {
-          myText1.classList.toggle(&quot;active&quot;)
+        <span style="color:#0086b3">document</span>.body.appendChild(myBlod)
+        <span style="color:#998;font-style:italic">// 删除元素
+</span><span style="color:#998;font-style:italic"></span>        <span style="color:#000;font-weight:bold">var</span> myText2 <span style="color:#000;font-weight:bold">=</span> <span style="color:#0086b3">document</span>.getElementsByClassName(<span style="color:#d14">&#34;cls2&#34;</span>)[<span style="color:#099">0</span>]
+        <span style="color:#0086b3">document</span>.body.removeChild(myText2)
+        <span style="color:#998;font-style:italic">// 改变元素
+</span><span style="color:#998;font-style:italic"></span>        <span style="color:#000;font-weight:bold">var</span> myText3 <span style="color:#000;font-weight:bold">=</span> <span style="color:#0086b3">document</span>.getElementById(<span style="color:#d14">&#34;ex3&#34;</span>)
+        myText3.innerText <span style="color:#000;font-weight:bold">=</span> <span style="color:#d14">&#34;这是一句被改变的话&#34;</span>
+        myText3.style.color <span style="color:#000;font-weight:bold">=</span> <span style="color:#d14">&#34;red&#34;</span>
+        <span style="color:#998;font-style:italic">// 动态改变
+</span><span style="color:#998;font-style:italic"></span>        <span style="color:#000;font-weight:bold">var</span> myButton <span style="color:#000;font-weight:bold">=</span> <span style="color:#0086b3">document</span>.getElementsByTagName(<span style="color:#d14">&#34;button&#34;</span>)[<span style="color:#099">0</span>]
+        myButton.addEventListener(<span style="color:#d14">&#34;click&#34;</span>, <span style="color:#000;font-weight:bold">function</span>() {
+          myText1.classList.toggle(<span style="color:#d14">&#34;active&#34;</span>)
         })
-    &lt;/script&gt;
-    &lt;style&gt;
-     .active {
-       font-size: 1.5rem;
-       color: red;
-       border: 1px solid gray;
+    &lt;/<span style="color:#000080">script</span>&gt;
+    &lt;<span style="color:#000080">style</span>&gt;
+     .<span style="color:#458;font-weight:bold">active</span> {
+       <span style="color:#000;font-weight:bold">font-size</span>: <span style="color:#099">1.5</span><span style="color:#458;font-weight:bold">rem</span>;
+       <span style="color:#000;font-weight:bold">color</span>: <span style="color:#000;font-weight:bold">red</span>;
+       <span style="color:#000;font-weight:bold">border</span>: <span style="color:#099">1</span><span style="color:#458;font-weight:bold">px</span> <span style="color:#000;font-weight:bold">solid</span> <span style="color:#000;font-weight:bold">gray</span>;
      }
-    &lt;/style&gt;
-&lt;/html&gt;
-</code></pre>
-
-<p>上面演示了一些最基本的DOM节点操作，因为DOM操作的API繁多，这里就不一一列举，具体的可以看<a href="https://developer.mozilla.org/en-US/docs/Web/API/Document"><strong>MDN</strong></a>。
+    &lt;/<span style="color:#000080">style</span>&gt;
+&lt;/<span style="color:#000080">html</span>&gt;
+</code></pre></td></tr></table>
+</div>
+</div><p>上面演示了一些最基本的DOM节点操作，因为DOM操作的API繁多，这里就不一一列举，具体的可以看<a href="https://developer.mozilla.org/en-US/docs/Web/API/Document"><strong>MDN</strong></a>。
 这些DOM操作的API实际没必要去记忆，经常用的肯定会记住，为了之后的实战，这里会讲一些Canvas相关的东西。</p>
-
 <h2 id="canvas">Canvas</h2>
-
 <blockquote>
 <p><code>&lt;canvas&gt;</code>是一个特殊的html标签，它允许我们使用JS在其上绘图，这里我们介绍下<code>canvas</code>的一些基本API，然后接下来，我们就可以用它做一些有趣的事情。</p>
-
-<h3 id="图形">图形</h3>
-
+</blockquote>
+<h3 id="heading">图形</h3>
 <p>创建一个<code>canvas</code>元素：</p>
-
-<pre><code class="language-HTML">&lt;canvas id=&quot;tutorial&quot; width=&quot;150&quot; height=&quot;150&quot;&gt;&lt;/canvas&gt;
-</code></pre>
-
-<p>上述代码创建了一个<code>id</code>为<code>tutorial</code>，宽高均为150px的canvas画布。
+<div class="highlight"><div style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-HTML" data-lang="HTML">&lt;<span style="color:#000080">canvas</span> <span style="color:#008080">id</span><span style="color:#000;font-weight:bold">=</span><span style="color:#d14">&#34;tutorial&#34;</span> <span style="color:#008080">width</span><span style="color:#000;font-weight:bold">=</span><span style="color:#d14">&#34;150&#34;</span> <span style="color:#008080">height</span><span style="color:#000;font-weight:bold">=</span><span style="color:#d14">&#34;150&#34;</span>&gt;&lt;/<span style="color:#000080">canvas</span>&gt;
+</code></pre></td></tr></table>
+</div>
+</div><p>上述代码创建了一个<code>id</code>为<code>tutorial</code>，宽高均为150px的canvas画布。
 获取<code>canvas</code>对象,并且通过canvas的getContext方法获取“2d”渲染内容。</p>
+<div class="highlight"><div style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-JS" data-lang="JS"><span style="color:#000;font-weight:bold">var</span> canvas <span style="color:#000;font-weight:bold">=</span> <span style="color:#0086b3">document</span>.getElementById(<span style="color:#d14">&#39;tutorial&#39;</span>)
+<span style="color:#000;font-weight:bold">var</span> ctx <span style="color:#000;font-weight:bold">=</span> canvas.getContext(<span style="color:#d14">&#39;2d&#39;</span>)
+</code></pre></td></tr></table>
+</div>
+</div><p>一个简单的实例：</p>
+<div class="highlight"><div style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 5
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 6
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 7
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 8
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 9
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">10
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">11
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">12
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">13
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">14
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">15
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">16
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">17
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">18
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">19
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">20
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">21
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">22
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">23
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">24
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">25
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">26
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">27
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">28
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">29
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">30
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">31
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">32
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">33
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">34
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">35
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">36
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">37
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">38
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-HTML" data-lang="HTML"><span style="color:#999;font-weight:bold;font-style:italic">&lt;!DOCTYPE html&gt;</span>
+&lt;<span style="color:#000080">html</span>&gt;
+  &lt;<span style="color:#000080">head</span>&gt;
+    &lt;<span style="color:#000080">meta</span> <span style="color:#008080">charset</span><span style="color:#000;font-weight:bold">=</span><span style="color:#d14">&#34;utf-8&#34;</span>/&gt;
+    &lt;<span style="color:#000080">title</span>&gt;Canvas tutorial&lt;/<span style="color:#000080">title</span>&gt;
+  &lt;/<span style="color:#000080">head</span>&gt;
+  &lt;<span style="color:#000080">body</span>&gt;
+    &lt;<span style="color:#000080">canvas</span> <span style="color:#008080">id</span><span style="color:#000;font-weight:bold">=</span><span style="color:#d14">&#34;tutorial&#34;</span> <span style="color:#008080">width</span><span style="color:#000;font-weight:bold">=</span><span style="color:#d14">&#34;350&#34;</span> <span style="color:#008080">height</span><span style="color:#000;font-weight:bold">=</span><span style="color:#d14">&#34;350&#34;</span>&gt;&lt;/<span style="color:#000080">canvas</span>&gt;
+    &lt;<span style="color:#000080">script</span> <span style="color:#008080">type</span><span style="color:#000;font-weight:bold">=</span><span style="color:#d14">&#34;text/javascript&#34;</span>&gt;
+      <span style="color:#000;font-weight:bold">function</span> draw(){
+        <span style="color:#000;font-weight:bold">var</span> canvas <span style="color:#000;font-weight:bold">=</span> <span style="color:#0086b3">document</span>.getElementById(<span style="color:#d14">&#39;tutorial&#39;</span>);
+        <span style="color:#000;font-weight:bold">var</span> ctx <span style="color:#000;font-weight:bold">=</span> canvas.getContext(<span style="color:#d14">&#39;2d&#39;</span>);
 
-<pre><code class="language-JS">var canvas = document.getElementById('tutorial')
-var ctx = canvas.getContext('2d')
-</code></pre>
-
-<p>一个简单的实例：</p>
-
-<pre><code class="language-HTML">&lt;!DOCTYPE html&gt;
-&lt;html&gt;
-  &lt;head&gt;
-    &lt;meta charset=&quot;utf-8&quot;/&gt;
-    &lt;title&gt;Canvas tutorial&lt;/title&gt;
-  &lt;/head&gt;
-  &lt;body&gt;
-    &lt;canvas id=&quot;tutorial&quot; width=&quot;350&quot; height=&quot;350&quot;&gt;&lt;/canvas&gt;
-    &lt;script type=&quot;text/javascript&quot;&gt;
-      function draw(){
-        var canvas = document.getElementById('tutorial');
-        var ctx = canvas.getContext('2d');
-
-        // 红色正方形
-        ctx.beginPath();                   // 开始绘制
-        ctx.fillStyle = 'rgb(200, 0, 0)';  // 填充颜色
-        ctx.rect(10, 10, 50, 50);          // 定义图形(x, y, width, heigt), 前两个数字代表坐标，后两个代表宽高
-        ctx.fill();                        // 绘制
-        ctx.closePath();                   // 结束绘制
-        
-        // 黑色正方形
-        ctx.fillStyle = &quot;black&quot;;
-        ctx.fillRect(30, 30, 50, 50);      // 快速绘制方式
-
-        // 红色圆球
-        ctx.beginPath();                   
-        ctx.fillStyle = &quot;red&quot;; 
-        ctx.arc(175, 175, 20, 0, Math.PI*2, false);  // 定义图形(x, y, radiu, start_angle, end_angle, direction)         
-        ctx.fill(); 
+        <span style="color:#998;font-style:italic">// 红色正方形
+</span><span style="color:#998;font-style:italic"></span>        ctx.beginPath();                   <span style="color:#998;font-style:italic">// 开始绘制
+</span><span style="color:#998;font-style:italic"></span>        ctx.fillStyle <span style="color:#000;font-weight:bold">=</span> <span style="color:#d14">&#39;rgb(200, 0, 0)&#39;</span>;  <span style="color:#998;font-style:italic">// 填充颜色
+</span><span style="color:#998;font-style:italic"></span>        ctx.rect(<span style="color:#099">10</span>, <span style="color:#099">10</span>, <span style="color:#099">50</span>, <span style="color:#099">50</span>);          <span style="color:#998;font-style:italic">// 定义图形(x, y, width, heigt), 前两个数字代表坐标，后两个代表宽高
+</span><span style="color:#998;font-style:italic"></span>        ctx.fill();                        <span style="color:#998;font-style:italic">// 绘制
+</span><span style="color:#998;font-style:italic"></span>        ctx.closePath();                   <span style="color:#998;font-style:italic">// 结束绘制
+</span><span style="color:#998;font-style:italic"></span>        
+        <span style="color:#998;font-style:italic">// 黑色正方形
+</span><span style="color:#998;font-style:italic"></span>        ctx.fillStyle <span style="color:#000;font-weight:bold">=</span> <span style="color:#d14">&#34;black&#34;</span>;
+        ctx.fillRect(<span style="color:#099">30</span>, <span style="color:#099">30</span>, <span style="color:#099">50</span>, <span style="color:#099">50</span>);      <span style="color:#998;font-style:italic">// 快速绘制方式
+</span><span style="color:#998;font-style:italic"></span>
+        <span style="color:#998;font-style:italic">// 红色圆球
+</span><span style="color:#998;font-style:italic"></span>        ctx.beginPath();                   
+        ctx.fillStyle <span style="color:#000;font-weight:bold">=</span> <span style="color:#d14">&#34;red&#34;</span>; 
+        ctx.arc(<span style="color:#099">175</span>, <span style="color:#099">175</span>, <span style="color:#099">20</span>, <span style="color:#099">0</span>, <span style="color:#0086b3">Math</span>.PI<span style="color:#000;font-weight:bold">*</span><span style="color:#099">2</span>, <span style="color:#000;font-weight:bold">false</span>);  <span style="color:#998;font-style:italic">// 定义图形(x, y, radiu, start_angle, end_angle, direction)         
+</span><span style="color:#998;font-style:italic"></span>        ctx.fill(); 
         ctx.closePath(); 
       }
       draw();
-    &lt;/script&gt;
-    &lt;style type=&quot;text/css&quot;&gt;
-      canvas { border: 1px solid black; }
-    &lt;/style&gt;
-  &lt;/body&gt;
-&lt;/html&gt;
-</code></pre>
-
-<p>这样我们就在画布上分别绘制了两个正方形和一个圆球。</p>
-
-<h3 id="运动">运动</h3>
-
+    &lt;/<span style="color:#000080">script</span>&gt;
+    &lt;<span style="color:#000080">style</span> <span style="color:#008080">type</span><span style="color:#000;font-weight:bold">=</span><span style="color:#d14">&#34;text/css&#34;</span>&gt;
+      <span style="color:#000080">canvas</span> { <span style="color:#000;font-weight:bold">border</span>: <span style="color:#099">1</span><span style="color:#458;font-weight:bold">px</span> <span style="color:#000;font-weight:bold">solid</span> <span style="color:#000;font-weight:bold">black</span>; }
+    &lt;/<span style="color:#000080">style</span>&gt;
+  &lt;/<span style="color:#000080">body</span>&gt;
+&lt;/<span style="color:#000080">html</span>&gt;
+</code></pre></td></tr></table>
+</div>
+</div><p>这样我们就在画布上分别绘制了两个正方形和一个圆球。</p>
+<h3 id="heading-1">运动</h3>
 <p>上面我们只是创建了图形，但是怎么让图形动起来呢？一个简单的思路是：我们周期的去重绘图形，重绘的时候，去改变图形的坐标。这里，我们借助<code>setInterval</code>这个方法，这个方法创建了一个定时器。</p>
-
-<pre><code class="language-HTML">function draw() {
+<div class="highlight"><div style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">3
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">4
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-HTML" data-lang="HTML">function draw() {
   console.log(1)
 }
 setInterval(draw, 1000);
-</code></pre>
-
-<p>这样，每隔1s，就会打印1
+</code></pre></td></tr></table>
+</div>
+</div><p>这样，每隔1s，就会打印1
 运用到我们的<code>canvas</code>上：</p>
-
-<pre><code class="language-HTML">&lt;!DOCTYPE html&gt;
-&lt;html&gt;
-  &lt;head&gt;
-    &lt;meta charset=&quot;utf-8&quot;/&gt;
-    &lt;title&gt;Canvas tutorial&lt;/title&gt;
-  &lt;/head&gt;
-  &lt;body&gt;
-    &lt;canvas id=&quot;tutorial&quot; width=&quot;350&quot; height=&quot;350&quot;&gt;&lt;/canvas&gt;
-    &lt;script type=&quot;text/javascript&quot;&gt;
-      var x = 0, y = 0
-      function draw(){
-        var canvas = document.getElementById('tutorial');
-        var ctx = canvas.getContext('2d')
-        // clear
-        ctx.clearRect(0,0,canvas.width,canvas.height);  
-        // 红色圆球
-        ctx.beginPath();                   
-        ctx.fillStyle = &quot;red&quot;; 
-        ctx.arc(175+x, 175+y, 20, 0, Math.PI*2, false);  // 定义图形(x, y, radiu, start_angle, end_angle, direction)         
-        ctx.fill(); 
+<div class="highlight"><div style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 5
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 6
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 7
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 8
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 9
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">10
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">11
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">12
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">13
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">14
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">15
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">16
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">17
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">18
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">19
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">20
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">21
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">22
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">23
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">24
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">25
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">26
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">27
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">28
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">29
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">30
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">31
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-HTML" data-lang="HTML"><span style="color:#999;font-weight:bold;font-style:italic">&lt;!DOCTYPE html&gt;</span>
+&lt;<span style="color:#000080">html</span>&gt;
+  &lt;<span style="color:#000080">head</span>&gt;
+    &lt;<span style="color:#000080">meta</span> <span style="color:#008080">charset</span><span style="color:#000;font-weight:bold">=</span><span style="color:#d14">&#34;utf-8&#34;</span>/&gt;
+    &lt;<span style="color:#000080">title</span>&gt;Canvas tutorial&lt;/<span style="color:#000080">title</span>&gt;
+  &lt;/<span style="color:#000080">head</span>&gt;
+  &lt;<span style="color:#000080">body</span>&gt;
+    &lt;<span style="color:#000080">canvas</span> <span style="color:#008080">id</span><span style="color:#000;font-weight:bold">=</span><span style="color:#d14">&#34;tutorial&#34;</span> <span style="color:#008080">width</span><span style="color:#000;font-weight:bold">=</span><span style="color:#d14">&#34;350&#34;</span> <span style="color:#008080">height</span><span style="color:#000;font-weight:bold">=</span><span style="color:#d14">&#34;350&#34;</span>&gt;&lt;/<span style="color:#000080">canvas</span>&gt;
+    &lt;<span style="color:#000080">script</span> <span style="color:#008080">type</span><span style="color:#000;font-weight:bold">=</span><span style="color:#d14">&#34;text/javascript&#34;</span>&gt;
+      <span style="color:#000;font-weight:bold">var</span> x <span style="color:#000;font-weight:bold">=</span> <span style="color:#099">0</span>, y <span style="color:#000;font-weight:bold">=</span> <span style="color:#099">0</span>
+      <span style="color:#000;font-weight:bold">function</span> draw(){
+        <span style="color:#000;font-weight:bold">var</span> canvas <span style="color:#000;font-weight:bold">=</span> <span style="color:#0086b3">document</span>.getElementById(<span style="color:#d14">&#39;tutorial&#39;</span>);
+        <span style="color:#000;font-weight:bold">var</span> ctx <span style="color:#000;font-weight:bold">=</span> canvas.getContext(<span style="color:#d14">&#39;2d&#39;</span>)
+        <span style="color:#998;font-style:italic">// clear
+</span><span style="color:#998;font-style:italic"></span>        ctx.clearRect(<span style="color:#099">0</span>,<span style="color:#099">0</span>,canvas.width,canvas.height);  
+        <span style="color:#998;font-style:italic">// 红色圆球
+</span><span style="color:#998;font-style:italic"></span>        ctx.beginPath();                   
+        ctx.fillStyle <span style="color:#000;font-weight:bold">=</span> <span style="color:#d14">&#34;red&#34;</span>; 
+        ctx.arc(<span style="color:#099">175</span><span style="color:#000;font-weight:bold">+</span>x, <span style="color:#099">175</span><span style="color:#000;font-weight:bold">+</span>y, <span style="color:#099">20</span>, <span style="color:#099">0</span>, <span style="color:#0086b3">Math</span>.PI<span style="color:#000;font-weight:bold">*</span><span style="color:#099">2</span>, <span style="color:#000;font-weight:bold">false</span>);  <span style="color:#998;font-style:italic">// 定义图形(x, y, radiu, start_angle, end_angle, direction)         
+</span><span style="color:#998;font-style:italic"></span>        ctx.fill(); 
         ctx.closePath();
-        x += 5
-        y += 5 
+        x <span style="color:#000;font-weight:bold">+=</span> <span style="color:#099">5</span>
+        y <span style="color:#000;font-weight:bold">+=</span> <span style="color:#099">5</span> 
       }
-      setInterval(draw, 500);
-    &lt;/script&gt;
-    &lt;style type=&quot;text/css&quot;&gt;
-      canvas { border: 1px solid black; }
-    &lt;/style&gt;
-  &lt;/body&gt;
-&lt;/html&gt;
-</code></pre>
-</blockquote>
+      setInterval(draw, <span style="color:#099">500</span>);
+    &lt;/<span style="color:#000080">script</span>&gt;
+    &lt;<span style="color:#000080">style</span> <span style="color:#008080">type</span><span style="color:#000;font-weight:bold">=</span><span style="color:#d14">&#34;text/css&#34;</span>&gt;
+      <span style="color:#000080">canvas</span> { <span style="color:#000;font-weight:bold">border</span>: <span style="color:#099">1</span><span style="color:#458;font-weight:bold">px</span> <span style="color:#000;font-weight:bold">solid</span> <span style="color:#000;font-weight:bold">black</span>; }
+    &lt;/<span style="color:#000080">style</span>&gt;
+  &lt;/<span style="color:#000080">body</span>&gt;
+&lt;/<span style="color:#000080">html</span>&gt;
+</code></pre></td></tr></table>
+</div>
+</div>
+        </div>
 
-                        </div>
+        
 
-                        
+
+        
 
 <div class="post-archive">
     <h2>See Also</h2>
@@ -273,26 +399,26 @@ setInterval(draw, 1000);
 </div>
 
 
-                        <div class="post-meta meta-tags">
-                            
-                            <ul class="clearfix">
-                                
-                                <li><a href="https://xiongsyao.github.io/tags/JavaScript%E5%9F%BA%E7%A1%80%E6%95%99%E7%A8%8B">JavaScript基础教程</a></li>
-                                
-                                <li><a href="https://xiongsyao.github.io/tags/JavaScript">JavaScript</a></li>
-                                
-                            </ul>
-                            
-                        </div>
-                    </article>
-                    
+        <div class="post-meta meta-tags">
+            
+            <ul class="clearfix">
+                
+                <li><a href='https://xsymphony.github.io/tags/JavaScript%E5%9F%BA%E7%A1%80%E6%95%99%E7%A8%8B'>JavaScript基础教程</a></li>
+                
+                <li><a href='https://xsymphony.github.io/tags/JavaScript'>JavaScript</a></li>
+                
+            </ul>
+            
+        </div>
+    </article>
+    
     
 
     
     
     <div class="post bg-white">
       <script src="https://utteranc.es/client.js"
-            repo= "xiongsyao/comments"
+            repo= "xsymphony/comments"
             issue-term="pathname"
             theme="github-light"
             crossorigin="anonymous"
@@ -300,14 +426,16 @@ setInterval(draw, 1000);
       </script>
     </div>
     
+</div>
+
                 </div>
-            </div>
-            <div id="secondary">
+
+                <div id="secondary">
     <section class="widget">
-        <form id="search" action="//www.google.com/search" method="get" accept-charset="utf-8" target="_blank" _lpchecked="1">
+        <form id="search" action='//www.google.com/search' method="get" accept-charset="utf-8" target="_blank" _lpchecked="1">
       
       <input type="text" name="q" maxlength="20" placeholder="Search">
-      <input type="hidden" name="sitesearch" value="https://xiongsyao.github.io/">
+      <input type="hidden" name="sitesearch" value="https://xsymphony.github.io/">
       <button type="submit" class="submit icon-search"></button>
 </form>
     </section>
@@ -317,43 +445,43 @@ setInterval(draw, 1000);
 <ul class="widget-list">
     
     <li>
-        <a href="https://xiongsyao.github.io/post/2019/02/27/%E6%BC%AB%E8%B0%88%E5%88%86%E5%B8%83%E5%BC%8F%E9%94%81%E4%B8%89/" title="漫谈分布式锁（三）">漫谈分布式锁（三）</a>
+        <a href="https://xsymphony.github.io/post/2019/02/27/%E6%BC%AB%E8%B0%88%E5%88%86%E5%B8%83%E5%BC%8F%E9%94%81%E4%B8%89/" title="漫谈分布式锁（三）">漫谈分布式锁（三）</a>
     </li>
     
     <li>
-        <a href="https://xiongsyao.github.io/post/2019/02/25/%E6%BC%AB%E8%B0%88%E5%88%86%E5%B8%83%E5%BC%8F%E9%94%81%E4%BA%8C/" title="漫谈分布式锁（二）">漫谈分布式锁（二）</a>
+        <a href="https://xsymphony.github.io/post/2019/02/25/%E6%BC%AB%E8%B0%88%E5%88%86%E5%B8%83%E5%BC%8F%E9%94%81%E4%BA%8C/" title="漫谈分布式锁（二）">漫谈分布式锁（二）</a>
     </li>
     
     <li>
-        <a href="https://xiongsyao.github.io/post/2019/02/21/%E6%BC%AB%E8%B0%88%E5%88%86%E5%B8%83%E5%BC%8F%E9%94%81%E4%B8%80/" title="漫谈分布式锁（一）">漫谈分布式锁（一）</a>
+        <a href="https://xsymphony.github.io/post/2019/02/21/%E6%BC%AB%E8%B0%88%E5%88%86%E5%B8%83%E5%BC%8F%E9%94%81%E4%B8%80/" title="漫谈分布式锁（一）">漫谈分布式锁（一）</a>
     </li>
     
     <li>
-        <a href="https://xiongsyao.github.io/post/2019/02/13/Redis%E6%8C%81%E4%B9%85%E5%8C%96/" title="Redis持久化">Redis持久化</a>
+        <a href="https://xsymphony.github.io/post/2019/02/13/Redis%E6%8C%81%E4%B9%85%E5%8C%96/" title="Redis持久化">Redis持久化</a>
     </li>
     
     <li>
-        <a href="https://xiongsyao.github.io/post/2019/01/02/%E8%A7%A3%E8%AF%BBredis%E5%8D%8F%E8%AE%AE/" title="解读redis协议">解读redis协议</a>
+        <a href="https://xsymphony.github.io/post/2019/01/02/%E8%A7%A3%E8%AF%BBredis%E5%8D%8F%E8%AE%AE/" title="解读redis协议">解读redis协议</a>
     </li>
     
     <li>
-        <a href="https://xiongsyao.github.io/post/2018/12/28/%E8%B0%88%E8%B0%88golang%E4%B8%AD%E7%9A%84%E9%94%81/" title="谈谈golang中的锁">谈谈golang中的锁</a>
+        <a href="https://xsymphony.github.io/post/2018/12/28/%E8%B0%88%E8%B0%88golang%E4%B8%AD%E7%9A%84%E9%94%81/" title="谈谈golang中的锁">谈谈golang中的锁</a>
     </li>
     
     <li>
-        <a href="https://xiongsyao.github.io/post/2018/12/17/LeetCode150%E9%80%86%E6%B3%A2%E5%85%B0%E8%A1%A8%E8%BE%BE%E5%BC%8F%E6%B1%82%E5%80%BC/" title="[LeetCode]150:逆波兰表达式求值">[LeetCode]150:逆波兰表达式求值</a>
+        <a href="https://xsymphony.github.io/post/2018/12/17/LeetCode150%E9%80%86%E6%B3%A2%E5%85%B0%E8%A1%A8%E8%BE%BE%E5%BC%8F%E6%B1%82%E5%80%BC/" title="[LeetCode]150:逆波兰表达式求值">[LeetCode]150:逆波兰表达式求值</a>
     </li>
     
     <li>
-        <a href="https://xiongsyao.github.io/post/2018/03/7/%E5%8A%A8%E6%80%81%E5%8A%A0%E8%BD%BDDjango%E7%9A%84config%E9%85%8D%E7%BD%AE/" title="动态加载Django的config配置">动态加载Django的config配置</a>
+        <a href="https://xsymphony.github.io/post/2018/01/25/%E4%BB%8E0%E5%BC%80%E5%A7%8B%E7%9A%84JS%E4%B9%8B%E6%97%85%E4%B8%89DOM%E6%93%8D%E4%BD%9C%E5%9F%BA%E7%A1%80/" title="从0开始的JS之旅（三）：DOM操作基础">从0开始的JS之旅（三）：DOM操作基础</a>
     </li>
     
     <li>
-        <a href="https://xiongsyao.github.io/post/2018/01/25/%E4%BB%8E0%E5%BC%80%E5%A7%8B%E7%9A%84JS%E4%B9%8B%E6%97%85%E4%B8%89DOM%E6%93%8D%E4%BD%9C%E5%9F%BA%E7%A1%80/" title="从0开始的JS之旅（三）：DOM操作基础">从0开始的JS之旅（三）：DOM操作基础</a>
+        <a href="https://xsymphony.github.io/post/2018/01/25/%E4%BB%8E0%E5%BC%80%E5%A7%8B%E7%9A%84JS%E4%B9%8B%E6%97%85%E4%BA%8C%E9%9D%A2%E5%90%91%E5%AF%B9%E8%B1%A1%E7%BC%96%E7%A8%8B/" title="从0开始的JS之旅（二）：面向对象编程">从0开始的JS之旅（二）：面向对象编程</a>
     </li>
     
     <li>
-        <a href="https://xiongsyao.github.io/post/2018/01/25/%E4%BB%8E0%E5%BC%80%E5%A7%8B%E7%9A%84JS%E4%B9%8B%E6%97%85%E4%BA%8C%E9%9D%A2%E5%90%91%E5%AF%B9%E8%B1%A1%E7%BC%96%E7%A8%8B/" title="从0开始的JS之旅（二）：面向对象编程">从0开始的JS之旅（二）：面向对象编程</a>
+        <a href="https://xsymphony.github.io/post/2018/01/25/%E4%BB%8E0%E5%BC%80%E5%A7%8B%E7%9A%84JS%E4%B9%8B%E6%97%85%E4%B8%80%E6%95%B0%E6%8D%AE%E7%B1%BB%E5%9E%8B%E6%B5%81%E7%A8%8B%E8%AF%AD%E5%8F%A5%E5%8F%8A%E5%87%BD%E6%95%B0/" title="从0开始的JS之旅（一）：数据类型，流程语句及函数">从0开始的JS之旅（一）：数据类型，流程语句及函数</a>
     </li>
     
 </ul>
@@ -365,29 +493,15 @@ setInterval(draw, 1000);
         <h3 class="widget-title">分类</h3>
 <ul class="widget-list">
     
-    <li>
-        <a href="https://xiongsyao.github.io/categories/Django/">Django(1)</a>
-    </li>
+    <li><a href="https://xsymphony.github.io/categories/JavaScript/">JavaScript (3)</a></li>
     
-    <li>
-        <a href="https://xiongsyao.github.io/categories/JavaScript/">JavaScript(3)</a>
-    </li>
+    <li><a href="https://xsymphony.github.io/categories/Redis/">Redis (2)</a></li>
     
-    <li>
-        <a href="https://xiongsyao.github.io/categories/Redis/">Redis(2)</a>
-    </li>
+    <li><a href="https://xsymphony.github.io/categories/golang/">golang (1)</a></li>
     
-    <li>
-        <a href="https://xiongsyao.github.io/categories/golang/">golang(1)</a>
-    </li>
+    <li><a href="https://xsymphony.github.io/categories/leetcode/">leetcode (1)</a></li>
     
-    <li>
-        <a href="https://xiongsyao.github.io/categories/leetcode/">leetcode(1)</a>
-    </li>
-    
-    <li>
-        <a href="https://xiongsyao.github.io/categories/%E5%88%86%E5%B8%83%E5%BC%8F/">分布式(3)</a>
-    </li>
+    <li><a href="https://xsymphony.github.io/categories/%E5%88%86%E5%B8%83%E5%BC%8F/">分布式 (3)</a></li>
     
 </ul>
     </section>
@@ -396,29 +510,27 @@ setInterval(draw, 1000);
         <h3 class="widget-title">标签</h3>
 <div class="tagcloud">
     
-    <a href="https://xiongsyao.github.io/tags/Django/">Django</a>
+    <a href="https://xsymphony.github.io/tags/JavaScript/">JavaScript</a>
     
-    <a href="https://xiongsyao.github.io/tags/JavaScript/">JavaScript</a>
+    <a href="https://xsymphony.github.io/tags/JavaScript%E5%9F%BA%E7%A1%80%E6%95%99%E7%A8%8B/">JavaScript基础教程</a>
     
-    <a href="https://xiongsyao.github.io/tags/JavaScript%E5%9F%BA%E7%A1%80%E6%95%99%E7%A8%8B/">JavaScript基础教程</a>
+    <a href="https://xsymphony.github.io/tags/Redis/">Redis</a>
     
-    <a href="https://xiongsyao.github.io/tags/Redis/">Redis</a>
+    <a href="https://xsymphony.github.io/tags/Zookeeper/">Zookeeper</a>
     
-    <a href="https://xiongsyao.github.io/tags/Zookeeper/">Zookeeper</a>
+    <a href="https://xsymphony.github.io/tags/golang/">golang</a>
     
-    <a href="https://xiongsyao.github.io/tags/golang/">golang</a>
+    <a href="https://xsymphony.github.io/tags/leetcode/">leetcode</a>
     
-    <a href="https://xiongsyao.github.io/tags/leetcode/">leetcode</a>
+    <a href="https://xsymphony.github.io/tags/stack/">stack</a>
     
-    <a href="https://xiongsyao.github.io/tags/stack/">stack</a>
+    <a href="https://xsymphony.github.io/tags/%E5%88%86%E5%B8%83%E5%BC%8F/">分布式</a>
     
-    <a href="https://xiongsyao.github.io/tags/%E5%88%86%E5%B8%83%E5%BC%8F/">分布式</a>
+    <a href="https://xsymphony.github.io/tags/%E5%8D%8F%E8%AE%AE/">协议</a>
     
-    <a href="https://xiongsyao.github.io/tags/%E5%8D%8F%E8%AE%AE/">协议</a>
+    <a href="https://xsymphony.github.io/tags/%E5%B9%B6%E5%8F%91/">并发</a>
     
-    <a href="https://xiongsyao.github.io/tags/%E5%B9%B6%E5%8F%91/">并发</a>
-    
-    <a href="https://xiongsyao.github.io/tags/%E9%94%81/">锁</a>
+    <a href="https://xsymphony.github.io/tags/%E9%94%81/">锁</a>
     
 </div>
     </section>
@@ -428,41 +540,37 @@ setInterval(draw, 1000);
     <section class="widget">
         <h3 class="widget-title">其它</h3>
         <ul class="widget-list">
-            <li><a href="https://xiongsyao.github.io/index.xml">文章 RSS</a></li>
+            <li><a href="https://xsymphony.github.io/index.xml">文章 RSS</a></li>
         </ul>
     </section>
 </div>
+            </div>
         </div>
     </div>
-</div>
-<footer id="footer">
+    <footer id="footer">
     <div class="container">
-        &copy; 2018 <a href="https://xiongsyao.github.io/">Matrix By matrix</a>.
+        &copy; 2019 <a href="https://xsymphony.github.io/">Matrix By matrix</a>.
         Powered by <a rel="nofollow noreferer noopener" href="https://gohugo.io" target="_blank">Hugo</a>.
-        <a href="http://www.flysnow.org/" target="_blank">Theme</a> based on <a href="https://github.com/rujews/maupassant-hugo" target="_blank">maupassant</a>.
+        <a href="https://www.flysnow.org/" target="_blank">Theme</a> based on <a href="https://github.com/flysnow-org/maupassant-hugo" target="_blank">maupassant</a>.
         
     </div>
 </footer>
 
 
-    <script type="text/javascript">
     
-    (function(){
-        $("pre code").parent().addClass("line-numbers")
-    }())
-
-    window.MathJax = {
-        tex2jax: {
-            inlineMath: [ ['$','$'] ],
-            processEscapes: true
-        }
-    };
+    <script type="text/javascript">
+        window.MathJax = {
+            tex2jax: {
+                inlineMath: [['$', '$']],
+                processEscapes: true
+                }
+            };
     </script>
-    <script type="text/javascript" src="/js/prism.js" async="true"></script>
     <script src='https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-MML-AM_CHTML' async></script>
 
+
 <a id="rocket" href="#top"></a>
-<script type="text/javascript" src="/js/totop.js?v=0.0.0" async=""></script>
+<script type="text/javascript" src='/js/totop.js?v=0.0.0' async=""></script>
 
 
 
@@ -470,4 +578,5 @@ setInterval(draw, 1000);
 
 
 </body>
+
 </html>

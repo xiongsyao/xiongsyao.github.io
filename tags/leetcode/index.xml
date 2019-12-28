@@ -1,27 +1,23 @@
-<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
     <title>leetcode on Matrix</title>
-    <link>https://xiongsyao.github.io/tags/leetcode/</link>
+    <link>https://xsymphony.github.io/tags/leetcode/</link>
     <description>Recent content in leetcode on Matrix</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>zh-CH</language>
     <lastBuildDate>Wed, 19 Dec 2018 15:08:08 +0800</lastBuildDate>
     
-	<atom:link href="https://xiongsyao.github.io/tags/leetcode/index.xml" rel="self" type="application/rss+xml" />
+	<atom:link href="https://xsymphony.github.io/tags/leetcode/index.xml" rel="self" type="application/rss+xml" />
     
     
     <item>
       <title>[LeetCode]150:逆波兰表达式求值</title>
-      <link>https://xiongsyao.github.io/post/2018/12/17/LeetCode150%E9%80%86%E6%B3%A2%E5%85%B0%E8%A1%A8%E8%BE%BE%E5%BC%8F%E6%B1%82%E5%80%BC/</link>
+      <link>https://xsymphony.github.io/post/2018/12/17/LeetCode150%E9%80%86%E6%B3%A2%E5%85%B0%E8%A1%A8%E8%BE%BE%E5%BC%8F%E6%B1%82%E5%80%BC/</link>
       <pubDate>Wed, 19 Dec 2018 15:08:08 +0800</pubDate>
       
-      <guid>https://xiongsyao.github.io/post/2018/12/17/LeetCode150%E9%80%86%E6%B3%A2%E5%85%B0%E8%A1%A8%E8%BE%BE%E5%BC%8F%E6%B1%82%E5%80%BC/</guid>
-      <description>本章代码: 这里
- 思路 leetcode第150题： 根据逆波兰表示法，求表达式的值。(题目具体信息文章顶部的链接代码里有)
-这是一道运用栈来求解的题。
-通过分析题目意思，我们很容易想出这样的做法：
- 遍历字符，每当遇到非操作符(即数字)时，我们将此数字入栈。 当遇到操作符时(即+ - * /), 我们将栈顶的两个元素出栈，并按顺序与操作符执行运算，例如，当前操作符为/，出栈元素为依次为n2, n1, 则n3 = n2 / n1,并将计算结果n3入栈。 当遍历完输入后，栈中只剩一个最终的元素，此元素极为表达式最终的结果。  代码 Go func evalRPN(tokens []string) int { operations := map[string]func(int, int) int{ &amp;quot;+&amp;quot;: func(number1, number2 int) int {return number1+number2}, &amp;quot;-&amp;quot;: func(number1, number2 int) int {return number1-number2}, &amp;quot;*&amp;quot;: func(number1, number2 int) int {return number1*number2}, &amp;quot;/&amp;quot;: func(number1, number2 int) int {return int(number1/number2)}, } stack := []int{} for _, token := range tokens { if operationfunc, had := operations[token]; had { length := len(stack) number1, number2 := stack[length-2], stack[length-1] stack = stack[:length-2] number := operationfunc(number1, number2) stack = append(stack, number) } else { number, _ := strconv.</description>
+      <guid>https://xsymphony.github.io/post/2018/12/17/LeetCode150%E9%80%86%E6%B3%A2%E5%85%B0%E8%A1%A8%E8%BE%BE%E5%BC%8F%E6%B1%82%E5%80%BC/</guid>
+      <description>本章代码: 这里 思路 leetcode第150题： 根据逆波兰表示法，求表达式的值。(题目具体信息文章顶部的链接代码里有) 这是一道运用栈来求解的题。 通过分析题目意思，我们很容易想出这样的做法： 遍历字符，每当遇到非操作符(即数字)时，我们将此数字入栈。 当遇到操作符时(即+ - * /), 我们将栈顶</description>
     </item>
     
   </channel>

@@ -3,7 +3,6 @@
 <head>
 
     <meta charset="utf-8">
-    <meta name="generator" content="Hugo 0.52" />
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
 
@@ -11,24 +10,21 @@
     <meta property="og:title" content="谈谈golang中的锁 - Matrix">
     <meta property="og:type" content="article">
         
-    <meta property="article:published_time" content="2018-12-28T15:26:58&#43;08:00">
+    <meta property="article:published_time" content='2018-12-28T15:26:58&#43;08:00'>
         
         
-    <meta property="article:modified_time" content="2018-12-28T15:26:58&#43;08:00">
+    <meta property="article:modified_time" content='2018-12-28T15:26:58&#43;08:00'>
         
     <meta name="Keywords" content="golang,python">
     <meta name="description" content="谈谈golang中的锁">
         
     <meta name="author" content="matrix">
-    <meta property="og:url" content="https://xiongsyao.github.io/post/2018/12/28/%E8%B0%88%E8%B0%88golang%E4%B8%AD%E7%9A%84%E9%94%81/">
+    <meta property="og:url" content="https://xsymphony.github.io/post/2018/12/28/%E8%B0%88%E8%B0%88golang%E4%B8%AD%E7%9A%84%E9%94%81/">
     <link rel="shortcut icon" href="/favicon.ico" type="image/x-icon">
 
-    <link rel="stylesheet" href="/css/normalize.css">
-    
-        <link rel="stylesheet" href="/css/prism.css">
-    
-    <link rel="stylesheet" href="/css/style.css">
-    <script type="text/javascript" src="//cdn.bootcss.com/jquery/3.2.1/jquery.min.js"></script>
+    <link rel="stylesheet" href='/css/normalize.css'>
+    <link rel="stylesheet" href='/css/style.css'>
+    <script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
 
     
 
@@ -37,13 +33,14 @@
     
 </head>
 
+
 <body>
-<header id="header" class="clearfix">
+    <header id="header" class="clearfix">
     <div class="container">
         <div class="col-group">
             <div class="site-name ">
                 
-                    <a id="logo" href="https://xiongsyao.github.io/">
+                    <a id="logo" href="https://xsymphony.github.io/">
                         Matrix
                     </a>
                 
@@ -51,11 +48,11 @@
             </div>
             <div>
                 <nav id="nav-menu" class="clearfix">
-                    <a class="current" href="https://xiongsyao.github.io/">首页</a>
+                    <a class="current" href="https://xsymphony.github.io/">首页</a>
                     
-                    <a  href="https://xiongsyao.github.io/archives/" title="归档">归档</a>
+                    <a  href="https://xsymphony.github.io/archives/" title="归档">归档</a>
                     
-                    <a  href="https://xiongsyao.github.io/about/" title="关于">关于</a>
+                    <a  href="https://xsymphony.github.io/about/" title="关于">关于</a>
                     
                 </nav>
             </div>
@@ -63,230 +60,408 @@
     </div>
 </header>
 
+    <div id="body">
+        <div class="container">
+            <div class="col-group">
 
-<div id="body">
-    <div class="container">
-        <div class="col-group">
-
-            <div class="col-8" id="main">
-                <div class="res-cons">
-                    <article class="post">
-                        <header>
-                            <h1 class="post-title">谈谈golang中的锁</h1>
-                        </header>
-                        <date class="post-meta meta-date">
-                            2018年12月28日
-                        </date>
-                        
-                        <div class="post-meta meta-category">
-                            |
-                            
-                                <a href="https://xiongsyao.github.io/categories/golang">golang</a>
-                            
-                        </div>
-                        
-                        
-                        <div class="post-content">
-                            <p>得益于go的goroutine，go的并发变得十分容易，只需要<code>go</code>关键字，就可以启动一个新的协程。
+                <div class="col-8" id="main">
+                    
+<div class="res-cons">
+    
+    <article class="post">
+        <header>
+            <h1 class="post-title">谈谈golang中的锁</h1>
+        </header>
+        <date class="post-meta meta-date">
+            2018年12月28日
+        </date>
+        
+        <div class="post-meta">
+            <span>|</span>
+            
+            <span class="meta-category"><a href='https://xsymphony.github.io/categories/golang'>golang</a></span>
+            
+        </div>
+        
+        
+        
+        <div class="post-content">
+            <p>得益于go的goroutine，go的并发变得十分容易，只需要<code>go</code>关键字，就可以启动一个新的协程。
 例如一下程序:</p>
+<div class="highlight"><div style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 5
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 6
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 7
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 8
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 9
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">10
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">11
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">12
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">13
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">14
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">15
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">16
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">17
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">18
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">19
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">20
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">21
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#000;font-weight:bold">package</span> main
 
-<pre><code class="language-go">package main
-
-import (
-	&quot;fmt&quot;
-	&quot;time&quot;
+<span style="color:#000;font-weight:bold">import</span> (
+	<span style="color:#d14">&#34;fmt&#34;</span>
+	<span style="color:#d14">&#34;time&#34;</span>
 )
 
-func do() {
-	time.Sleep(1 * time.Second)
-	count++
+<span style="color:#000;font-weight:bold">func</span> <span style="color:#900;font-weight:bold">do</span>() {
+	time.<span style="color:#900;font-weight:bold">Sleep</span>(<span style="color:#099">1</span> <span style="color:#000;font-weight:bold">*</span> time.Second)
+	count<span style="color:#000;font-weight:bold">++</span>
 }
 
-var count int
+<span style="color:#000;font-weight:bold">var</span> count <span style="color:#458;font-weight:bold">int</span>
 
-// 10秒后会看到打印出10
-func main() {
-	for i := 0; i &lt; 10; i++ {
-		do()
+<span style="color:#998;font-style:italic">// 10秒后会看到打印出10
+</span><span style="color:#998;font-style:italic"></span><span style="color:#000;font-weight:bold">func</span> <span style="color:#900;font-weight:bold">main</span>() {
+	<span style="color:#000;font-weight:bold">for</span> i <span style="color:#000;font-weight:bold">:=</span> <span style="color:#099">0</span>; i &lt; <span style="color:#099">10</span>; i<span style="color:#000;font-weight:bold">++</span> {
+		<span style="color:#900;font-weight:bold">do</span>()
 	}
-	fmt.Println(count)
+	fmt.<span style="color:#900;font-weight:bold">Println</span>(count)
 }
-</code></pre>
+</code></pre></td></tr></table>
+</div>
+</div><p>在以上例子中，我们对count执行累加操作，这个例子，可以用go关键字并发操作<code>do</code>,如下:</p>
+<div class="highlight"><div style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 5
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 6
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 7
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 8
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 9
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">10
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">11
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">12
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">13
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">14
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">15
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">16
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">17
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">18
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">19
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">20
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">21
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">22
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">23
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">24
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">25
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">26
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">27
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">28
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">29
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">30
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#000;font-weight:bold">package</span> main
 
-<p>在以上例子中，我们对count执行累加操作，这个例子，可以用go关键字并发操作<code>do</code>,如下:</p>
-
-<pre><code class="language-go">package main
-
-import (
-	&quot;fmt&quot;
-	&quot;sync&quot;
-	&quot;time&quot;
+<span style="color:#000;font-weight:bold">import</span> (
+	<span style="color:#d14">&#34;fmt&#34;</span>
+	<span style="color:#d14">&#34;sync&#34;</span>
+	<span style="color:#d14">&#34;time&#34;</span>
 )
 
-var count int
-var wg sync.WaitGroup
+<span style="color:#000;font-weight:bold">var</span> count <span style="color:#458;font-weight:bold">int</span>
+<span style="color:#000;font-weight:bold">var</span> wg sync.WaitGroup
 
-func do() {
-	time.Sleep(1 * time.Second)
-	count++
-	// 通知协程执行完毕
-	wg.Done()
+<span style="color:#000;font-weight:bold">func</span> <span style="color:#900;font-weight:bold">do</span>() {
+	time.<span style="color:#900;font-weight:bold">Sleep</span>(<span style="color:#099">1</span> <span style="color:#000;font-weight:bold">*</span> time.Second)
+	count<span style="color:#000;font-weight:bold">++</span>
+	<span style="color:#998;font-style:italic">// 通知协程执行完毕
+</span><span style="color:#998;font-style:italic"></span>	wg.<span style="color:#900;font-weight:bold">Done</span>()
 }
 
-// 1秒后打印出10（不保证一定为0)
-func main() {
-	n := 10
-	for i := 0; i &lt; n; i++ {
-		// 记录新增一个协程
-		wg.Add(1)
-		go do()
+<span style="color:#998;font-style:italic">// 1秒后打印出10（不保证一定为0)
+</span><span style="color:#998;font-style:italic"></span><span style="color:#000;font-weight:bold">func</span> <span style="color:#900;font-weight:bold">main</span>() {
+	n <span style="color:#000;font-weight:bold">:=</span> <span style="color:#099">10</span>
+	<span style="color:#000;font-weight:bold">for</span> i <span style="color:#000;font-weight:bold">:=</span> <span style="color:#099">0</span>; i &lt; n; i<span style="color:#000;font-weight:bold">++</span> {
+		<span style="color:#998;font-style:italic">// 记录新增一个协程
+</span><span style="color:#998;font-style:italic"></span>		wg.<span style="color:#900;font-weight:bold">Add</span>(<span style="color:#099">1</span>)
+		<span style="color:#000;font-weight:bold">go</span> <span style="color:#900;font-weight:bold">do</span>()
 	}
-	// 等待所有协程执行完毕
-	wg.Wait()
-	fmt.Println(count)
+	<span style="color:#998;font-style:italic">// 等待所有协程执行完毕
+</span><span style="color:#998;font-style:italic"></span>	wg.<span style="color:#900;font-weight:bold">Wait</span>()
+	fmt.<span style="color:#900;font-weight:bold">Println</span>(count)
 }
-</code></pre>
-
-<p>可以看到，代表中额外加了<code>sync.WaitGroup</code>相关的东西，这些内容是为了保证，在协程都执行完毕后，主进程(也可以是协程)才继续执行，否则在计数完成前，主进程就退出，这一切工作都没有意义了。</p>
-
+</code></pre></td></tr></table>
+</div>
+</div><p>可以看到，代表中额外加了<code>sync.WaitGroup</code>相关的东西，这些内容是为了保证，在协程都执行完毕后，主进程(也可以是协程)才继续执行，否则在计数完成前，主进程就退出，这一切工作都没有意义了。</p>
 <p>通过<code>goroutine</code>，原来10s的计算仅需1s。在上面的例子中，我们并发了10个goroutine，他们都对同一资源<code>count</code>进行了操作, 其实这里已经出问题了， 但是并发数太少，所以不容易观测出问题。</p>
-
 <p>做一下尝试，将for循环中的n改为1000，多执行几次，发现运行结果可能为<code>945 965 948</code>。问题出在这里<code>count++</code>其中应该拆分为<code>temp := count; count = temp + 1</code>, 当在获取temp=99之后，可能其他协程已经对count完成了累加操作，count变为100, 但当前协程依旧执行<code>count=99+1</code>，这就导致某些提交没有生效。</p>
-
 <p>怎么避免这个问题呢？我们需要对某一资源的访问做限制，也就是当某一协程在访问某一资源时，要限制其他协程访问。简单来说，就是<code>加锁</code>。</p>
+<div class="highlight"><div style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 5
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 6
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 7
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 8
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 9
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">10
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">11
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">12
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">13
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">14
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">15
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">16
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">17
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">18
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">19
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">20
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">21
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">22
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">23
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">24
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">25
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">26
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">27
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">28
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">29
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">30
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">31
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#000;font-weight:bold">package</span> main
 
-<pre><code class="language-go">package main
-
-import (
-	&quot;fmt&quot;
-	&quot;sync&quot;
-	&quot;time&quot;
+<span style="color:#000;font-weight:bold">import</span> (
+	<span style="color:#d14">&#34;fmt&#34;</span>
+	<span style="color:#d14">&#34;sync&#34;</span>
+	<span style="color:#d14">&#34;time&#34;</span>
 )
 
-var count int
-var mux sync.Mutex
-var wg sync.WaitGroup
+<span style="color:#000;font-weight:bold">var</span> count <span style="color:#458;font-weight:bold">int</span>
+<span style="color:#000;font-weight:bold">var</span> mux sync.Mutex
+<span style="color:#000;font-weight:bold">var</span> wg sync.WaitGroup
 
-func doCount() {
-	time.Sleep(1 * time.Second)
-	// 加锁
-	mux.Lock()
-	count++
-	// 释放锁
-	mux.Unlock()
-	wg.Done()
+<span style="color:#000;font-weight:bold">func</span> <span style="color:#900;font-weight:bold">doCount</span>() {
+	time.<span style="color:#900;font-weight:bold">Sleep</span>(<span style="color:#099">1</span> <span style="color:#000;font-weight:bold">*</span> time.Second)
+	<span style="color:#998;font-style:italic">// 加锁
+</span><span style="color:#998;font-style:italic"></span>	mux.<span style="color:#900;font-weight:bold">Lock</span>()
+	count<span style="color:#000;font-weight:bold">++</span>
+	<span style="color:#998;font-style:italic">// 释放锁
+</span><span style="color:#998;font-style:italic"></span>	mux.<span style="color:#900;font-weight:bold">Unlock</span>()
+	wg.<span style="color:#900;font-weight:bold">Done</span>()
 }
 
-func main() {
-	n := 1000
-	for i := 0; i &lt; n; i++ {
-		wg.Add(1)
-		go doCount()
+<span style="color:#000;font-weight:bold">func</span> <span style="color:#900;font-weight:bold">main</span>() {
+	n <span style="color:#000;font-weight:bold">:=</span> <span style="color:#099">1000</span>
+	<span style="color:#000;font-weight:bold">for</span> i <span style="color:#000;font-weight:bold">:=</span> <span style="color:#099">0</span>; i &lt; n; i<span style="color:#000;font-weight:bold">++</span> {
+		wg.<span style="color:#900;font-weight:bold">Add</span>(<span style="color:#099">1</span>)
+		<span style="color:#000;font-weight:bold">go</span> <span style="color:#900;font-weight:bold">doCount</span>()
 	}
-	wg.Wait()
-	fmt.Println(count)
+	wg.<span style="color:#900;font-weight:bold">Wait</span>()
+	fmt.<span style="color:#900;font-weight:bold">Println</span>(count)
 }
-</code></pre>
-
-<p>通过在<code>count++</code>上下前后添加锁，现在的版本运行之后结果始终为1000。<code>Lock</code>与<code>UnLock</code>使得他们之间的代码块，同一时间，只有一个协程可以执行到。</p>
-
-<p>在这个例子中，对锁的应用简陋，在实际运用中，需要注意以下两点:
-+ 一个应用中会存在多把锁，不应该用全局变量声明锁，最好能与相关的资源封装进用一结构体内。
-+ 假如某一处在持有锁的时候出异常了，导致没办法释放锁，影响其他协程的运行，所以在可能出问题的函数内，使用<code>defer</code>确保函数返回前，锁被正常释放。
-+ 尽量缩减锁的区域，例如在上例中，假如在<code>time.Sleep(1 * time.Second)</code>之前就加锁，导致所有协程都阻塞。原则上，只需要可能引发竞态的地方加锁。</p>
-
+</code></pre></td></tr></table>
+</div>
+</div><p>通过在<code>count++</code>上下前后添加锁，现在的版本运行之后结果始终为1000。<code>Lock</code>与<code>UnLock</code>使得他们之间的代码块，同一时间，只有一个协程可以执行到。</p>
+<p>在这个例子中，对锁的应用简陋，在实际运用中，需要注意以下两点:</p>
+<ul>
+<li>一个应用中会存在多把锁，不应该用全局变量声明锁，最好能与相关的资源封装进用一结构体内。</li>
+<li>假如某一处在持有锁的时候出异常了，导致没办法释放锁，影响其他协程的运行，所以在可能出问题的函数内，使用<code>defer</code>确保函数返回前，锁被正常释放。</li>
+<li>尽量缩减锁的区域，例如在上例中，假如在<code>time.Sleep(1 * time.Second)</code>之前就加锁，导致所有协程都阻塞。原则上，只需要可能引发竞态的地方加锁。</li>
+</ul>
 <p>采用以上建议，可以重构代码为:</p>
+<div class="highlight"><div style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 5
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 6
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 7
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 8
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 9
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">10
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">11
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">12
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">13
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">14
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">15
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">16
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">17
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">18
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">19
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">20
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">21
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">22
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">23
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">24
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">25
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">26
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">27
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">28
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">29
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">30
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">31
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">32
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">33
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">34
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">35
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">36
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">37
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#000;font-weight:bold">package</span> main
 
-<pre><code class="language-go">package main
-
-import (
-	&quot;fmt&quot;
-	&quot;sync&quot;
-	&quot;time&quot;
+<span style="color:#000;font-weight:bold">import</span> (
+	<span style="color:#d14">&#34;fmt&#34;</span>
+	<span style="color:#d14">&#34;sync&#34;</span>
+	<span style="color:#d14">&#34;time&#34;</span>
 )
 
-type Counter struct {
-	count int          // 记录计数
-	mu    sync.Mutex   // 当前资源的锁
+<span style="color:#000;font-weight:bold">type</span> Counter <span style="color:#000;font-weight:bold">struct</span> {
+	count <span style="color:#458;font-weight:bold">int</span>          <span style="color:#998;font-style:italic">// 记录计数
+</span><span style="color:#998;font-style:italic"></span>	mu    sync.Mutex   <span style="color:#998;font-style:italic">// 当前资源的锁
+</span><span style="color:#998;font-style:italic"></span>}
+
+<span style="color:#000;font-weight:bold">func</span> (c <span style="color:#000;font-weight:bold">*</span>Counter) <span style="color:#900;font-weight:bold">Add</span>(num <span style="color:#458;font-weight:bold">int</span>) {
+	<span style="color:#998;font-style:italic">// 加锁
+</span><span style="color:#998;font-style:italic"></span>	c.mu.<span style="color:#900;font-weight:bold">Lock</span>()
+	c.count = c.count <span style="color:#000;font-weight:bold">+</span> num
+	<span style="color:#998;font-style:italic">// 释放锁
+</span><span style="color:#998;font-style:italic"></span>	c.mu.<span style="color:#900;font-weight:bold">Unlock</span>()
 }
 
-func (c *Counter) Add(num int) {
-	// 加锁
-	c.mu.Lock()
-	c.count = c.count + num
-	// 释放锁
-	c.mu.Unlock()
+<span style="color:#000;font-weight:bold">func</span> <span style="color:#900;font-weight:bold">doCount</span>(counter <span style="color:#000;font-weight:bold">*</span>Counter, wg <span style="color:#000;font-weight:bold">*</span>sync.WaitGroup) {
+	wg.<span style="color:#900;font-weight:bold">Add</span>(<span style="color:#099">1</span>)
+	time.<span style="color:#900;font-weight:bold">Sleep</span>(<span style="color:#099">1</span> <span style="color:#000;font-weight:bold">*</span> time.Second)
+	counter.<span style="color:#900;font-weight:bold">Add</span>(<span style="color:#099">1</span>)
+	wg.<span style="color:#900;font-weight:bold">Done</span>()
 }
 
-func doCount(counter *Counter, wg *sync.WaitGroup) {
-	wg.Add(1)
-	time.Sleep(1 * time.Second)
-	counter.Add(1)
-	wg.Done()
-}
-
-func main() {
-	wg := &amp;sync.WaitGroup{}
-	counter := &amp;Counter{}
-	for i := 0; i &lt; 1000; i++ {
-		go doCount(counter, wg)
+<span style="color:#000;font-weight:bold">func</span> <span style="color:#900;font-weight:bold">main</span>() {
+	wg <span style="color:#000;font-weight:bold">:=</span> <span style="color:#000;font-weight:bold">&amp;</span>sync.WaitGroup{}
+	counter <span style="color:#000;font-weight:bold">:=</span> <span style="color:#000;font-weight:bold">&amp;</span>Counter{}
+	<span style="color:#000;font-weight:bold">for</span> i <span style="color:#000;font-weight:bold">:=</span> <span style="color:#099">0</span>; i &lt; <span style="color:#099">1000</span>; i<span style="color:#000;font-weight:bold">++</span> {
+		<span style="color:#000;font-weight:bold">go</span> <span style="color:#900;font-weight:bold">doCount</span>(counter, wg)
 	}
-	wg.Wait()
-	fmt.Println(counter.count)
+	wg.<span style="color:#900;font-weight:bold">Wait</span>()
+	fmt.<span style="color:#900;font-weight:bold">Println</span>(counter.count)
 }
-</code></pre>
-
-<p>到这里， 就介绍完了go中的互斥锁。等等…也就是说，还有另一种锁？那是当然啦。考虑一种使用场景，较少的协程对某一资源执行<code>写</code>操作，而更多的协程执行<code>读</code>操作，采用<code>sync.Mutex</code>即互斥锁，会导致每一次对资源的访问，无论是读还是写，都会阻塞。实际上，执行读操作的时候，并不会对资源进行更改，所以应该允许其他协程同时读取资源(可重入锁)，且不允许其他协程<code>写</code>。而在<code>写</code>的时候，应该限制其他协程的<code>读</code>与<code>写</code>（这里读写互斥，是因为要防止协程读到不应存在的中间态）。这里就使用到了go提供的<code>sync.RWMutex</code>(读写锁)。 <code>RWMutex</code>是基于Mutex实现的读写互斥锁，一个goroutine可以持有多个读锁或者一个写锁，同一时刻只能持有读锁或者写锁。</p>
-
+</code></pre></td></tr></table>
+</div>
+</div><p>到这里， 就介绍完了go中的互斥锁。等等…也就是说，还有另一种锁？那是当然啦。考虑一种使用场景，较少的协程对某一资源执行<code>写</code>操作，而更多的协程执行<code>读</code>操作，采用<code>sync.Mutex</code>即互斥锁，会导致每一次对资源的访问，无论是读还是写，都会阻塞。实际上，执行读操作的时候，并不会对资源进行更改，所以应该允许其他协程同时读取资源(可重入锁)，且不允许其他协程<code>写</code>。而在<code>写</code>的时候，应该限制其他协程的<code>读</code>与<code>写</code>（这里读写互斥，是因为要防止协程读到不应存在的中间态）。这里就使用到了go提供的<code>sync.RWMutex</code>(读写锁)。 <code>RWMutex</code>是基于Mutex实现的读写互斥锁，一个goroutine可以持有多个读锁或者一个写锁，同一时刻只能持有读锁或者写锁。</p>
 <p>使用方法如下:</p>
+<div class="highlight"><div style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 5
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 6
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 7
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 8
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 9
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">10
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">11
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">12
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">13
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">14
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">15
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">16
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">17
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">18
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">19
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">20
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">21
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">22
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">23
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">24
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">25
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">26
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">27
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">28
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">29
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">30
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">31
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">32
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">33
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">34
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">35
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">36
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">37
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">38
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">39
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">40
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">41
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">42
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#000;font-weight:bold">package</span> main
 
-<pre><code class="language-go">package main
-
-import (
-	&quot;fmt&quot;
-	&quot;sync&quot;
-	&quot;time&quot;
+<span style="color:#000;font-weight:bold">import</span> (
+	<span style="color:#d14">&#34;fmt&#34;</span>
+	<span style="color:#d14">&#34;sync&#34;</span>
+	<span style="color:#d14">&#34;time&#34;</span>
 )
 
-type MultiCounter struct {
-	store map[string]int
+<span style="color:#000;font-weight:bold">type</span> MultiCounter <span style="color:#000;font-weight:bold">struct</span> {
+	store <span style="color:#000;font-weight:bold">map</span>[<span style="color:#458;font-weight:bold">string</span>]<span style="color:#458;font-weight:bold">int</span>
 	rw    sync.RWMutex
 }
 
-func (m *MultiCounter) Add(key string, num int) {
-	m.rw.Lock()
-	m.store[key] = m.store[key] + num
-	m.rw.Unlock()
+<span style="color:#000;font-weight:bold">func</span> (m <span style="color:#000;font-weight:bold">*</span>MultiCounter) <span style="color:#900;font-weight:bold">Add</span>(key <span style="color:#458;font-weight:bold">string</span>, num <span style="color:#458;font-weight:bold">int</span>) {
+	m.rw.<span style="color:#900;font-weight:bold">Lock</span>()
+	m.store[key] = m.store[key] <span style="color:#000;font-weight:bold">+</span> num
+	m.rw.<span style="color:#900;font-weight:bold">Unlock</span>()
 }
 
-func (m *MultiCounter) Read(key string) int {
-	m.rw.RLock()
-	defer m.rw.RUnlock()
-	return m.store[key]
+<span style="color:#000;font-weight:bold">func</span> (m <span style="color:#000;font-weight:bold">*</span>MultiCounter) <span style="color:#900;font-weight:bold">Read</span>(key <span style="color:#458;font-weight:bold">string</span>) <span style="color:#458;font-weight:bold">int</span> {
+	m.rw.<span style="color:#900;font-weight:bold">RLock</span>()
+	<span style="color:#000;font-weight:bold">defer</span> m.rw.<span style="color:#900;font-weight:bold">RUnlock</span>()
+	<span style="color:#000;font-weight:bold">return</span> m.store[key]
 }
 
-func doCount(counter *MultiCounter, wg *sync.WaitGroup) {
-	wg.Add(1)
-	time.Sleep(1 * time.Second)
-	counter.Add(&quot;a&quot;, 1)
-	wg.Done()
+<span style="color:#000;font-weight:bold">func</span> <span style="color:#900;font-weight:bold">doCount</span>(counter <span style="color:#000;font-weight:bold">*</span>MultiCounter, wg <span style="color:#000;font-weight:bold">*</span>sync.WaitGroup) {
+	wg.<span style="color:#900;font-weight:bold">Add</span>(<span style="color:#099">1</span>)
+	time.<span style="color:#900;font-weight:bold">Sleep</span>(<span style="color:#099">1</span> <span style="color:#000;font-weight:bold">*</span> time.Second)
+	counter.<span style="color:#900;font-weight:bold">Add</span>(<span style="color:#d14">&#34;a&#34;</span>, <span style="color:#099">1</span>)
+	wg.<span style="color:#900;font-weight:bold">Done</span>()
 }
 
-func main() {
-	wg := &amp;sync.WaitGroup{}
-	counter := &amp;MultiCounter{store: make(map[string]int)}
-	for i := 0; i &lt; 1000; i++ {
-		go doCount(counter, wg)
+<span style="color:#000;font-weight:bold">func</span> <span style="color:#900;font-weight:bold">main</span>() {
+	wg <span style="color:#000;font-weight:bold">:=</span> <span style="color:#000;font-weight:bold">&amp;</span>sync.WaitGroup{}
+	counter <span style="color:#000;font-weight:bold">:=</span> <span style="color:#000;font-weight:bold">&amp;</span>MultiCounter{store: <span style="color:#0086b3">make</span>(<span style="color:#000;font-weight:bold">map</span>[<span style="color:#458;font-weight:bold">string</span>]<span style="color:#458;font-weight:bold">int</span>)}
+	<span style="color:#000;font-weight:bold">for</span> i <span style="color:#000;font-weight:bold">:=</span> <span style="color:#099">0</span>; i &lt; <span style="color:#099">1000</span>; i<span style="color:#000;font-weight:bold">++</span> {
+		<span style="color:#000;font-weight:bold">go</span> <span style="color:#900;font-weight:bold">doCount</span>(counter, wg)
 	}
-	fmt.Println(counter.Read(&quot;a&quot;))
-	wg.Wait()
-	fmt.Println(counter.Read(&quot;a&quot;))
+	fmt.<span style="color:#900;font-weight:bold">Println</span>(counter.<span style="color:#900;font-weight:bold">Read</span>(<span style="color:#d14">&#34;a&#34;</span>))
+	wg.<span style="color:#900;font-weight:bold">Wait</span>()
+	fmt.<span style="color:#900;font-weight:bold">Println</span>(counter.<span style="color:#900;font-weight:bold">Read</span>(<span style="color:#d14">&#34;a&#34;</span>))
 }
-</code></pre>
+</code></pre></td></tr></table>
+</div>
+</div>
+        </div>
 
-                        </div>
+        
 
-                        
+
+        
 
 <div class="post-archive">
     <h2>See Also</h2>
@@ -296,38 +471,38 @@ func main() {
         
         <li><a href="/about/">关于</a></li>
         
-        <li><a href="/post/2018/03/7/%E5%8A%A8%E6%80%81%E5%8A%A0%E8%BD%BDDjango%E7%9A%84config%E9%85%8D%E7%BD%AE/">动态加载Django的config配置</a></li>
-        
         <li><a href="/post/2018/01/25/%E4%BB%8E0%E5%BC%80%E5%A7%8B%E7%9A%84JS%E4%B9%8B%E6%97%85%E4%B8%89DOM%E6%93%8D%E4%BD%9C%E5%9F%BA%E7%A1%80/">从0开始的JS之旅（三）：DOM操作基础</a></li>
         
         <li><a href="/post/2018/01/25/%E4%BB%8E0%E5%BC%80%E5%A7%8B%E7%9A%84JS%E4%B9%8B%E6%97%85%E4%BA%8C%E9%9D%A2%E5%90%91%E5%AF%B9%E8%B1%A1%E7%BC%96%E7%A8%8B/">从0开始的JS之旅（二）：面向对象编程</a></li>
+        
+        <li><a href="/post/2018/01/25/%E4%BB%8E0%E5%BC%80%E5%A7%8B%E7%9A%84JS%E4%B9%8B%E6%97%85%E4%B8%80%E6%95%B0%E6%8D%AE%E7%B1%BB%E5%9E%8B%E6%B5%81%E7%A8%8B%E8%AF%AD%E5%8F%A5%E5%8F%8A%E5%87%BD%E6%95%B0/">从0开始的JS之旅（一）：数据类型，流程语句及函数</a></li>
         
     </ul>
 </div>
 
 
-                        <div class="post-meta meta-tags">
-                            
-                            <ul class="clearfix">
-                                
-                                <li><a href="https://xiongsyao.github.io/tags/golang">golang</a></li>
-                                
-                                <li><a href="https://xiongsyao.github.io/tags/%E5%B9%B6%E5%8F%91">并发</a></li>
-                                
-                                <li><a href="https://xiongsyao.github.io/tags/%E9%94%81">锁</a></li>
-                                
-                            </ul>
-                            
-                        </div>
-                    </article>
-                    
+        <div class="post-meta meta-tags">
+            
+            <ul class="clearfix">
+                
+                <li><a href='https://xsymphony.github.io/tags/golang'>golang</a></li>
+                
+                <li><a href='https://xsymphony.github.io/tags/%E5%B9%B6%E5%8F%91'>并发</a></li>
+                
+                <li><a href='https://xsymphony.github.io/tags/%E9%94%81'>锁</a></li>
+                
+            </ul>
+            
+        </div>
+    </article>
+    
     
 
     
     
     <div class="post bg-white">
       <script src="https://utteranc.es/client.js"
-            repo= "xiongsyao/comments"
+            repo= "xsymphony/comments"
             issue-term="pathname"
             theme="github-light"
             crossorigin="anonymous"
@@ -335,14 +510,16 @@ func main() {
       </script>
     </div>
     
+</div>
+
                 </div>
-            </div>
-            <div id="secondary">
+
+                <div id="secondary">
     <section class="widget">
-        <form id="search" action="//www.google.com/search" method="get" accept-charset="utf-8" target="_blank" _lpchecked="1">
+        <form id="search" action='//www.google.com/search' method="get" accept-charset="utf-8" target="_blank" _lpchecked="1">
       
       <input type="text" name="q" maxlength="20" placeholder="Search">
-      <input type="hidden" name="sitesearch" value="https://xiongsyao.github.io/">
+      <input type="hidden" name="sitesearch" value="https://xsymphony.github.io/">
       <button type="submit" class="submit icon-search"></button>
 </form>
     </section>
@@ -352,43 +529,43 @@ func main() {
 <ul class="widget-list">
     
     <li>
-        <a href="https://xiongsyao.github.io/post/2019/02/27/%E6%BC%AB%E8%B0%88%E5%88%86%E5%B8%83%E5%BC%8F%E9%94%81%E4%B8%89/" title="漫谈分布式锁（三）">漫谈分布式锁（三）</a>
+        <a href="https://xsymphony.github.io/post/2019/02/27/%E6%BC%AB%E8%B0%88%E5%88%86%E5%B8%83%E5%BC%8F%E9%94%81%E4%B8%89/" title="漫谈分布式锁（三）">漫谈分布式锁（三）</a>
     </li>
     
     <li>
-        <a href="https://xiongsyao.github.io/post/2019/02/25/%E6%BC%AB%E8%B0%88%E5%88%86%E5%B8%83%E5%BC%8F%E9%94%81%E4%BA%8C/" title="漫谈分布式锁（二）">漫谈分布式锁（二）</a>
+        <a href="https://xsymphony.github.io/post/2019/02/25/%E6%BC%AB%E8%B0%88%E5%88%86%E5%B8%83%E5%BC%8F%E9%94%81%E4%BA%8C/" title="漫谈分布式锁（二）">漫谈分布式锁（二）</a>
     </li>
     
     <li>
-        <a href="https://xiongsyao.github.io/post/2019/02/21/%E6%BC%AB%E8%B0%88%E5%88%86%E5%B8%83%E5%BC%8F%E9%94%81%E4%B8%80/" title="漫谈分布式锁（一）">漫谈分布式锁（一）</a>
+        <a href="https://xsymphony.github.io/post/2019/02/21/%E6%BC%AB%E8%B0%88%E5%88%86%E5%B8%83%E5%BC%8F%E9%94%81%E4%B8%80/" title="漫谈分布式锁（一）">漫谈分布式锁（一）</a>
     </li>
     
     <li>
-        <a href="https://xiongsyao.github.io/post/2019/02/13/Redis%E6%8C%81%E4%B9%85%E5%8C%96/" title="Redis持久化">Redis持久化</a>
+        <a href="https://xsymphony.github.io/post/2019/02/13/Redis%E6%8C%81%E4%B9%85%E5%8C%96/" title="Redis持久化">Redis持久化</a>
     </li>
     
     <li>
-        <a href="https://xiongsyao.github.io/post/2019/01/02/%E8%A7%A3%E8%AF%BBredis%E5%8D%8F%E8%AE%AE/" title="解读redis协议">解读redis协议</a>
+        <a href="https://xsymphony.github.io/post/2019/01/02/%E8%A7%A3%E8%AF%BBredis%E5%8D%8F%E8%AE%AE/" title="解读redis协议">解读redis协议</a>
     </li>
     
     <li>
-        <a href="https://xiongsyao.github.io/post/2018/12/28/%E8%B0%88%E8%B0%88golang%E4%B8%AD%E7%9A%84%E9%94%81/" title="谈谈golang中的锁">谈谈golang中的锁</a>
+        <a href="https://xsymphony.github.io/post/2018/12/28/%E8%B0%88%E8%B0%88golang%E4%B8%AD%E7%9A%84%E9%94%81/" title="谈谈golang中的锁">谈谈golang中的锁</a>
     </li>
     
     <li>
-        <a href="https://xiongsyao.github.io/post/2018/12/17/LeetCode150%E9%80%86%E6%B3%A2%E5%85%B0%E8%A1%A8%E8%BE%BE%E5%BC%8F%E6%B1%82%E5%80%BC/" title="[LeetCode]150:逆波兰表达式求值">[LeetCode]150:逆波兰表达式求值</a>
+        <a href="https://xsymphony.github.io/post/2018/12/17/LeetCode150%E9%80%86%E6%B3%A2%E5%85%B0%E8%A1%A8%E8%BE%BE%E5%BC%8F%E6%B1%82%E5%80%BC/" title="[LeetCode]150:逆波兰表达式求值">[LeetCode]150:逆波兰表达式求值</a>
     </li>
     
     <li>
-        <a href="https://xiongsyao.github.io/post/2018/03/7/%E5%8A%A8%E6%80%81%E5%8A%A0%E8%BD%BDDjango%E7%9A%84config%E9%85%8D%E7%BD%AE/" title="动态加载Django的config配置">动态加载Django的config配置</a>
+        <a href="https://xsymphony.github.io/post/2018/01/25/%E4%BB%8E0%E5%BC%80%E5%A7%8B%E7%9A%84JS%E4%B9%8B%E6%97%85%E4%B8%89DOM%E6%93%8D%E4%BD%9C%E5%9F%BA%E7%A1%80/" title="从0开始的JS之旅（三）：DOM操作基础">从0开始的JS之旅（三）：DOM操作基础</a>
     </li>
     
     <li>
-        <a href="https://xiongsyao.github.io/post/2018/01/25/%E4%BB%8E0%E5%BC%80%E5%A7%8B%E7%9A%84JS%E4%B9%8B%E6%97%85%E4%B8%89DOM%E6%93%8D%E4%BD%9C%E5%9F%BA%E7%A1%80/" title="从0开始的JS之旅（三）：DOM操作基础">从0开始的JS之旅（三）：DOM操作基础</a>
+        <a href="https://xsymphony.github.io/post/2018/01/25/%E4%BB%8E0%E5%BC%80%E5%A7%8B%E7%9A%84JS%E4%B9%8B%E6%97%85%E4%BA%8C%E9%9D%A2%E5%90%91%E5%AF%B9%E8%B1%A1%E7%BC%96%E7%A8%8B/" title="从0开始的JS之旅（二）：面向对象编程">从0开始的JS之旅（二）：面向对象编程</a>
     </li>
     
     <li>
-        <a href="https://xiongsyao.github.io/post/2018/01/25/%E4%BB%8E0%E5%BC%80%E5%A7%8B%E7%9A%84JS%E4%B9%8B%E6%97%85%E4%BA%8C%E9%9D%A2%E5%90%91%E5%AF%B9%E8%B1%A1%E7%BC%96%E7%A8%8B/" title="从0开始的JS之旅（二）：面向对象编程">从0开始的JS之旅（二）：面向对象编程</a>
+        <a href="https://xsymphony.github.io/post/2018/01/25/%E4%BB%8E0%E5%BC%80%E5%A7%8B%E7%9A%84JS%E4%B9%8B%E6%97%85%E4%B8%80%E6%95%B0%E6%8D%AE%E7%B1%BB%E5%9E%8B%E6%B5%81%E7%A8%8B%E8%AF%AD%E5%8F%A5%E5%8F%8A%E5%87%BD%E6%95%B0/" title="从0开始的JS之旅（一）：数据类型，流程语句及函数">从0开始的JS之旅（一）：数据类型，流程语句及函数</a>
     </li>
     
 </ul>
@@ -400,29 +577,15 @@ func main() {
         <h3 class="widget-title">分类</h3>
 <ul class="widget-list">
     
-    <li>
-        <a href="https://xiongsyao.github.io/categories/Django/">Django(1)</a>
-    </li>
+    <li><a href="https://xsymphony.github.io/categories/JavaScript/">JavaScript (3)</a></li>
     
-    <li>
-        <a href="https://xiongsyao.github.io/categories/JavaScript/">JavaScript(3)</a>
-    </li>
+    <li><a href="https://xsymphony.github.io/categories/Redis/">Redis (2)</a></li>
     
-    <li>
-        <a href="https://xiongsyao.github.io/categories/Redis/">Redis(2)</a>
-    </li>
+    <li><a href="https://xsymphony.github.io/categories/golang/">golang (1)</a></li>
     
-    <li>
-        <a href="https://xiongsyao.github.io/categories/golang/">golang(1)</a>
-    </li>
+    <li><a href="https://xsymphony.github.io/categories/leetcode/">leetcode (1)</a></li>
     
-    <li>
-        <a href="https://xiongsyao.github.io/categories/leetcode/">leetcode(1)</a>
-    </li>
-    
-    <li>
-        <a href="https://xiongsyao.github.io/categories/%E5%88%86%E5%B8%83%E5%BC%8F/">分布式(3)</a>
-    </li>
+    <li><a href="https://xsymphony.github.io/categories/%E5%88%86%E5%B8%83%E5%BC%8F/">分布式 (3)</a></li>
     
 </ul>
     </section>
@@ -431,29 +594,27 @@ func main() {
         <h3 class="widget-title">标签</h3>
 <div class="tagcloud">
     
-    <a href="https://xiongsyao.github.io/tags/Django/">Django</a>
+    <a href="https://xsymphony.github.io/tags/JavaScript/">JavaScript</a>
     
-    <a href="https://xiongsyao.github.io/tags/JavaScript/">JavaScript</a>
+    <a href="https://xsymphony.github.io/tags/JavaScript%E5%9F%BA%E7%A1%80%E6%95%99%E7%A8%8B/">JavaScript基础教程</a>
     
-    <a href="https://xiongsyao.github.io/tags/JavaScript%E5%9F%BA%E7%A1%80%E6%95%99%E7%A8%8B/">JavaScript基础教程</a>
+    <a href="https://xsymphony.github.io/tags/Redis/">Redis</a>
     
-    <a href="https://xiongsyao.github.io/tags/Redis/">Redis</a>
+    <a href="https://xsymphony.github.io/tags/Zookeeper/">Zookeeper</a>
     
-    <a href="https://xiongsyao.github.io/tags/Zookeeper/">Zookeeper</a>
+    <a href="https://xsymphony.github.io/tags/golang/">golang</a>
     
-    <a href="https://xiongsyao.github.io/tags/golang/">golang</a>
+    <a href="https://xsymphony.github.io/tags/leetcode/">leetcode</a>
     
-    <a href="https://xiongsyao.github.io/tags/leetcode/">leetcode</a>
+    <a href="https://xsymphony.github.io/tags/stack/">stack</a>
     
-    <a href="https://xiongsyao.github.io/tags/stack/">stack</a>
+    <a href="https://xsymphony.github.io/tags/%E5%88%86%E5%B8%83%E5%BC%8F/">分布式</a>
     
-    <a href="https://xiongsyao.github.io/tags/%E5%88%86%E5%B8%83%E5%BC%8F/">分布式</a>
+    <a href="https://xsymphony.github.io/tags/%E5%8D%8F%E8%AE%AE/">协议</a>
     
-    <a href="https://xiongsyao.github.io/tags/%E5%8D%8F%E8%AE%AE/">协议</a>
+    <a href="https://xsymphony.github.io/tags/%E5%B9%B6%E5%8F%91/">并发</a>
     
-    <a href="https://xiongsyao.github.io/tags/%E5%B9%B6%E5%8F%91/">并发</a>
-    
-    <a href="https://xiongsyao.github.io/tags/%E9%94%81/">锁</a>
+    <a href="https://xsymphony.github.io/tags/%E9%94%81/">锁</a>
     
 </div>
     </section>
@@ -463,41 +624,37 @@ func main() {
     <section class="widget">
         <h3 class="widget-title">其它</h3>
         <ul class="widget-list">
-            <li><a href="https://xiongsyao.github.io/index.xml">文章 RSS</a></li>
+            <li><a href="https://xsymphony.github.io/index.xml">文章 RSS</a></li>
         </ul>
     </section>
 </div>
+            </div>
         </div>
     </div>
-</div>
-<footer id="footer">
+    <footer id="footer">
     <div class="container">
-        &copy; 2018 <a href="https://xiongsyao.github.io/">Matrix By matrix</a>.
+        &copy; 2019 <a href="https://xsymphony.github.io/">Matrix By matrix</a>.
         Powered by <a rel="nofollow noreferer noopener" href="https://gohugo.io" target="_blank">Hugo</a>.
-        <a href="http://www.flysnow.org/" target="_blank">Theme</a> based on <a href="https://github.com/rujews/maupassant-hugo" target="_blank">maupassant</a>.
+        <a href="https://www.flysnow.org/" target="_blank">Theme</a> based on <a href="https://github.com/flysnow-org/maupassant-hugo" target="_blank">maupassant</a>.
         
     </div>
 </footer>
 
 
-    <script type="text/javascript">
     
-    (function(){
-        $("pre code").parent().addClass("line-numbers")
-    }())
-
-    window.MathJax = {
-        tex2jax: {
-            inlineMath: [ ['$','$'] ],
-            processEscapes: true
-        }
-    };
+    <script type="text/javascript">
+        window.MathJax = {
+            tex2jax: {
+                inlineMath: [['$', '$']],
+                processEscapes: true
+                }
+            };
     </script>
-    <script type="text/javascript" src="/js/prism.js" async="true"></script>
     <script src='https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-MML-AM_CHTML' async></script>
 
+
 <a id="rocket" href="#top"></a>
-<script type="text/javascript" src="/js/totop.js?v=0.0.0" async=""></script>
+<script type="text/javascript" src='/js/totop.js?v=0.0.0' async=""></script>
 
 
 
@@ -505,4 +662,5 @@ func main() {
 
 
 </body>
+
 </html>

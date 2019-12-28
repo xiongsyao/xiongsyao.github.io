@@ -3,7 +3,6 @@
 <head>
 
     <meta charset="utf-8">
-    <meta name="generator" content="Hugo 0.52" />
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
 
@@ -11,24 +10,21 @@
     <meta property="og:title" content="漫谈分布式锁（三） - Matrix">
     <meta property="og:type" content="article">
         
-    <meta property="article:published_time" content="2019-02-27T15:00:16&#43;08:00">
+    <meta property="article:published_time" content='2019-02-27T15:00:16&#43;08:00'>
         
         
-    <meta property="article:modified_time" content="2019-02-27T15:00:16&#43;08:00">
+    <meta property="article:modified_time" content='2019-02-27T15:00:16&#43;08:00'>
         
     <meta name="Keywords" content="golang,python">
     <meta name="description" content="漫谈分布式锁（三）">
         
     <meta name="author" content="matrix">
-    <meta property="og:url" content="https://xiongsyao.github.io/post/2019/02/27/%E6%BC%AB%E8%B0%88%E5%88%86%E5%B8%83%E5%BC%8F%E9%94%81%E4%B8%89/">
+    <meta property="og:url" content="https://xsymphony.github.io/post/2019/02/27/%E6%BC%AB%E8%B0%88%E5%88%86%E5%B8%83%E5%BC%8F%E9%94%81%E4%B8%89/">
     <link rel="shortcut icon" href="/favicon.ico" type="image/x-icon">
 
-    <link rel="stylesheet" href="/css/normalize.css">
-    
-        <link rel="stylesheet" href="/css/prism.css">
-    
-    <link rel="stylesheet" href="/css/style.css">
-    <script type="text/javascript" src="//cdn.bootcss.com/jquery/3.2.1/jquery.min.js"></script>
+    <link rel="stylesheet" href='/css/normalize.css'>
+    <link rel="stylesheet" href='/css/style.css'>
+    <script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
 
     
 
@@ -37,13 +33,14 @@
     
 </head>
 
+
 <body>
-<header id="header" class="clearfix">
+    <header id="header" class="clearfix">
     <div class="container">
         <div class="col-group">
             <div class="site-name ">
                 
-                    <a id="logo" href="https://xiongsyao.github.io/">
+                    <a id="logo" href="https://xsymphony.github.io/">
                         Matrix
                     </a>
                 
@@ -51,11 +48,11 @@
             </div>
             <div>
                 <nav id="nav-menu" class="clearfix">
-                    <a class="current" href="https://xiongsyao.github.io/">首页</a>
+                    <a class="current" href="https://xsymphony.github.io/">首页</a>
                     
-                    <a  href="https://xiongsyao.github.io/archives/" title="归档">归档</a>
+                    <a  href="https://xsymphony.github.io/archives/" title="归档">归档</a>
                     
-                    <a  href="https://xiongsyao.github.io/about/" title="关于">关于</a>
+                    <a  href="https://xsymphony.github.io/about/" title="关于">关于</a>
                     
                 </nav>
             </div>
@@ -63,93 +60,104 @@
     </div>
 </header>
 
+    <div id="body">
+        <div class="container">
+            <div class="col-group">
 
-<div id="body">
-    <div class="container">
-        <div class="col-group">
-
-            <div class="col-8" id="main">
-                <div class="res-cons">
-                    <article class="post">
-                        <header>
-                            <h1 class="post-title">漫谈分布式锁（三）</h1>
-                        </header>
-                        <date class="post-meta meta-date">
-                            2019年2月27日
-                        </date>
-                        
-                        <div class="post-meta meta-category">
-                            |
-                            
-                                <a href="https://xiongsyao.github.io/categories/%E5%88%86%E5%B8%83%E5%BC%8F">分布式</a>
-                            
-                        </div>
-                        
-                        
-                        <div class="post-content">
-                            
-
-<p>在上一节中，我们利用Redis实现了分布式互斥锁。虽然相较于基于MySQL的解决方案，它已经解决了很多问题，但是仍然有一些不足（不讨论RedLock解放方案）:</p>
-
+                <div class="col-8" id="main">
+                    
+<div class="res-cons">
+    
+    <article class="post">
+        <header>
+            <h1 class="post-title">漫谈分布式锁（三）</h1>
+        </header>
+        <date class="post-meta meta-date">
+            2019年2月27日
+        </date>
+        
+        <div class="post-meta">
+            <span>|</span>
+            
+            <span class="meta-category"><a href='https://xsymphony.github.io/categories/%E5%88%86%E5%B8%83%E5%BC%8F'>分布式</a></span>
+            
+        </div>
+        
+        
+        
+        <div class="post-content">
+            <p>在上一节中，我们利用Redis实现了分布式互斥锁。虽然相较于基于MySQL的解决方案，它已经解决了很多问题，但是仍然有一些不足（不讨论RedLock解放方案）:</p>
 <ol>
 <li>非高可用，一旦Redis服务挂了，极大影响锁的使用。</li>
 <li>没有正确估计锁的过期时间pexpire时，很容易造成，业务逻辑处理时间过长，导致频繁产生解锁失败的错误。若设置过长，会影响获取锁的效率。</li>
 <li>持有锁的工作线程出错后，必须等待过期时间结束才能释放锁，并不能立即释放。</li>
 <li>阻塞锁的实现方式需要通过while循环实现。</li>
 </ol>
-
 <p>在这一节中，我们通过Zookeeper实现分布式互斥锁。</p>
-
-<h2 id="优势">优势</h2>
-
+<h2 id="heading">优势</h2>
 <p>Zookeeper作为一个分布式应用协调程序，常用来做配置管理、服务发现。它的所有写入动作会在Leader节点持久化，并在集群过半数节点写入成功才会返回，它也能够支持节点的崩溃恢复以及客户端的最终一致性视图。得益于这一特性，基于zk实现的分布式锁，只要节点数大于等于三，就是天然高可用的。</p>
-
 <p>zk的这些特性可以用于分布式锁中:</p>
-
 <ol>
-<li><p>永久节点:
-节点创建之后，不会因为会话失效而消失，需要主动删除。用来作为锁的根节点。</p></li>
-
-<li><p>临时节点:
-临时节点将在当前客户端与服务端建立的session到期时自动删除，这个特性可以保障客户端创建的分布式锁节点在客户端宕机或者网络通讯中断一段时间后自动释放该临时节点，从而避免分布式锁由于客户端或网络原因导致的死锁问题。</p></li>
-
-<li><p>顺序节点:
-顺序节点将自动在客户端指定的节点名后面添加一个单调递增序号来确保多个客户端同时创建相同的节点名时能够创建成功，并且保障越早创建的节点的序号越小。利用该特性可以实现锁的互斥性和公平性，即同一时刻只有一个客户端能够成功获取到锁（序号最小的一个获取到锁），获取锁失败的节点可以按照创建顺序进行锁等待。</p></li>
-
-<li><p>监视器（watcher）:
-当创建一个节点时，当前客户端可以注册一个该节点的监视器，当节点状态改变（删除或更新）时，zk将会向此客户端发送一条通知。应用watcher机制，正在等待锁的客户端就可以及时得知锁被释放，进行抢占锁的动作。</p></li>
+<li>
+<p>永久节点:
+节点创建之后，不会因为会话失效而消失，需要主动删除。用来作为锁的根节点。</p>
+</li>
+<li>
+<p>临时节点:
+临时节点将在当前客户端与服务端建立的session到期时自动删除，这个特性可以保障客户端创建的分布式锁节点在客户端宕机或者网络通讯中断一段时间后自动释放该临时节点，从而避免分布式锁由于客户端或网络原因导致的死锁问题。</p>
+</li>
+<li>
+<p>顺序节点:
+顺序节点将自动在客户端指定的节点名后面添加一个单调递增序号来确保多个客户端同时创建相同的节点名时能够创建成功，并且保障越早创建的节点的序号越小。利用该特性可以实现锁的互斥性和公平性，即同一时刻只有一个客户端能够成功获取到锁（序号最小的一个获取到锁），获取锁失败的节点可以按照创建顺序进行锁等待。</p>
+</li>
+<li>
+<p>监视器（watcher）:
+当创建一个节点时，当前客户端可以注册一个该节点的监视器，当节点状态改变（删除或更新）时，zk将会向此客户端发送一条通知。应用watcher机制，正在等待锁的客户端就可以及时得知锁被释放，进行抢占锁的动作。</p>
+</li>
 </ol>
-
-<h2 id="实现思路">实现思路</h2>
-
+<h2 id="heading-1">实现思路</h2>
 <ol>
 <li>创建锁目录lock。</li>
 <li>希望获得锁的客户端在lock目录下创建临时顺序节点。</li>
 <li>获取锁目录下所有子节点，拿到最小子节点，并判断最小子节点是不是与自身的节点相同，若是，则获取锁。否则，监听比自己次小的节点(这里不是监听最小节点，为了防止“羊群效应”)，当比自己次小的节点被删除时，重复此步骤知道获取锁。</li>
 <li>客户端处理完业务，删除自己的节点，释放锁。</li>
 </ol>
-
-<h2 id="具体实现">具体实现</h2>
-
+<h2 id="heading-2">具体实现</h2>
 <p>因为Zookeeper常用于作为分布式锁，所有很多语言的Zookeeper包都为我们内置了lock。以python为例:</p>
+<div class="highlight"><div style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 5
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 6
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 7
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 8
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 9
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">10
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-python" data-lang="python"><span style="color:#000;font-weight:bold">import</span> <span style="color:#555">time</span>
+<span style="color:#000;font-weight:bold">from</span> <span style="color:#555">kazoo.client</span> <span style="color:#000;font-weight:bold">import</span> KazooClient
 
-<pre><code class="language-python">import time
-from kazoo.client import KazooClient
+zk <span style="color:#000;font-weight:bold">=</span> KazooClient(<span style="color:#d14"></span><span style="color:#d14">&#34;</span><span style="color:#d14">127.0.0.1:2181</span><span style="color:#d14">&#34;</span>)
+zk<span style="color:#000;font-weight:bold">.</span>start()
+lock <span style="color:#000;font-weight:bold">=</span> zk<span style="color:#000;font-weight:bold">.</span>Lock(<span style="color:#d14"></span><span style="color:#d14">&#34;</span><span style="color:#d14">/lockpath</span><span style="color:#d14">&#34;</span>, <span style="color:#d14"></span><span style="color:#d14">&#34;</span><span style="color:#d14">my-identifier</span><span style="color:#d14">&#34;</span>)
+<span style="color:#000;font-weight:bold">with</span> lock:  <span style="color:#998;font-style:italic"># blocks waiting for lock acquisition</span>
+    <span style="color:#998;font-style:italic"># do something with the lock</span>
+    time<span style="color:#000;font-weight:bold">.</span>sleep(<span style="color:#099">5</span>)
 
-zk = KazooClient(&quot;127.0.0.1:2181&quot;)
-zk.start()
-lock = zk.Lock(&quot;/lockpath&quot;, &quot;my-identifier&quot;)
-with lock:  # blocks waiting for lock acquisition
-    # do something with the lock
-    time.sleep(5)
+</code></pre></td></tr></table>
+</div>
+</div><p>kazoo还为我们提供了除互斥锁外更多种类的锁，可以看官方文档了解下。</p>
 
-</code></pre>
+        </div>
 
-<p>kazoo还为我们提供了除互斥锁外更多种类的锁，可以看官方文档了解下。</p>
+        
 
-                        </div>
 
-                        
+        
 
 <div class="post-archive">
     <h2>See Also</h2>
@@ -169,28 +177,28 @@ with lock:  # blocks waiting for lock acquisition
 </div>
 
 
-                        <div class="post-meta meta-tags">
-                            
-                            <ul class="clearfix">
-                                
-                                <li><a href="https://xiongsyao.github.io/tags/%E9%94%81">锁</a></li>
-                                
-                                <li><a href="https://xiongsyao.github.io/tags/%E5%88%86%E5%B8%83%E5%BC%8F">分布式</a></li>
-                                
-                                <li><a href="https://xiongsyao.github.io/tags/Zookeeper">Zookeeper</a></li>
-                                
-                            </ul>
-                            
-                        </div>
-                    </article>
-                    
+        <div class="post-meta meta-tags">
+            
+            <ul class="clearfix">
+                
+                <li><a href='https://xsymphony.github.io/tags/%E9%94%81'>锁</a></li>
+                
+                <li><a href='https://xsymphony.github.io/tags/%E5%88%86%E5%B8%83%E5%BC%8F'>分布式</a></li>
+                
+                <li><a href='https://xsymphony.github.io/tags/Zookeeper'>Zookeeper</a></li>
+                
+            </ul>
+            
+        </div>
+    </article>
+    
     
 
     
     
     <div class="post bg-white">
       <script src="https://utteranc.es/client.js"
-            repo= "xiongsyao/comments"
+            repo= "xsymphony/comments"
             issue-term="pathname"
             theme="github-light"
             crossorigin="anonymous"
@@ -198,14 +206,16 @@ with lock:  # blocks waiting for lock acquisition
       </script>
     </div>
     
+</div>
+
                 </div>
-            </div>
-            <div id="secondary">
+
+                <div id="secondary">
     <section class="widget">
-        <form id="search" action="//www.google.com/search" method="get" accept-charset="utf-8" target="_blank" _lpchecked="1">
+        <form id="search" action='//www.google.com/search' method="get" accept-charset="utf-8" target="_blank" _lpchecked="1">
       
       <input type="text" name="q" maxlength="20" placeholder="Search">
-      <input type="hidden" name="sitesearch" value="https://xiongsyao.github.io/">
+      <input type="hidden" name="sitesearch" value="https://xsymphony.github.io/">
       <button type="submit" class="submit icon-search"></button>
 </form>
     </section>
@@ -215,43 +225,43 @@ with lock:  # blocks waiting for lock acquisition
 <ul class="widget-list">
     
     <li>
-        <a href="https://xiongsyao.github.io/post/2019/02/27/%E6%BC%AB%E8%B0%88%E5%88%86%E5%B8%83%E5%BC%8F%E9%94%81%E4%B8%89/" title="漫谈分布式锁（三）">漫谈分布式锁（三）</a>
+        <a href="https://xsymphony.github.io/post/2019/02/27/%E6%BC%AB%E8%B0%88%E5%88%86%E5%B8%83%E5%BC%8F%E9%94%81%E4%B8%89/" title="漫谈分布式锁（三）">漫谈分布式锁（三）</a>
     </li>
     
     <li>
-        <a href="https://xiongsyao.github.io/post/2019/02/25/%E6%BC%AB%E8%B0%88%E5%88%86%E5%B8%83%E5%BC%8F%E9%94%81%E4%BA%8C/" title="漫谈分布式锁（二）">漫谈分布式锁（二）</a>
+        <a href="https://xsymphony.github.io/post/2019/02/25/%E6%BC%AB%E8%B0%88%E5%88%86%E5%B8%83%E5%BC%8F%E9%94%81%E4%BA%8C/" title="漫谈分布式锁（二）">漫谈分布式锁（二）</a>
     </li>
     
     <li>
-        <a href="https://xiongsyao.github.io/post/2019/02/21/%E6%BC%AB%E8%B0%88%E5%88%86%E5%B8%83%E5%BC%8F%E9%94%81%E4%B8%80/" title="漫谈分布式锁（一）">漫谈分布式锁（一）</a>
+        <a href="https://xsymphony.github.io/post/2019/02/21/%E6%BC%AB%E8%B0%88%E5%88%86%E5%B8%83%E5%BC%8F%E9%94%81%E4%B8%80/" title="漫谈分布式锁（一）">漫谈分布式锁（一）</a>
     </li>
     
     <li>
-        <a href="https://xiongsyao.github.io/post/2019/02/13/Redis%E6%8C%81%E4%B9%85%E5%8C%96/" title="Redis持久化">Redis持久化</a>
+        <a href="https://xsymphony.github.io/post/2019/02/13/Redis%E6%8C%81%E4%B9%85%E5%8C%96/" title="Redis持久化">Redis持久化</a>
     </li>
     
     <li>
-        <a href="https://xiongsyao.github.io/post/2019/01/02/%E8%A7%A3%E8%AF%BBredis%E5%8D%8F%E8%AE%AE/" title="解读redis协议">解读redis协议</a>
+        <a href="https://xsymphony.github.io/post/2019/01/02/%E8%A7%A3%E8%AF%BBredis%E5%8D%8F%E8%AE%AE/" title="解读redis协议">解读redis协议</a>
     </li>
     
     <li>
-        <a href="https://xiongsyao.github.io/post/2018/12/28/%E8%B0%88%E8%B0%88golang%E4%B8%AD%E7%9A%84%E9%94%81/" title="谈谈golang中的锁">谈谈golang中的锁</a>
+        <a href="https://xsymphony.github.io/post/2018/12/28/%E8%B0%88%E8%B0%88golang%E4%B8%AD%E7%9A%84%E9%94%81/" title="谈谈golang中的锁">谈谈golang中的锁</a>
     </li>
     
     <li>
-        <a href="https://xiongsyao.github.io/post/2018/12/17/LeetCode150%E9%80%86%E6%B3%A2%E5%85%B0%E8%A1%A8%E8%BE%BE%E5%BC%8F%E6%B1%82%E5%80%BC/" title="[LeetCode]150:逆波兰表达式求值">[LeetCode]150:逆波兰表达式求值</a>
+        <a href="https://xsymphony.github.io/post/2018/12/17/LeetCode150%E9%80%86%E6%B3%A2%E5%85%B0%E8%A1%A8%E8%BE%BE%E5%BC%8F%E6%B1%82%E5%80%BC/" title="[LeetCode]150:逆波兰表达式求值">[LeetCode]150:逆波兰表达式求值</a>
     </li>
     
     <li>
-        <a href="https://xiongsyao.github.io/post/2018/03/7/%E5%8A%A8%E6%80%81%E5%8A%A0%E8%BD%BDDjango%E7%9A%84config%E9%85%8D%E7%BD%AE/" title="动态加载Django的config配置">动态加载Django的config配置</a>
+        <a href="https://xsymphony.github.io/post/2018/01/25/%E4%BB%8E0%E5%BC%80%E5%A7%8B%E7%9A%84JS%E4%B9%8B%E6%97%85%E4%B8%89DOM%E6%93%8D%E4%BD%9C%E5%9F%BA%E7%A1%80/" title="从0开始的JS之旅（三）：DOM操作基础">从0开始的JS之旅（三）：DOM操作基础</a>
     </li>
     
     <li>
-        <a href="https://xiongsyao.github.io/post/2018/01/25/%E4%BB%8E0%E5%BC%80%E5%A7%8B%E7%9A%84JS%E4%B9%8B%E6%97%85%E4%B8%89DOM%E6%93%8D%E4%BD%9C%E5%9F%BA%E7%A1%80/" title="从0开始的JS之旅（三）：DOM操作基础">从0开始的JS之旅（三）：DOM操作基础</a>
+        <a href="https://xsymphony.github.io/post/2018/01/25/%E4%BB%8E0%E5%BC%80%E5%A7%8B%E7%9A%84JS%E4%B9%8B%E6%97%85%E4%BA%8C%E9%9D%A2%E5%90%91%E5%AF%B9%E8%B1%A1%E7%BC%96%E7%A8%8B/" title="从0开始的JS之旅（二）：面向对象编程">从0开始的JS之旅（二）：面向对象编程</a>
     </li>
     
     <li>
-        <a href="https://xiongsyao.github.io/post/2018/01/25/%E4%BB%8E0%E5%BC%80%E5%A7%8B%E7%9A%84JS%E4%B9%8B%E6%97%85%E4%BA%8C%E9%9D%A2%E5%90%91%E5%AF%B9%E8%B1%A1%E7%BC%96%E7%A8%8B/" title="从0开始的JS之旅（二）：面向对象编程">从0开始的JS之旅（二）：面向对象编程</a>
+        <a href="https://xsymphony.github.io/post/2018/01/25/%E4%BB%8E0%E5%BC%80%E5%A7%8B%E7%9A%84JS%E4%B9%8B%E6%97%85%E4%B8%80%E6%95%B0%E6%8D%AE%E7%B1%BB%E5%9E%8B%E6%B5%81%E7%A8%8B%E8%AF%AD%E5%8F%A5%E5%8F%8A%E5%87%BD%E6%95%B0/" title="从0开始的JS之旅（一）：数据类型，流程语句及函数">从0开始的JS之旅（一）：数据类型，流程语句及函数</a>
     </li>
     
 </ul>
@@ -263,29 +273,15 @@ with lock:  # blocks waiting for lock acquisition
         <h3 class="widget-title">分类</h3>
 <ul class="widget-list">
     
-    <li>
-        <a href="https://xiongsyao.github.io/categories/Django/">Django(1)</a>
-    </li>
+    <li><a href="https://xsymphony.github.io/categories/JavaScript/">JavaScript (3)</a></li>
     
-    <li>
-        <a href="https://xiongsyao.github.io/categories/JavaScript/">JavaScript(3)</a>
-    </li>
+    <li><a href="https://xsymphony.github.io/categories/Redis/">Redis (2)</a></li>
     
-    <li>
-        <a href="https://xiongsyao.github.io/categories/Redis/">Redis(2)</a>
-    </li>
+    <li><a href="https://xsymphony.github.io/categories/golang/">golang (1)</a></li>
     
-    <li>
-        <a href="https://xiongsyao.github.io/categories/golang/">golang(1)</a>
-    </li>
+    <li><a href="https://xsymphony.github.io/categories/leetcode/">leetcode (1)</a></li>
     
-    <li>
-        <a href="https://xiongsyao.github.io/categories/leetcode/">leetcode(1)</a>
-    </li>
-    
-    <li>
-        <a href="https://xiongsyao.github.io/categories/%E5%88%86%E5%B8%83%E5%BC%8F/">分布式(3)</a>
-    </li>
+    <li><a href="https://xsymphony.github.io/categories/%E5%88%86%E5%B8%83%E5%BC%8F/">分布式 (3)</a></li>
     
 </ul>
     </section>
@@ -294,29 +290,27 @@ with lock:  # blocks waiting for lock acquisition
         <h3 class="widget-title">标签</h3>
 <div class="tagcloud">
     
-    <a href="https://xiongsyao.github.io/tags/Django/">Django</a>
+    <a href="https://xsymphony.github.io/tags/JavaScript/">JavaScript</a>
     
-    <a href="https://xiongsyao.github.io/tags/JavaScript/">JavaScript</a>
+    <a href="https://xsymphony.github.io/tags/JavaScript%E5%9F%BA%E7%A1%80%E6%95%99%E7%A8%8B/">JavaScript基础教程</a>
     
-    <a href="https://xiongsyao.github.io/tags/JavaScript%E5%9F%BA%E7%A1%80%E6%95%99%E7%A8%8B/">JavaScript基础教程</a>
+    <a href="https://xsymphony.github.io/tags/Redis/">Redis</a>
     
-    <a href="https://xiongsyao.github.io/tags/Redis/">Redis</a>
+    <a href="https://xsymphony.github.io/tags/Zookeeper/">Zookeeper</a>
     
-    <a href="https://xiongsyao.github.io/tags/Zookeeper/">Zookeeper</a>
+    <a href="https://xsymphony.github.io/tags/golang/">golang</a>
     
-    <a href="https://xiongsyao.github.io/tags/golang/">golang</a>
+    <a href="https://xsymphony.github.io/tags/leetcode/">leetcode</a>
     
-    <a href="https://xiongsyao.github.io/tags/leetcode/">leetcode</a>
+    <a href="https://xsymphony.github.io/tags/stack/">stack</a>
     
-    <a href="https://xiongsyao.github.io/tags/stack/">stack</a>
+    <a href="https://xsymphony.github.io/tags/%E5%88%86%E5%B8%83%E5%BC%8F/">分布式</a>
     
-    <a href="https://xiongsyao.github.io/tags/%E5%88%86%E5%B8%83%E5%BC%8F/">分布式</a>
+    <a href="https://xsymphony.github.io/tags/%E5%8D%8F%E8%AE%AE/">协议</a>
     
-    <a href="https://xiongsyao.github.io/tags/%E5%8D%8F%E8%AE%AE/">协议</a>
+    <a href="https://xsymphony.github.io/tags/%E5%B9%B6%E5%8F%91/">并发</a>
     
-    <a href="https://xiongsyao.github.io/tags/%E5%B9%B6%E5%8F%91/">并发</a>
-    
-    <a href="https://xiongsyao.github.io/tags/%E9%94%81/">锁</a>
+    <a href="https://xsymphony.github.io/tags/%E9%94%81/">锁</a>
     
 </div>
     </section>
@@ -326,41 +320,37 @@ with lock:  # blocks waiting for lock acquisition
     <section class="widget">
         <h3 class="widget-title">其它</h3>
         <ul class="widget-list">
-            <li><a href="https://xiongsyao.github.io/index.xml">文章 RSS</a></li>
+            <li><a href="https://xsymphony.github.io/index.xml">文章 RSS</a></li>
         </ul>
     </section>
 </div>
+            </div>
         </div>
     </div>
-</div>
-<footer id="footer">
+    <footer id="footer">
     <div class="container">
-        &copy; 2018 <a href="https://xiongsyao.github.io/">Matrix By matrix</a>.
+        &copy; 2019 <a href="https://xsymphony.github.io/">Matrix By matrix</a>.
         Powered by <a rel="nofollow noreferer noopener" href="https://gohugo.io" target="_blank">Hugo</a>.
-        <a href="http://www.flysnow.org/" target="_blank">Theme</a> based on <a href="https://github.com/rujews/maupassant-hugo" target="_blank">maupassant</a>.
+        <a href="https://www.flysnow.org/" target="_blank">Theme</a> based on <a href="https://github.com/flysnow-org/maupassant-hugo" target="_blank">maupassant</a>.
         
     </div>
 </footer>
 
 
-    <script type="text/javascript">
     
-    (function(){
-        $("pre code").parent().addClass("line-numbers")
-    }())
-
-    window.MathJax = {
-        tex2jax: {
-            inlineMath: [ ['$','$'] ],
-            processEscapes: true
-        }
-    };
+    <script type="text/javascript">
+        window.MathJax = {
+            tex2jax: {
+                inlineMath: [['$', '$']],
+                processEscapes: true
+                }
+            };
     </script>
-    <script type="text/javascript" src="/js/prism.js" async="true"></script>
     <script src='https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-MML-AM_CHTML' async></script>
 
+
 <a id="rocket" href="#top"></a>
-<script type="text/javascript" src="/js/totop.js?v=0.0.0" async=""></script>
+<script type="text/javascript" src='/js/totop.js?v=0.0.0' async=""></script>
 
 
 
@@ -368,4 +358,5 @@ with lock:  # blocks waiting for lock acquisition
 
 
 </body>
+
 </html>

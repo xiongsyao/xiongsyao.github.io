@@ -1,50 +1,41 @@
-<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
     <title>JavaScript on Matrix</title>
-    <link>https://xiongsyao.github.io/categories/JavaScript/</link>
+    <link>https://xsymphony.github.io/categories/JavaScript/</link>
     <description>Recent content in JavaScript on Matrix</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>zh-CH</language>
     <lastBuildDate>Thu, 25 Jan 2018 13:51:37 +0800</lastBuildDate>
     
-	<atom:link href="https://xiongsyao.github.io/categories/JavaScript/index.xml" rel="self" type="application/rss+xml" />
+	<atom:link href="https://xsymphony.github.io/categories/JavaScript/index.xml" rel="self" type="application/rss+xml" />
     
     
     <item>
       <title>从0开始的JS之旅（三）：DOM操作基础</title>
-      <link>https://xiongsyao.github.io/post/2018/01/25/%E4%BB%8E0%E5%BC%80%E5%A7%8B%E7%9A%84JS%E4%B9%8B%E6%97%85%E4%B8%89DOM%E6%93%8D%E4%BD%9C%E5%9F%BA%E7%A1%80/</link>
+      <link>https://xsymphony.github.io/post/2018/01/25/%E4%BB%8E0%E5%BC%80%E5%A7%8B%E7%9A%84JS%E4%B9%8B%E6%97%85%E4%B8%89DOM%E6%93%8D%E4%BD%9C%E5%9F%BA%E7%A1%80/</link>
       <pubDate>Thu, 25 Jan 2018 13:51:37 +0800</pubDate>
       
-      <guid>https://xiongsyao.github.io/post/2018/01/25/%E4%BB%8E0%E5%BC%80%E5%A7%8B%E7%9A%84JS%E4%B9%8B%E6%97%85%E4%B8%89DOM%E6%93%8D%E4%BD%9C%E5%9F%BA%E7%A1%80/</guid>
-      <description>从0开始的JS之旅（三）  前面讲了一些JS语言的基本语法，但是JS运用最广泛的地方就是前端开发了，肯定免不了操纵DOM节点，这章就讲讲DOM相关的东西
-DOM 究竟什么是DOM呢？文档对象模型 (DOM) 是HTML和XML文档的编程接口。它提供了对文档的结构化的表述，并定义了一种方式可以使从程序中对该结构进行访问，从而改变文档的结构，样式和内容。
- 我们从一个最简单的实例开始:
-&amp;lt;html&amp;gt; &amp;lt;head&amp;gt; &amp;lt;/head&amp;gt; &amp;lt;body&amp;gt; &amp;lt;p class=&amp;quot;cls1&amp;quot; id=&amp;quot;ex1&amp;quot;&amp;gt;这是一句话&amp;lt;/p&amp;gt; &amp;lt;p class=&amp;quot;cls2&amp;quot; id=&amp;quot;ex2&amp;quot;&amp;gt;这是一句不会出现的话&amp;lt;/p&amp;gt; &amp;lt;p class=&amp;quot;cls3&amp;quot; id=&amp;quot;ex3&amp;quot;&amp;gt;这是一句话&amp;lt;/p&amp;gt; &amp;lt;button&amp;gt;点我改变页面&amp;lt;/button&amp;gt; &amp;lt;/body&amp;gt; &amp;lt;script&amp;gt; // 获取元素 var myText1 = document.getElementById(&amp;quot;ex1&amp;quot;) console.log(myText1) // 插入元素 var myBlod = document.createElement(&amp;quot;b&amp;quot;) blod_text = document.createTextNode(&amp;quot;加粗的话&amp;quot;) myBlod.appendChild(blod_text) document.body.appendChild(myBlod) // 删除元素 var myText2 = document.getElementsByClassName(&amp;quot;cls2&amp;quot;)[0] document.body.removeChild(myText2) // 改变元素 var myText3 = document.getElementById(&amp;quot;ex3&amp;quot;) myText3.innerText = &amp;quot;这是一句被改变的话&amp;quot; myText3.style.color = &amp;quot;red&amp;quot; // 动态改变 var myButton = document.getElementsByTagName(&amp;quot;button&amp;quot;)[0] myButton.addEventListener(&amp;quot;click&amp;quot;, function() { myText1.</description>
+      <guid>https://xsymphony.github.io/post/2018/01/25/%E4%BB%8E0%E5%BC%80%E5%A7%8B%E7%9A%84JS%E4%B9%8B%E6%97%85%E4%B8%89DOM%E6%93%8D%E4%BD%9C%E5%9F%BA%E7%A1%80/</guid>
+      <description>从0开始的JS之旅（三） 前面讲了一些JS语言的基本语法，但是JS运用最广泛的地方就是前端开发了，肯定免不了操纵DOM节点，这章就讲讲DOM相关的东西 DOM 究竟什么是DOM呢？文档对象模型 (DOM) 是HTML和XML文档的编程接口。它提供了对文档的结构化的表述，并定义了一种方式可以使从程序中对</description>
     </item>
     
     <item>
       <title>从0开始的JS之旅（二）：面向对象编程</title>
-      <link>https://xiongsyao.github.io/post/2018/01/25/%E4%BB%8E0%E5%BC%80%E5%A7%8B%E7%9A%84JS%E4%B9%8B%E6%97%85%E4%BA%8C%E9%9D%A2%E5%90%91%E5%AF%B9%E8%B1%A1%E7%BC%96%E7%A8%8B/</link>
+      <link>https://xsymphony.github.io/post/2018/01/25/%E4%BB%8E0%E5%BC%80%E5%A7%8B%E7%9A%84JS%E4%B9%8B%E6%97%85%E4%BA%8C%E9%9D%A2%E5%90%91%E5%AF%B9%E8%B1%A1%E7%BC%96%E7%A8%8B/</link>
       <pubDate>Thu, 25 Jan 2018 13:48:56 +0800</pubDate>
       
-      <guid>https://xiongsyao.github.io/post/2018/01/25/%E4%BB%8E0%E5%BC%80%E5%A7%8B%E7%9A%84JS%E4%B9%8B%E6%97%85%E4%BA%8C%E9%9D%A2%E5%90%91%E5%AF%B9%E8%B1%A1%E7%BC%96%E7%A8%8B/</guid>
-      <description>从0开始的JS之旅（二） 面向对象 类  JavaScript是一种基于原型的语言，它没类的声明语句，比如C+ +或Java中用的。这有时会对习惯使用有类申明语句语言的程序员产生困扰。相反，JavaScript可用方法作类。定义一个类跟定义一个函数一样简单。在下面的例子中，我们定义了一个新类Person。
-function Person() {...} var Person = function() {...}  类名采用首字母大写的方式，以此来与函数声明区分开。
-对象 对象是类的实例，一般通过new obj的方式创建，下面演示了如何创建一个类的实例。
-function Person() {...} var person1 = new Person(); var person2 = new Person();  构造器 构造器指在实例创建时执行的方法，类似于python的init方法。
-function Person() { console.log(&amp;quot;init&amp;quot;) }; var person1 = new Person(); // -&amp;gt; init  属性 属性就是 类中包含的变量;每一个对象实例有若干个属性. 为了正确的继承，属性应该被定义在类的原型属性 (函数)中。可以使用 关键字 this调用类中的属性, this是对当前对象的引用。从外部存取(读/写)其属性的语法是: InstanceName.Property。
-function Person(name) { this.name = name; console.log(this.name); } var person1 = new Person(&#39;Xiong&#39;) // -&amp;gt; Xiong console.</description>
+      <guid>https://xsymphony.github.io/post/2018/01/25/%E4%BB%8E0%E5%BC%80%E5%A7%8B%E7%9A%84JS%E4%B9%8B%E6%97%85%E4%BA%8C%E9%9D%A2%E5%90%91%E5%AF%B9%E8%B1%A1%E7%BC%96%E7%A8%8B/</guid>
+      <description>从0开始的JS之旅（二） 面向对象 类 JavaScript是一种基于原型的语言，它没类的声明语句，比如C+ +或Java中用的。这有时会对习惯使用有类申明语句语言的程序员产生困扰。相反，JavaScript可用方法作类。定义一个类跟定义一个函数一样简单。在下面的例子中，我们定义了一个新</description>
     </item>
     
     <item>
       <title>从0开始的JS之旅（一）：数据类型，流程语句及函数</title>
-      <link>https://xiongsyao.github.io/post/2018/01/25/%E4%BB%8E0%E5%BC%80%E5%A7%8B%E7%9A%84JS%E4%B9%8B%E6%97%85%E4%B8%80%E6%95%B0%E6%8D%AE%E7%B1%BB%E5%9E%8B%E6%B5%81%E7%A8%8B%E8%AF%AD%E5%8F%A5%E5%8F%8A%E5%87%BD%E6%95%B0/</link>
+      <link>https://xsymphony.github.io/post/2018/01/25/%E4%BB%8E0%E5%BC%80%E5%A7%8B%E7%9A%84JS%E4%B9%8B%E6%97%85%E4%B8%80%E6%95%B0%E6%8D%AE%E7%B1%BB%E5%9E%8B%E6%B5%81%E7%A8%8B%E8%AF%AD%E5%8F%A5%E5%8F%8A%E5%87%BD%E6%95%B0/</link>
       <pubDate>Thu, 25 Jan 2018 13:39:21 +0800</pubDate>
       
-      <guid>https://xiongsyao.github.io/post/2018/01/25/%E4%BB%8E0%E5%BC%80%E5%A7%8B%E7%9A%84JS%E4%B9%8B%E6%97%85%E4%B8%80%E6%95%B0%E6%8D%AE%E7%B1%BB%E5%9E%8B%E6%B5%81%E7%A8%8B%E8%AF%AD%E5%8F%A5%E5%8F%8A%E5%87%BD%E6%95%B0/</guid>
-      <description>从0开始的JS之旅（一）  半年多之前学的JS，结果后来一直在写python，现在趁着有些空闲时间，准备重新学习一遍JS，故记录下来，方便自己以后回顾，同时希望能对别人有所帮助
- 数据类型    类型 描述 示例     String 字符串，一段文本。 &amp;lsquo;hello world&amp;rsquo;   Number 数字，不需要引号包裹 666   Boolean 布尔型，代表是或否 True/False   Null 代表空， 仅有一种表示方式，即null null   Undefined 未赋值的量 undefined   Array 数组 (1, &amp;ldquo;wow&amp;rdquo;, 0)   Symbol es6引入的新数据类型，类似于function 看这里    基本数据类型的操作 Number 数字  toSting(len) 将数字转化为指定长度的字符串 toFixed(len) 将小数转化为小数点后指定位数的数字 toPrecision(len) 将数字转化为指定精度的数字 valueOf() 返回数字的原始数值  String 字符串  length 返回字符串的字符数目 JS var txt = &amp;quot;yes i do&amp;quot; console.</description>
+      <guid>https://xsymphony.github.io/post/2018/01/25/%E4%BB%8E0%E5%BC%80%E5%A7%8B%E7%9A%84JS%E4%B9%8B%E6%97%85%E4%B8%80%E6%95%B0%E6%8D%AE%E7%B1%BB%E5%9E%8B%E6%B5%81%E7%A8%8B%E8%AF%AD%E5%8F%A5%E5%8F%8A%E5%87%BD%E6%95%B0/</guid>
+      <description>从0开始的JS之旅（一） 半年多之前学的JS，结果后来一直在写python，现在趁着有些空闲时间，准备重新学习一遍JS，故记录下来，方便自己以后回顾，同时希望能对别人有所帮助 数据类型 类型 描述 示例 String 字符串，一段文本。 &amp;lsquo;hello world&amp;rsquo; Number 数字，不需要引号包裹 666 Boolean 布尔型，代表是或否 True/False Null 代表空， 仅有一种</description>
     </item>
     
   </channel>

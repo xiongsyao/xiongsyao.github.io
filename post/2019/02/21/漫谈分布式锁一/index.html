@@ -3,7 +3,6 @@
 <head>
 
     <meta charset="utf-8">
-    <meta name="generator" content="Hugo 0.52" />
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
 
@@ -11,24 +10,21 @@
     <meta property="og:title" content="漫谈分布式锁（一） - Matrix">
     <meta property="og:type" content="article">
         
-    <meta property="article:published_time" content="2019-02-21T20:35:47&#43;08:00">
+    <meta property="article:published_time" content='2019-02-21T20:35:47&#43;08:00'>
         
         
-    <meta property="article:modified_time" content="2019-02-21T20:35:47&#43;08:00">
+    <meta property="article:modified_time" content='2019-02-21T20:35:47&#43;08:00'>
         
     <meta name="Keywords" content="golang,python">
     <meta name="description" content="漫谈分布式锁（一）">
         
     <meta name="author" content="matrix">
-    <meta property="og:url" content="https://xiongsyao.github.io/post/2019/02/21/%E6%BC%AB%E8%B0%88%E5%88%86%E5%B8%83%E5%BC%8F%E9%94%81%E4%B8%80/">
+    <meta property="og:url" content="https://xsymphony.github.io/post/2019/02/21/%E6%BC%AB%E8%B0%88%E5%88%86%E5%B8%83%E5%BC%8F%E9%94%81%E4%B8%80/">
     <link rel="shortcut icon" href="/favicon.ico" type="image/x-icon">
 
-    <link rel="stylesheet" href="/css/normalize.css">
-    
-        <link rel="stylesheet" href="/css/prism.css">
-    
-    <link rel="stylesheet" href="/css/style.css">
-    <script type="text/javascript" src="//cdn.bootcss.com/jquery/3.2.1/jquery.min.js"></script>
+    <link rel="stylesheet" href='/css/normalize.css'>
+    <link rel="stylesheet" href='/css/style.css'>
+    <script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
 
     
 
@@ -37,13 +33,14 @@
     
 </head>
 
+
 <body>
-<header id="header" class="clearfix">
+    <header id="header" class="clearfix">
     <div class="container">
         <div class="col-group">
             <div class="site-name ">
                 
-                    <a id="logo" href="https://xiongsyao.github.io/">
+                    <a id="logo" href="https://xsymphony.github.io/">
                         Matrix
                     </a>
                 
@@ -51,11 +48,11 @@
             </div>
             <div>
                 <nav id="nav-menu" class="clearfix">
-                    <a class="current" href="https://xiongsyao.github.io/">首页</a>
+                    <a class="current" href="https://xsymphony.github.io/">首页</a>
                     
-                    <a  href="https://xiongsyao.github.io/archives/" title="归档">归档</a>
+                    <a  href="https://xsymphony.github.io/archives/" title="归档">归档</a>
                     
-                    <a  href="https://xiongsyao.github.io/about/" title="关于">关于</a>
+                    <a  href="https://xsymphony.github.io/about/" title="关于">关于</a>
                     
                 </nav>
             </div>
@@ -63,38 +60,35 @@
     </div>
 </header>
 
+    <div id="body">
+        <div class="container">
+            <div class="col-group">
 
-<div id="body">
-    <div class="container">
-        <div class="col-group">
-
-            <div class="col-8" id="main">
-                <div class="res-cons">
-                    <article class="post">
-                        <header>
-                            <h1 class="post-title">漫谈分布式锁（一）</h1>
-                        </header>
-                        <date class="post-meta meta-date">
-                            2019年2月21日
-                        </date>
-                        
-                        <div class="post-meta meta-category">
-                            |
-                            
-                                <a href="https://xiongsyao.github.io/categories/%E5%88%86%E5%B8%83%E5%BC%8F">分布式</a>
-                            
-                        </div>
-                        
-                        
-                        <div class="post-content">
-                            
-
-<h2 id="为什么需要分布式锁">为什么需要分布式锁</h2>
-
-<p>之前介绍过Go中的锁，在多个协程(线程)抢占同一资源时，为了防止相互干扰，保持一致性，需要运用到锁机制，得益于线程的共享内存，大部分语言都在标准库中为我们提供了锁。但是在跨进程、跨主机程序协作中，就需要我们自己去实现，我们需要自己为所有进程提供一个&rdquo;共享内存&rdquo;，并在其中实现自己的“锁”。</p>
-
-<h2 id="分布式锁需要实现的功能">分布式锁需要实现的功能</h2>
-
+                <div class="col-8" id="main">
+                    
+<div class="res-cons">
+    
+    <article class="post">
+        <header>
+            <h1 class="post-title">漫谈分布式锁（一）</h1>
+        </header>
+        <date class="post-meta meta-date">
+            2019年2月21日
+        </date>
+        
+        <div class="post-meta">
+            <span>|</span>
+            
+            <span class="meta-category"><a href='https://xsymphony.github.io/categories/%E5%88%86%E5%B8%83%E5%BC%8F'>分布式</a></span>
+            
+        </div>
+        
+        
+        
+        <div class="post-content">
+            <h2 id="heading">为什么需要分布式锁</h2>
+<p>之前介绍过Go中的锁，在多个协程(线程)抢占同一资源时，为了防止相互干扰，保持一致性，需要运用到锁机制，得益于线程的共享内存，大部分语言都在标准库中为我们提供了锁。但是在跨进程、跨主机程序协作中，就需要我们自己去实现，我们需要自己为所有进程提供一个&quot;共享内存&rdquo;，并在其中实现自己的“锁”。</p>
+<h2 id="heading-1">分布式锁需要实现的功能</h2>
 <ol>
 <li>获取锁与释放锁的性能要好，足够快；</li>
 <li>获取锁必须是原子性的，否则会导致多个进程都持有锁；</li>
@@ -102,127 +96,199 @@
 <li>同一线程可以多次获取同一把锁，即可重入性；</li>
 <li>具备非阻塞锁和阻塞锁特性。当没有获取到锁时，非阻塞锁直接返回锁失败，阻塞锁会使线程继续等待获取锁。</li>
 </ol>
-
-<h2 id="常见的分布式锁实现方案">常见的分布式锁实现方案</h2>
-
+<h2 id="heading-2">常见的分布式锁实现方案</h2>
 <ol>
 <li>基于数据库实现;</li>
 <li>基于缓存(Redis)实现；</li>
 <li>基于Zookeeper实现;</li>
 <li>基于etcd实现。</li>
 </ol>
-
 <p>本篇先介绍基于数据库实现的分布式锁。</p>
-
-<h2 id="基于数据库的分布式锁">基于数据库的分布式锁</h2>
-
-<h3 id="利用唯一索引">利用唯一索引</h3>
-
+<h2 id="heading-3">基于数据库的分布式锁</h2>
+<h3 id="heading-4">利用唯一索引</h3>
 <p>该实现方式完全依靠数据库唯一索引来实现，当想要获得锁时，即向数据库中插入一条记录，释放锁时就删除这条记录。</p>
-
 <p>创建表:</p>
+<div class="highlight"><div style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">3
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">4
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">5
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">6
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">7
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-sql" data-lang="sql"><span style="color:#000;font-weight:bold">CREATE</span> <span style="color:#000;font-weight:bold">TABLE</span> <span style="color:#000;font-weight:bold">`</span>dbmutex<span style="color:#000;font-weight:bold">`</span> (
+  <span style="color:#000;font-weight:bold">`</span>name<span style="color:#000;font-weight:bold">`</span> <span style="color:#0086b3">varchar</span>(<span style="color:#099">64</span>) <span style="color:#000;font-weight:bold">NOT</span> <span style="color:#000;font-weight:bold">NULL</span>,
+  <span style="color:#000;font-weight:bold">`</span>update_time<span style="color:#000;font-weight:bold">`</span> <span style="color:#000;font-weight:bold">timestamp</span> <span style="color:#000;font-weight:bold">NOT</span> <span style="color:#000;font-weight:bold">NULL</span> <span style="color:#000;font-weight:bold">DEFAULT</span> <span style="color:#000;font-weight:bold">CURRENT_TIMESTAMP</span> <span style="color:#000;font-weight:bold">ON</span> <span style="color:#000;font-weight:bold">UPDATE</span> <span style="color:#000;font-weight:bold">CURRENT_TIMESTAMP</span>,
+  <span style="color:#000;font-weight:bold">PRIMARY</span> <span style="color:#000;font-weight:bold">KEY</span> (<span style="color:#000;font-weight:bold">`</span>name<span style="color:#000;font-weight:bold">`</span>),
+  <span style="color:#000;font-weight:bold">UNIQUE</span> <span style="color:#000;font-weight:bold">KEY</span> <span style="color:#000;font-weight:bold">`</span>uidx_name<span style="color:#000;font-weight:bold">`</span> (<span style="color:#000;font-weight:bold">`</span>name<span style="color:#000;font-weight:bold">`</span>) <span style="color:#000;font-weight:bold">USING</span> BTREE
+) ENGINE<span style="color:#000;font-weight:bold">=</span>InnoDB <span style="color:#000;font-weight:bold">DEFAULT</span> CHARSET<span style="color:#000;font-weight:bold">=</span>utf8
 
-<pre><code class="language-sql">CREATE TABLE `dbmutex` (
-  `name` varchar(64) NOT NULL,
-  `update_time` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-  PRIMARY KEY (`name`),
-  UNIQUE KEY `uidx_name` (`name`) USING BTREE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8
+</code></pre></td></tr></table>
+</div>
+</div><p>依赖于这张表，实现一个简单的DBMutex类</p>
+<div class="highlight"><div style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 5
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 6
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 7
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 8
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 9
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">10
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">11
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">12
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">13
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">14
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">15
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">16
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">17
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">18
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">19
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">20
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">21
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">22
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">23
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">24
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">25
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">26
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">27
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">28
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">29
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">30
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">31
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">32
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-python" data-lang="python"><span style="color:#000;font-weight:bold">import</span> <span style="color:#555">MySQLdb</span>
 
-</code></pre>
-
-<p>依赖于这张表，实现一个简单的DBMutex类</p>
-
-<pre><code class="language-python">import MySQLdb
-
-class Driver:
-    def __init__(self, address=&quot;localhost&quot;, username=&quot;root&quot;, password=&quot;123456&quot;, dbname=&quot;LOCKER&quot;):
-        self.db = MySQLdb.connect(address, username, password, dbname, charset='utf8')
-        self.cursor = self.db.cursor()
+<span style="color:#000;font-weight:bold">class</span> <span style="color:#458;font-weight:bold">Driver</span>:
+    <span style="color:#000;font-weight:bold">def</span> __init__(<span style="color:#999">self</span>, address<span style="color:#000;font-weight:bold">=</span><span style="color:#d14"></span><span style="color:#d14">&#34;</span><span style="color:#d14">localhost</span><span style="color:#d14">&#34;</span>, username<span style="color:#000;font-weight:bold">=</span><span style="color:#d14"></span><span style="color:#d14">&#34;</span><span style="color:#d14">root</span><span style="color:#d14">&#34;</span>, password<span style="color:#000;font-weight:bold">=</span><span style="color:#d14"></span><span style="color:#d14">&#34;</span><span style="color:#d14">123456</span><span style="color:#d14">&#34;</span>, dbname<span style="color:#000;font-weight:bold">=</span><span style="color:#d14"></span><span style="color:#d14">&#34;</span><span style="color:#d14">LOCKER</span><span style="color:#d14">&#34;</span>):
+        <span style="color:#999">self</span><span style="color:#000;font-weight:bold">.</span>db <span style="color:#000;font-weight:bold">=</span> MySQLdb<span style="color:#000;font-weight:bold">.</span>connect(address, username, password, dbname, charset<span style="color:#000;font-weight:bold">=</span><span style="color:#d14"></span><span style="color:#d14">&#39;</span><span style="color:#d14">utf8</span><span style="color:#d14">&#39;</span>)
+        <span style="color:#999">self</span><span style="color:#000;font-weight:bold">.</span>cursor <span style="color:#000;font-weight:bold">=</span> <span style="color:#999">self</span><span style="color:#000;font-weight:bold">.</span>db<span style="color:#000;font-weight:bold">.</span>cursor()
         
-    def __enter__(self):
-        return self
+    <span style="color:#000;font-weight:bold">def</span> __enter__(<span style="color:#999">self</span>):
+        <span style="color:#000;font-weight:bold">return</span> <span style="color:#999">self</span>
         
-    def __exit__(self, exc_type, exc_value, tb):
-        self.db.close()
+    <span style="color:#000;font-weight:bold">def</span> __exit__(<span style="color:#999">self</span>, exc_type, exc_value, tb):
+        <span style="color:#999">self</span><span style="color:#000;font-weight:bold">.</span>db<span style="color:#000;font-weight:bold">.</span>close()
 
 
-class DBMutex:
-    def __init__(self, name=&quot;default&quot;):
-        self.name = name
-        self._locked = False 
+<span style="color:#000;font-weight:bold">class</span> <span style="color:#458;font-weight:bold">DBMutex</span>:
+    <span style="color:#000;font-weight:bold">def</span> __init__(<span style="color:#999">self</span>, name<span style="color:#000;font-weight:bold">=</span><span style="color:#d14"></span><span style="color:#d14">&#34;</span><span style="color:#d14">default</span><span style="color:#d14">&#34;</span>):
+        <span style="color:#999">self</span><span style="color:#000;font-weight:bold">.</span>name <span style="color:#000;font-weight:bold">=</span> name
+        <span style="color:#999">self</span><span style="color:#000;font-weight:bold">.</span>_locked <span style="color:#000;font-weight:bold">=</span> <span style="color:#999">False</span> 
         
-    def lock(self):
-        with Driver() as driver:
-            driver.cursor.execute(&quot;INSERT INTO dbmutex(name) VALUES ('{}');&quot;.format(self.name))
-            driver.db.commit()
-            self._locked = True
+    <span style="color:#000;font-weight:bold">def</span> <span style="color:#900;font-weight:bold">lock</span>(<span style="color:#999">self</span>):
+        <span style="color:#000;font-weight:bold">with</span> Driver() <span style="color:#000;font-weight:bold">as</span> driver:
+            driver<span style="color:#000;font-weight:bold">.</span>cursor<span style="color:#000;font-weight:bold">.</span>execute(<span style="color:#d14"></span><span style="color:#d14">&#34;</span><span style="color:#d14">INSERT INTO dbmutex(name) VALUES (</span><span style="color:#d14">&#39;</span><span style="color:#d14">{}</span><span style="color:#d14">&#39;</span><span style="color:#d14">);</span><span style="color:#d14">&#34;</span><span style="color:#000;font-weight:bold">.</span>format(<span style="color:#999">self</span><span style="color:#000;font-weight:bold">.</span>name))
+            driver<span style="color:#000;font-weight:bold">.</span>db<span style="color:#000;font-weight:bold">.</span>commit()
+            <span style="color:#999">self</span><span style="color:#000;font-weight:bold">.</span>_locked <span style="color:#000;font-weight:bold">=</span> <span style="color:#999">True</span>
     
-    def unlock(self):
-        if not self._locked:
-            raise SyntaxError(&quot;Can't unlock before lock!&quot;)
-        with Driver() as driver:
-            driver.cursor.execute(&quot;DELETE FROM dbmutex WHERE name='{}';&quot;.format(self.name))
-            driver.db.commit()
-            self._locked = False
-</code></pre>
-
-<p>这样，就实现了一个简单的基于MySQL的分布式锁。
+    <span style="color:#000;font-weight:bold">def</span> <span style="color:#900;font-weight:bold">unlock</span>(<span style="color:#999">self</span>):
+        <span style="color:#000;font-weight:bold">if</span> <span style="color:#000;font-weight:bold">not</span> <span style="color:#999">self</span><span style="color:#000;font-weight:bold">.</span>_locked:
+            <span style="color:#000;font-weight:bold">raise</span> <span style="color:#900;font-weight:bold">SyntaxError</span>(<span style="color:#d14"></span><span style="color:#d14">&#34;</span><span style="color:#d14">Can</span><span style="color:#d14">&#39;</span><span style="color:#d14">t unlock before lock!</span><span style="color:#d14">&#34;</span>)
+        <span style="color:#000;font-weight:bold">with</span> Driver() <span style="color:#000;font-weight:bold">as</span> driver:
+            driver<span style="color:#000;font-weight:bold">.</span>cursor<span style="color:#000;font-weight:bold">.</span>execute(<span style="color:#d14"></span><span style="color:#d14">&#34;</span><span style="color:#d14">DELETE FROM dbmutex WHERE name=</span><span style="color:#d14">&#39;</span><span style="color:#d14">{}</span><span style="color:#d14">&#39;</span><span style="color:#d14">;</span><span style="color:#d14">&#34;</span><span style="color:#000;font-weight:bold">.</span>format(<span style="color:#999">self</span><span style="color:#000;font-weight:bold">.</span>name))
+            driver<span style="color:#000;font-weight:bold">.</span>db<span style="color:#000;font-weight:bold">.</span>commit()
+            <span style="color:#999">self</span><span style="color:#000;font-weight:bold">.</span>_locked <span style="color:#000;font-weight:bold">=</span> <span style="color:#999">False</span>
+</code></pre></td></tr></table>
+</div>
+</div><p>这样，就实现了一个简单的基于MySQL的分布式锁。
 简单使用如下:</p>
-
-<pre><code class="language-python">mu = DBMutex()
-i = 0
-for i in range(10000):
-    mu.lock()
-    i += 1
-    mu.unlock()
-print(i)
-</code></pre>
-
-<p>这种方法有很大的缺陷:</p>
-
+<div class="highlight"><div style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">3
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">4
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">5
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">6
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">7
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-python" data-lang="python">mu <span style="color:#000;font-weight:bold">=</span> DBMutex()
+i <span style="color:#000;font-weight:bold">=</span> <span style="color:#099">0</span>
+<span style="color:#000;font-weight:bold">for</span> i <span style="color:#000;font-weight:bold">in</span> <span style="color:#0086b3">range</span>(<span style="color:#099">10000</span>):
+    mu<span style="color:#000;font-weight:bold">.</span>lock()
+    i <span style="color:#000;font-weight:bold">+</span><span style="color:#000;font-weight:bold">=</span> <span style="color:#099">1</span>
+    mu<span style="color:#000;font-weight:bold">.</span>unlock()
+<span style="color:#000;font-weight:bold">print</span>(i)
+</code></pre></td></tr></table>
+</div>
+</div><p>这种方法有很大的缺陷:</p>
 <ol>
 <li>IO时间过长，获取锁与释放锁的过程远不如从内存中获取快。</li>
 <li>锁没有失效时间，解锁失败会导致死锁，其他线程无法再获取到锁。</li>
 <li>只能是非阻塞锁，insert失败直接就报错了，无法进入队列进行重试。</li>
 <li>不可重入，同一线程在没有释放锁之前无法再获取到锁。</li>
 </ol>
-
-<h3 id="利用行级锁">利用行级锁</h3>
-
+<h3 id="heading-5">利用行级锁</h3>
 <p>利用for update加显式的行锁，这样就能利用这个行级的排他锁来实现分布式锁了，同时unlock的时候只要释放commit这个事务，就能达到释放锁的目的。</p>
-
 <p>同样的，实现的RowMutex类如下:</p>
-
-<pre><code class="language-python">class RowMutex:
-    def __init__(self, name=&quot;default&quot;):
-        self.name = name
-        self.__db = MySQLdb.connect(&quot;localhost&quot;, &quot;root&quot;, &quot;123456&quot;, &quot;test&quot;, charset='utf8')
-        self.__init_record()
+<div class="highlight"><div style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 5
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 6
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 7
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 8
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 9
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">10
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">11
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">12
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">13
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">14
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">15
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">16
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">17
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">18
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">19
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">20
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">21
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">22
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-python" data-lang="python"><span style="color:#000;font-weight:bold">class</span> <span style="color:#458;font-weight:bold">RowMutex</span>:
+    <span style="color:#000;font-weight:bold">def</span> __init__(<span style="color:#999">self</span>, name<span style="color:#000;font-weight:bold">=</span><span style="color:#d14"></span><span style="color:#d14">&#34;</span><span style="color:#d14">default</span><span style="color:#d14">&#34;</span>):
+        <span style="color:#999">self</span><span style="color:#000;font-weight:bold">.</span>name <span style="color:#000;font-weight:bold">=</span> name
+        <span style="color:#999">self</span><span style="color:#000;font-weight:bold">.</span>__db <span style="color:#000;font-weight:bold">=</span> MySQLdb<span style="color:#000;font-weight:bold">.</span>connect(<span style="color:#d14"></span><span style="color:#d14">&#34;</span><span style="color:#d14">localhost</span><span style="color:#d14">&#34;</span>, <span style="color:#d14"></span><span style="color:#d14">&#34;</span><span style="color:#d14">root</span><span style="color:#d14">&#34;</span>, <span style="color:#d14"></span><span style="color:#d14">&#34;</span><span style="color:#d14">123456</span><span style="color:#d14">&#34;</span>, <span style="color:#d14"></span><span style="color:#d14">&#34;</span><span style="color:#d14">test</span><span style="color:#d14">&#34;</span>, charset<span style="color:#000;font-weight:bold">=</span><span style="color:#d14"></span><span style="color:#d14">&#39;</span><span style="color:#d14">utf8</span><span style="color:#d14">&#39;</span>)
+        <span style="color:#999">self</span><span style="color:#000;font-weight:bold">.</span>__init_record()
         
-    def __init_record(self):
-        &quot;&quot;&quot;插入name=当前name的行数据&quot;&quot;&quot;
-        cursor = self.__db.cursor()
-        cursor.execute(&quot;SELECT name FROM mutex WHERE name='{}';&quot;.format(self.name))
-        if cursor.rowcount == 0:
-            cursor.execute(&quot;INSERT INTO mutex(name) VALUES('{}')&quot;.format(name))
-            self.__db.commit()
+    <span style="color:#000;font-weight:bold">def</span> <span style="color:#900;font-weight:bold">__init_record</span>(<span style="color:#999">self</span>):
+        <span style="color:#d14"></span><span style="color:#d14">&#34;&#34;&#34;</span><span style="color:#d14">插入name=当前name的行数据</span><span style="color:#d14">&#34;&#34;&#34;</span>
+        cursor <span style="color:#000;font-weight:bold">=</span> <span style="color:#999">self</span><span style="color:#000;font-weight:bold">.</span>__db<span style="color:#000;font-weight:bold">.</span>cursor()
+        cursor<span style="color:#000;font-weight:bold">.</span>execute(<span style="color:#d14"></span><span style="color:#d14">&#34;</span><span style="color:#d14">SELECT name FROM mutex WHERE name=</span><span style="color:#d14">&#39;</span><span style="color:#d14">{}</span><span style="color:#d14">&#39;</span><span style="color:#d14">;</span><span style="color:#d14">&#34;</span><span style="color:#000;font-weight:bold">.</span>format(<span style="color:#999">self</span><span style="color:#000;font-weight:bold">.</span>name))
+        <span style="color:#000;font-weight:bold">if</span> cursor<span style="color:#000;font-weight:bold">.</span>rowcount <span style="color:#000;font-weight:bold">==</span> <span style="color:#099">0</span>:
+            cursor<span style="color:#000;font-weight:bold">.</span>execute(<span style="color:#d14"></span><span style="color:#d14">&#34;</span><span style="color:#d14">INSERT INTO mutex(name) VALUES(</span><span style="color:#d14">&#39;</span><span style="color:#d14">{}</span><span style="color:#d14">&#39;</span><span style="color:#d14">)</span><span style="color:#d14">&#34;</span><span style="color:#000;font-weight:bold">.</span>format(name))
+            <span style="color:#999">self</span><span style="color:#000;font-weight:bold">.</span>__db<span style="color:#000;font-weight:bold">.</span>commit()
                 
-    def lock(self):
-        cursor = self.__db.cursor()
-        cursor.execute(&quot;SELECT name FROM mutex WHERE name='{}' FOR UPDATE;&quot;.format(self.name))
-        if cursor.rowcount == 0:
-            raise RuntimeError(&quot;Can't find locker named {}&quot;.format(self.name))
+    <span style="color:#000;font-weight:bold">def</span> <span style="color:#900;font-weight:bold">lock</span>(<span style="color:#999">self</span>):
+        cursor <span style="color:#000;font-weight:bold">=</span> <span style="color:#999">self</span><span style="color:#000;font-weight:bold">.</span>__db<span style="color:#000;font-weight:bold">.</span>cursor()
+        cursor<span style="color:#000;font-weight:bold">.</span>execute(<span style="color:#d14"></span><span style="color:#d14">&#34;</span><span style="color:#d14">SELECT name FROM mutex WHERE name=</span><span style="color:#d14">&#39;</span><span style="color:#d14">{}</span><span style="color:#d14">&#39;</span><span style="color:#d14"> FOR UPDATE;</span><span style="color:#d14">&#34;</span><span style="color:#000;font-weight:bold">.</span>format(<span style="color:#999">self</span><span style="color:#000;font-weight:bold">.</span>name))
+        <span style="color:#000;font-weight:bold">if</span> cursor<span style="color:#000;font-weight:bold">.</span>rowcount <span style="color:#000;font-weight:bold">==</span> <span style="color:#099">0</span>:
+            <span style="color:#000;font-weight:bold">raise</span> <span style="color:#900;font-weight:bold">RuntimeError</span>(<span style="color:#d14"></span><span style="color:#d14">&#34;</span><span style="color:#d14">Can</span><span style="color:#d14">&#39;</span><span style="color:#d14">t find locker named {}</span><span style="color:#d14">&#34;</span><span style="color:#000;font-weight:bold">.</span>format(<span style="color:#999">self</span><span style="color:#000;font-weight:bold">.</span>name))
     
-    def unlock(self):
-        self.__db.commit()
-</code></pre>
+    <span style="color:#000;font-weight:bold">def</span> <span style="color:#900;font-weight:bold">unlock</span>(<span style="color:#999">self</span>):
+        <span style="color:#999">self</span><span style="color:#000;font-weight:bold">.</span>__db<span style="color:#000;font-weight:bold">.</span>commit()
+</code></pre></td></tr></table>
+</div>
+</div><p>使用行锁的话，与上例相反，此时是一个阻塞锁，其他线程会持续等待获取锁，并且依旧有上述的1、2、4的缺点。同时，当线程数过多时，会存在连接池耗尽的风向。此外，当数据库解析未命中索引时，会使行锁升级为表锁，所以不建议使用此方案。</p>
 
-<p>使用行锁的话，与上例相反，此时是一个阻塞锁，其他线程会持续等待获取锁，并且依旧有上述的1、2、4的缺点。同时，当线程数过多时，会存在连接池耗尽的风向。此外，当数据库解析未命中索引时，会使行锁升级为表锁，所以不建议使用此方案。</p>
+        </div>
 
-                        </div>
+        
 
-                        
+
+        
 
 <div class="post-archive">
     <h2>See Also</h2>
@@ -242,26 +308,26 @@ print(i)
 </div>
 
 
-                        <div class="post-meta meta-tags">
-                            
-                            <ul class="clearfix">
-                                
-                                <li><a href="https://xiongsyao.github.io/tags/%E9%94%81">锁</a></li>
-                                
-                                <li><a href="https://xiongsyao.github.io/tags/%E5%88%86%E5%B8%83%E5%BC%8F">分布式</a></li>
-                                
-                            </ul>
-                            
-                        </div>
-                    </article>
-                    
+        <div class="post-meta meta-tags">
+            
+            <ul class="clearfix">
+                
+                <li><a href='https://xsymphony.github.io/tags/%E9%94%81'>锁</a></li>
+                
+                <li><a href='https://xsymphony.github.io/tags/%E5%88%86%E5%B8%83%E5%BC%8F'>分布式</a></li>
+                
+            </ul>
+            
+        </div>
+    </article>
+    
     
 
     
     
     <div class="post bg-white">
       <script src="https://utteranc.es/client.js"
-            repo= "xiongsyao/comments"
+            repo= "xsymphony/comments"
             issue-term="pathname"
             theme="github-light"
             crossorigin="anonymous"
@@ -269,14 +335,16 @@ print(i)
       </script>
     </div>
     
+</div>
+
                 </div>
-            </div>
-            <div id="secondary">
+
+                <div id="secondary">
     <section class="widget">
-        <form id="search" action="//www.google.com/search" method="get" accept-charset="utf-8" target="_blank" _lpchecked="1">
+        <form id="search" action='//www.google.com/search' method="get" accept-charset="utf-8" target="_blank" _lpchecked="1">
       
       <input type="text" name="q" maxlength="20" placeholder="Search">
-      <input type="hidden" name="sitesearch" value="https://xiongsyao.github.io/">
+      <input type="hidden" name="sitesearch" value="https://xsymphony.github.io/">
       <button type="submit" class="submit icon-search"></button>
 </form>
     </section>
@@ -286,43 +354,43 @@ print(i)
 <ul class="widget-list">
     
     <li>
-        <a href="https://xiongsyao.github.io/post/2019/02/27/%E6%BC%AB%E8%B0%88%E5%88%86%E5%B8%83%E5%BC%8F%E9%94%81%E4%B8%89/" title="漫谈分布式锁（三）">漫谈分布式锁（三）</a>
+        <a href="https://xsymphony.github.io/post/2019/02/27/%E6%BC%AB%E8%B0%88%E5%88%86%E5%B8%83%E5%BC%8F%E9%94%81%E4%B8%89/" title="漫谈分布式锁（三）">漫谈分布式锁（三）</a>
     </li>
     
     <li>
-        <a href="https://xiongsyao.github.io/post/2019/02/25/%E6%BC%AB%E8%B0%88%E5%88%86%E5%B8%83%E5%BC%8F%E9%94%81%E4%BA%8C/" title="漫谈分布式锁（二）">漫谈分布式锁（二）</a>
+        <a href="https://xsymphony.github.io/post/2019/02/25/%E6%BC%AB%E8%B0%88%E5%88%86%E5%B8%83%E5%BC%8F%E9%94%81%E4%BA%8C/" title="漫谈分布式锁（二）">漫谈分布式锁（二）</a>
     </li>
     
     <li>
-        <a href="https://xiongsyao.github.io/post/2019/02/21/%E6%BC%AB%E8%B0%88%E5%88%86%E5%B8%83%E5%BC%8F%E9%94%81%E4%B8%80/" title="漫谈分布式锁（一）">漫谈分布式锁（一）</a>
+        <a href="https://xsymphony.github.io/post/2019/02/21/%E6%BC%AB%E8%B0%88%E5%88%86%E5%B8%83%E5%BC%8F%E9%94%81%E4%B8%80/" title="漫谈分布式锁（一）">漫谈分布式锁（一）</a>
     </li>
     
     <li>
-        <a href="https://xiongsyao.github.io/post/2019/02/13/Redis%E6%8C%81%E4%B9%85%E5%8C%96/" title="Redis持久化">Redis持久化</a>
+        <a href="https://xsymphony.github.io/post/2019/02/13/Redis%E6%8C%81%E4%B9%85%E5%8C%96/" title="Redis持久化">Redis持久化</a>
     </li>
     
     <li>
-        <a href="https://xiongsyao.github.io/post/2019/01/02/%E8%A7%A3%E8%AF%BBredis%E5%8D%8F%E8%AE%AE/" title="解读redis协议">解读redis协议</a>
+        <a href="https://xsymphony.github.io/post/2019/01/02/%E8%A7%A3%E8%AF%BBredis%E5%8D%8F%E8%AE%AE/" title="解读redis协议">解读redis协议</a>
     </li>
     
     <li>
-        <a href="https://xiongsyao.github.io/post/2018/12/28/%E8%B0%88%E8%B0%88golang%E4%B8%AD%E7%9A%84%E9%94%81/" title="谈谈golang中的锁">谈谈golang中的锁</a>
+        <a href="https://xsymphony.github.io/post/2018/12/28/%E8%B0%88%E8%B0%88golang%E4%B8%AD%E7%9A%84%E9%94%81/" title="谈谈golang中的锁">谈谈golang中的锁</a>
     </li>
     
     <li>
-        <a href="https://xiongsyao.github.io/post/2018/12/17/LeetCode150%E9%80%86%E6%B3%A2%E5%85%B0%E8%A1%A8%E8%BE%BE%E5%BC%8F%E6%B1%82%E5%80%BC/" title="[LeetCode]150:逆波兰表达式求值">[LeetCode]150:逆波兰表达式求值</a>
+        <a href="https://xsymphony.github.io/post/2018/12/17/LeetCode150%E9%80%86%E6%B3%A2%E5%85%B0%E8%A1%A8%E8%BE%BE%E5%BC%8F%E6%B1%82%E5%80%BC/" title="[LeetCode]150:逆波兰表达式求值">[LeetCode]150:逆波兰表达式求值</a>
     </li>
     
     <li>
-        <a href="https://xiongsyao.github.io/post/2018/03/7/%E5%8A%A8%E6%80%81%E5%8A%A0%E8%BD%BDDjango%E7%9A%84config%E9%85%8D%E7%BD%AE/" title="动态加载Django的config配置">动态加载Django的config配置</a>
+        <a href="https://xsymphony.github.io/post/2018/01/25/%E4%BB%8E0%E5%BC%80%E5%A7%8B%E7%9A%84JS%E4%B9%8B%E6%97%85%E4%B8%89DOM%E6%93%8D%E4%BD%9C%E5%9F%BA%E7%A1%80/" title="从0开始的JS之旅（三）：DOM操作基础">从0开始的JS之旅（三）：DOM操作基础</a>
     </li>
     
     <li>
-        <a href="https://xiongsyao.github.io/post/2018/01/25/%E4%BB%8E0%E5%BC%80%E5%A7%8B%E7%9A%84JS%E4%B9%8B%E6%97%85%E4%B8%89DOM%E6%93%8D%E4%BD%9C%E5%9F%BA%E7%A1%80/" title="从0开始的JS之旅（三）：DOM操作基础">从0开始的JS之旅（三）：DOM操作基础</a>
+        <a href="https://xsymphony.github.io/post/2018/01/25/%E4%BB%8E0%E5%BC%80%E5%A7%8B%E7%9A%84JS%E4%B9%8B%E6%97%85%E4%BA%8C%E9%9D%A2%E5%90%91%E5%AF%B9%E8%B1%A1%E7%BC%96%E7%A8%8B/" title="从0开始的JS之旅（二）：面向对象编程">从0开始的JS之旅（二）：面向对象编程</a>
     </li>
     
     <li>
-        <a href="https://xiongsyao.github.io/post/2018/01/25/%E4%BB%8E0%E5%BC%80%E5%A7%8B%E7%9A%84JS%E4%B9%8B%E6%97%85%E4%BA%8C%E9%9D%A2%E5%90%91%E5%AF%B9%E8%B1%A1%E7%BC%96%E7%A8%8B/" title="从0开始的JS之旅（二）：面向对象编程">从0开始的JS之旅（二）：面向对象编程</a>
+        <a href="https://xsymphony.github.io/post/2018/01/25/%E4%BB%8E0%E5%BC%80%E5%A7%8B%E7%9A%84JS%E4%B9%8B%E6%97%85%E4%B8%80%E6%95%B0%E6%8D%AE%E7%B1%BB%E5%9E%8B%E6%B5%81%E7%A8%8B%E8%AF%AD%E5%8F%A5%E5%8F%8A%E5%87%BD%E6%95%B0/" title="从0开始的JS之旅（一）：数据类型，流程语句及函数">从0开始的JS之旅（一）：数据类型，流程语句及函数</a>
     </li>
     
 </ul>
@@ -334,29 +402,15 @@ print(i)
         <h3 class="widget-title">分类</h3>
 <ul class="widget-list">
     
-    <li>
-        <a href="https://xiongsyao.github.io/categories/Django/">Django(1)</a>
-    </li>
+    <li><a href="https://xsymphony.github.io/categories/JavaScript/">JavaScript (3)</a></li>
     
-    <li>
-        <a href="https://xiongsyao.github.io/categories/JavaScript/">JavaScript(3)</a>
-    </li>
+    <li><a href="https://xsymphony.github.io/categories/Redis/">Redis (2)</a></li>
     
-    <li>
-        <a href="https://xiongsyao.github.io/categories/Redis/">Redis(2)</a>
-    </li>
+    <li><a href="https://xsymphony.github.io/categories/golang/">golang (1)</a></li>
     
-    <li>
-        <a href="https://xiongsyao.github.io/categories/golang/">golang(1)</a>
-    </li>
+    <li><a href="https://xsymphony.github.io/categories/leetcode/">leetcode (1)</a></li>
     
-    <li>
-        <a href="https://xiongsyao.github.io/categories/leetcode/">leetcode(1)</a>
-    </li>
-    
-    <li>
-        <a href="https://xiongsyao.github.io/categories/%E5%88%86%E5%B8%83%E5%BC%8F/">分布式(3)</a>
-    </li>
+    <li><a href="https://xsymphony.github.io/categories/%E5%88%86%E5%B8%83%E5%BC%8F/">分布式 (3)</a></li>
     
 </ul>
     </section>
@@ -365,29 +419,27 @@ print(i)
         <h3 class="widget-title">标签</h3>
 <div class="tagcloud">
     
-    <a href="https://xiongsyao.github.io/tags/Django/">Django</a>
+    <a href="https://xsymphony.github.io/tags/JavaScript/">JavaScript</a>
     
-    <a href="https://xiongsyao.github.io/tags/JavaScript/">JavaScript</a>
+    <a href="https://xsymphony.github.io/tags/JavaScript%E5%9F%BA%E7%A1%80%E6%95%99%E7%A8%8B/">JavaScript基础教程</a>
     
-    <a href="https://xiongsyao.github.io/tags/JavaScript%E5%9F%BA%E7%A1%80%E6%95%99%E7%A8%8B/">JavaScript基础教程</a>
+    <a href="https://xsymphony.github.io/tags/Redis/">Redis</a>
     
-    <a href="https://xiongsyao.github.io/tags/Redis/">Redis</a>
+    <a href="https://xsymphony.github.io/tags/Zookeeper/">Zookeeper</a>
     
-    <a href="https://xiongsyao.github.io/tags/Zookeeper/">Zookeeper</a>
+    <a href="https://xsymphony.github.io/tags/golang/">golang</a>
     
-    <a href="https://xiongsyao.github.io/tags/golang/">golang</a>
+    <a href="https://xsymphony.github.io/tags/leetcode/">leetcode</a>
     
-    <a href="https://xiongsyao.github.io/tags/leetcode/">leetcode</a>
+    <a href="https://xsymphony.github.io/tags/stack/">stack</a>
     
-    <a href="https://xiongsyao.github.io/tags/stack/">stack</a>
+    <a href="https://xsymphony.github.io/tags/%E5%88%86%E5%B8%83%E5%BC%8F/">分布式</a>
     
-    <a href="https://xiongsyao.github.io/tags/%E5%88%86%E5%B8%83%E5%BC%8F/">分布式</a>
+    <a href="https://xsymphony.github.io/tags/%E5%8D%8F%E8%AE%AE/">协议</a>
     
-    <a href="https://xiongsyao.github.io/tags/%E5%8D%8F%E8%AE%AE/">协议</a>
+    <a href="https://xsymphony.github.io/tags/%E5%B9%B6%E5%8F%91/">并发</a>
     
-    <a href="https://xiongsyao.github.io/tags/%E5%B9%B6%E5%8F%91/">并发</a>
-    
-    <a href="https://xiongsyao.github.io/tags/%E9%94%81/">锁</a>
+    <a href="https://xsymphony.github.io/tags/%E9%94%81/">锁</a>
     
 </div>
     </section>
@@ -397,41 +449,37 @@ print(i)
     <section class="widget">
         <h3 class="widget-title">其它</h3>
         <ul class="widget-list">
-            <li><a href="https://xiongsyao.github.io/index.xml">文章 RSS</a></li>
+            <li><a href="https://xsymphony.github.io/index.xml">文章 RSS</a></li>
         </ul>
     </section>
 </div>
+            </div>
         </div>
     </div>
-</div>
-<footer id="footer">
+    <footer id="footer">
     <div class="container">
-        &copy; 2018 <a href="https://xiongsyao.github.io/">Matrix By matrix</a>.
+        &copy; 2019 <a href="https://xsymphony.github.io/">Matrix By matrix</a>.
         Powered by <a rel="nofollow noreferer noopener" href="https://gohugo.io" target="_blank">Hugo</a>.
-        <a href="http://www.flysnow.org/" target="_blank">Theme</a> based on <a href="https://github.com/rujews/maupassant-hugo" target="_blank">maupassant</a>.
+        <a href="https://www.flysnow.org/" target="_blank">Theme</a> based on <a href="https://github.com/flysnow-org/maupassant-hugo" target="_blank">maupassant</a>.
         
     </div>
 </footer>
 
 
-    <script type="text/javascript">
     
-    (function(){
-        $("pre code").parent().addClass("line-numbers")
-    }())
-
-    window.MathJax = {
-        tex2jax: {
-            inlineMath: [ ['$','$'] ],
-            processEscapes: true
-        }
-    };
+    <script type="text/javascript">
+        window.MathJax = {
+            tex2jax: {
+                inlineMath: [['$', '$']],
+                processEscapes: true
+                }
+            };
     </script>
-    <script type="text/javascript" src="/js/prism.js" async="true"></script>
     <script src='https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-MML-AM_CHTML' async></script>
 
+
 <a id="rocket" href="#top"></a>
-<script type="text/javascript" src="/js/totop.js?v=0.0.0" async=""></script>
+<script type="text/javascript" src='/js/totop.js?v=0.0.0' async=""></script>
 
 
 
@@ -439,4 +487,5 @@ print(i)
 
 
 </body>
+
 </html>

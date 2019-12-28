@@ -3,7 +3,6 @@
 <head>
 
     <meta charset="utf-8">
-    <meta name="generator" content="Hugo 0.52" />
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
 
@@ -11,24 +10,21 @@
     <meta property="og:title" content="漫谈分布式锁（二） - Matrix">
     <meta property="og:type" content="article">
         
-    <meta property="article:published_time" content="2019-02-25T17:20:58&#43;08:00">
+    <meta property="article:published_time" content='2019-02-25T17:20:58&#43;08:00'>
         
         
-    <meta property="article:modified_time" content="2019-02-25T17:20:58&#43;08:00">
+    <meta property="article:modified_time" content='2019-02-25T17:20:58&#43;08:00'>
         
     <meta name="Keywords" content="golang,python">
     <meta name="description" content="漫谈分布式锁（二）">
         
     <meta name="author" content="matrix">
-    <meta property="og:url" content="https://xiongsyao.github.io/post/2019/02/25/%E6%BC%AB%E8%B0%88%E5%88%86%E5%B8%83%E5%BC%8F%E9%94%81%E4%BA%8C/">
+    <meta property="og:url" content="https://xsymphony.github.io/post/2019/02/25/%E6%BC%AB%E8%B0%88%E5%88%86%E5%B8%83%E5%BC%8F%E9%94%81%E4%BA%8C/">
     <link rel="shortcut icon" href="/favicon.ico" type="image/x-icon">
 
-    <link rel="stylesheet" href="/css/normalize.css">
-    
-        <link rel="stylesheet" href="/css/prism.css">
-    
-    <link rel="stylesheet" href="/css/style.css">
-    <script type="text/javascript" src="//cdn.bootcss.com/jquery/3.2.1/jquery.min.js"></script>
+    <link rel="stylesheet" href='/css/normalize.css'>
+    <link rel="stylesheet" href='/css/style.css'>
+    <script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
 
     
 
@@ -37,13 +33,14 @@
     
 </head>
 
+
 <body>
-<header id="header" class="clearfix">
+    <header id="header" class="clearfix">
     <div class="container">
         <div class="col-group">
             <div class="site-name ">
                 
-                    <a id="logo" href="https://xiongsyao.github.io/">
+                    <a id="logo" href="https://xsymphony.github.io/">
                         Matrix
                     </a>
                 
@@ -51,11 +48,11 @@
             </div>
             <div>
                 <nav id="nav-menu" class="clearfix">
-                    <a class="current" href="https://xiongsyao.github.io/">首页</a>
+                    <a class="current" href="https://xsymphony.github.io/">首页</a>
                     
-                    <a  href="https://xiongsyao.github.io/archives/" title="归档">归档</a>
+                    <a  href="https://xsymphony.github.io/archives/" title="归档">归档</a>
                     
-                    <a  href="https://xiongsyao.github.io/about/" title="关于">关于</a>
+                    <a  href="https://xsymphony.github.io/about/" title="关于">关于</a>
                     
                 </nav>
             </div>
@@ -63,140 +60,189 @@
     </div>
 </header>
 
+    <div id="body">
+        <div class="container">
+            <div class="col-group">
 
-<div id="body">
-    <div class="container">
-        <div class="col-group">
-
-            <div class="col-8" id="main">
-                <div class="res-cons">
-                    <article class="post">
-                        <header>
-                            <h1 class="post-title">漫谈分布式锁（二）</h1>
-                        </header>
-                        <date class="post-meta meta-date">
-                            2019年2月25日
-                        </date>
-                        
-                        <div class="post-meta meta-category">
-                            |
-                            
-                                <a href="https://xiongsyao.github.io/categories/%E5%88%86%E5%B8%83%E5%BC%8F">分布式</a>
-                            
-                        </div>
-                        
-                        
-                        <div class="post-content">
-                            
-
-<h2 id="回顾">回顾</h2>
-
+                <div class="col-8" id="main">
+                    
+<div class="res-cons">
+    
+    <article class="post">
+        <header>
+            <h1 class="post-title">漫谈分布式锁（二）</h1>
+        </header>
+        <date class="post-meta meta-date">
+            2019年2月25日
+        </date>
+        
+        <div class="post-meta">
+            <span>|</span>
+            
+            <span class="meta-category"><a href='https://xsymphony.github.io/categories/%E5%88%86%E5%B8%83%E5%BC%8F'>分布式</a></span>
+            
+        </div>
+        
+        
+        
+        <div class="post-content">
+            <h2 id="heading">回顾</h2>
 <p>在上一节中，我们利用MySQL实现了一个简单的分布式锁，但是，这样实现的分布式锁存在以下缺点：</p>
-
 <ol>
 <li>IO时间过长，获取锁与释放锁的过程远不如从内存中获取快。</li>
 <li>锁没有失效时间，解锁失败会导致死锁，其他线程无法再获取到锁。</li>
 <li>只能是阻塞锁或非阻塞锁。</li>
 <li>不可重入，同一线程在没有释放锁之前无法再获取到锁。</li>
 </ol>
-
 <p>这一节，我们尝试用Redis实现，看看是否能解决上述问题。</p>
-
-<h2 id="单机实现">单机实现</h2>
-
+<h2 id="heading-1">单机实现</h2>
 <p>类比MySQL的方案1，我们可以快速给出一个粗糙的思路：</p>
-
 <p>在Redis中只需要在加锁时设置(setnx, set if not exists)一个唯一的key，并且值也为特殊生成的uuid，更具setnx的特性，假如这个key已存在，则加锁失败，不存在，则枷锁成功。同时，针对MySQL加锁的问题2，我们可以利用expire为这个key主动设置失效时间。释放锁时，通过比较<code>GET key</code>的值与线程的锁的uuid是否一致，如果相等，则说明是同一把锁，通过<code>delete</code>就可以删除这把锁，不一致，就表示可能业务逻辑超时或者网络延迟，导致锁已经失效，此时不做任何处理，防止影响其他线程正常使用锁。</p>
-
 <p>假如我们需要占用一把名为Rlocker的锁，用Redis命令表示出来为:</p>
+<div class="highlight"><div style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">3
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">4
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">5
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">6
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-sh" data-lang="sh">&gt; SETNX Rlocker uuid  <span style="color:#998;font-style:italic"># 加锁：SETNX仅当key不存在时，才会设置成功，返回1， 否则返回0</span>
+<span style="color:#000;font-weight:bold">(</span>integer<span style="color:#000;font-weight:bold">)</span> <span style="color:#099">1</span>
+&gt; EXPIRE Rlocker <span style="color:#099">1</span>    <span style="color:#998;font-style:italic"># 设置失效时间: EXPIRE设置当前key失效时间，单位为秒，PEXPIRE单位为毫秒</span>
+<span style="color:#000;font-weight:bold">(</span>integer<span style="color:#000;font-weight:bold">)</span> <span style="color:#099">1</span>
+&gt; DEL Rlocker         <span style="color:#998;font-style:italic"># 释放锁</span>
+<span style="color:#000;font-weight:bold">(</span>integer<span style="color:#000;font-weight:bold">)</span> <span style="color:#099">0</span>
+</code></pre></td></tr></table>
+</div>
+</div><p>实现一个简单的ReMutex类:</p>
+<div class="highlight"><div style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 5
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 6
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 7
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 8
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 9
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">10
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">11
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">12
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">13
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">14
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">15
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">16
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">17
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">18
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">19
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">20
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-python" data-lang="python"><span style="color:#000;font-weight:bold">import</span> <span style="color:#555">uuid</span>
+<span style="color:#000;font-weight:bold">import</span> <span style="color:#555">redis</span>
 
-<pre><code class="language-sh">&gt; SETNX Rlocker uuid  # 加锁：SETNX仅当key不存在时，才会设置成功，返回1， 否则返回0
-(integer) 1
-&gt; EXPIRE Rlocker 1    # 设置失效时间: EXPIRE设置当前key失效时间，单位为秒，PEXPIRE单位为毫秒
-(integer) 1
-&gt; DEL Rlocker         # 释放锁
-(integer) 0
-</code></pre>
+r <span style="color:#000;font-weight:bold">=</span> redis<span style="color:#000;font-weight:bold">.</span>Redis(host<span style="color:#000;font-weight:bold">=</span><span style="color:#d14"></span><span style="color:#d14">&#34;</span><span style="color:#d14">localhost</span><span style="color:#d14">&#34;</span>, port<span style="color:#000;font-weight:bold">=</span><span style="color:#099">6379</span>, db<span style="color:#000;font-weight:bold">=</span><span style="color:#099">0</span>)
 
-<p>实现一个简单的ReMutex类:</p>
+<span style="color:#000;font-weight:bold">class</span> <span style="color:#458;font-weight:bold">ReMutex</span>:
+    <span style="color:#000;font-weight:bold">def</span> __init__(<span style="color:#999">self</span>, name, pexpire<span style="color:#000;font-weight:bold">=</span><span style="color:#099">500</span>):
+        <span style="color:#999">self</span><span style="color:#000;font-weight:bold">.</span>name <span style="color:#000;font-weight:bold">=</span> name
+        <span style="color:#999">self</span><span style="color:#000;font-weight:bold">.</span>_key <span style="color:#000;font-weight:bold">=</span> <span style="color:#d14"></span><span style="color:#d14">&#34;</span><span style="color:#d14">re:locker:{}</span><span style="color:#d14">&#34;</span><span style="color:#000;font-weight:bold">.</span>format(name)
+        <span style="color:#999">self</span><span style="color:#000;font-weight:bold">.</span>_uuid <span style="color:#000;font-weight:bold">=</span> <span style="color:#0086b3">str</span>(uuid<span style="color:#000;font-weight:bold">.</span>uuid1())  <span style="color:#998;font-style:italic"># 这里最好替换成其他的id生成算法</span>
+        <span style="color:#999">self</span><span style="color:#000;font-weight:bold">.</span>_pexpire <span style="color:#000;font-weight:bold">=</span> pexpire
 
-<pre><code class="language-python">import uuid
-import redis
+    <span style="color:#000;font-weight:bold">def</span> <span style="color:#900;font-weight:bold">lock</span>(<span style="color:#999">self</span>):
+        <span style="color:#000;font-weight:bold">if</span> r<span style="color:#000;font-weight:bold">.</span>setnx(<span style="color:#999">self</span><span style="color:#000;font-weight:bold">.</span>_key, <span style="color:#999">self</span><span style="color:#000;font-weight:bold">.</span>_uuid):
+            r<span style="color:#000;font-weight:bold">.</span>pexpire(<span style="color:#999">self</span><span style="color:#000;font-weight:bold">.</span>_key, <span style="color:#999">self</span><span style="color:#000;font-weight:bold">.</span>_pexpire)
+        <span style="color:#000;font-weight:bold">raise</span> <span style="color:#900;font-weight:bold">Exception</span>(<span style="color:#d14"></span><span style="color:#d14">&#34;</span><span style="color:#d14">Locker is used by other one!</span><span style="color:#d14">&#34;</span>)
 
-r = redis.Redis(host=&quot;localhost&quot;, port=6379, db=0)
-
-class ReMutex:
-    def __init__(self, name, pexpire=500):
-        self.name = name
-        self._key = &quot;re:locker:{}&quot;.format(name)
-        self._uuid = str(uuid.uuid1())  # 这里最好替换成其他的id生成算法
-        self._pexpire = pexpire
-
-    def lock(self):
-        if r.setnx(self._key, self._uuid):
-            r.pexpire(self._key, self._pexpire)
-        raise Exception(&quot;Locker is used by other one!&quot;)
-
-    def unlock(self):
-        if r.get(self._key) == self._uuid:
-            r.delete(self._key)
-</code></pre>
-
-<p>仔细思考一下，这样的代码真的正确吗？假如在<code>SETNX</code>后客户端异常，导致没有发出<code>EXPIRE</code>命令，会形成死锁；亦或是<code>GET</code>请求后，恰好key过期，另一个线程获取了锁，错误的删除了另一个线程持有的锁。归根结底，这样的代码是没办法保证原子性的。</p>
-
+    <span style="color:#000;font-weight:bold">def</span> <span style="color:#900;font-weight:bold">unlock</span>(<span style="color:#999">self</span>):
+        <span style="color:#000;font-weight:bold">if</span> r<span style="color:#000;font-weight:bold">.</span>get(<span style="color:#999">self</span><span style="color:#000;font-weight:bold">.</span>_key) <span style="color:#000;font-weight:bold">==</span> <span style="color:#999">self</span><span style="color:#000;font-weight:bold">.</span>_uuid:
+            r<span style="color:#000;font-weight:bold">.</span>delete(<span style="color:#999">self</span><span style="color:#000;font-weight:bold">.</span>_key)
+</code></pre></td></tr></table>
+</div>
+</div><p>仔细思考一下，这样的代码真的正确吗？假如在<code>SETNX</code>后客户端异常，导致没有发出<code>EXPIRE</code>命令，会形成死锁；亦或是<code>GET</code>请求后，恰好key过期，另一个线程获取了锁，错误的删除了另一个线程持有的锁。归根结底，这样的代码是没办法保证原子性的。</p>
 <p>首先，我们需要整合<code>SETNX</code>与<code>EXPIRE</code>命令。</p>
-
 <p>这个很好解决，采用Redis2.6.12版本后提供的set，它提供了一系列选项</p>
-
 <ul>
 <li>EX seconds - 设置key的过期时间，单位为秒</li>
 <li>PX milliseconds - 设置ke的过期时间，单位为毫秒</li>
 <li>NX - 只有key不存在时才设置key的值</li>
 <li>XX - 只有key存在时才设置key的值</li>
 </ul>
-
 <p>上述的步骤可以整合成一个原子性的命令:<code>SET Rlocker uuid EX 1 NX</code>。</p>
-
 <p>其次，<code>GET</code>的值判断与<code>DELETE</code>我们可以借助<code>lua</code>整合成一个命令，确保其原子性。</p>
+<div class="highlight"><div style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">3
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">4
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">5
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-lua" data-lang="lua"><span style="color:#000;font-weight:bold">if</span> redis.call(<span style="color:#d14">&#39;</span><span style="color:#d14">get</span><span style="color:#d14">&#39;</span>, KEYS[<span style="color:#099">1</span>]) <span style="color:#000;font-weight:bold">==</span> ARGV[<span style="color:#099">1</span>] <span style="color:#000;font-weight:bold">then</span> 
+    <span style="color:#000;font-weight:bold">return</span> redis.call(<span style="color:#d14">&#39;</span><span style="color:#d14">del</span><span style="color:#d14">&#39;</span>, KEYS[<span style="color:#099">1</span>]) 
+<span style="color:#000;font-weight:bold">else</span> 
+    <span style="color:#000;font-weight:bold">return</span> <span style="color:#099">0</span> 
+<span style="color:#000;font-weight:bold">end</span>
+</code></pre></td></tr></table>
+</div>
+</div><p>这样，修改后的ReMutex类为:</p>
+<div class="highlight"><div style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 5
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 6
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 7
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 8
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 9
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">10
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">11
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">12
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">13
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">14
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">15
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">16
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">17
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">18
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">19
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">20
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">21
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-python" data-lang="python"><span style="color:#000;font-weight:bold">class</span> <span style="color:#458;font-weight:bold">ReMutex</span>:
+    <span style="color:#000;font-weight:bold">def</span> __init__(<span style="color:#999">self</span>, name, pexpire<span style="color:#000;font-weight:bold">=</span><span style="color:#099">500</span>):
+        <span style="color:#999">self</span><span style="color:#000;font-weight:bold">.</span>name <span style="color:#000;font-weight:bold">=</span> name
+        <span style="color:#999">self</span><span style="color:#000;font-weight:bold">.</span>_key <span style="color:#000;font-weight:bold">=</span> <span style="color:#d14"></span><span style="color:#d14">&#34;</span><span style="color:#d14">re:locker:{}</span><span style="color:#d14">&#34;</span><span style="color:#000;font-weight:bold">.</span>format(name)
+        <span style="color:#999">self</span><span style="color:#000;font-weight:bold">.</span>_uuid <span style="color:#000;font-weight:bold">=</span> <span style="color:#0086b3">str</span>(uuid<span style="color:#000;font-weight:bold">.</span>uuid1())  <span style="color:#998;font-style:italic"># 这里最好替换成其他的id生成算法</span>
+        <span style="color:#999">self</span><span style="color:#000;font-weight:bold">.</span>_pexpire <span style="color:#000;font-weight:bold">=</span> pexpire
 
-<pre><code class="language-lua">if redis.call('get', KEYS[1]) == ARGV[1] then 
-    return redis.call('del', KEYS[1]) 
-else 
-    return 0 
-end
-</code></pre>
+    <span style="color:#000;font-weight:bold">def</span> <span style="color:#900;font-weight:bold">lock</span>(<span style="color:#999">self</span>):
+        <span style="color:#000;font-weight:bold">if</span> <span style="color:#000;font-weight:bold">not</span> r<span style="color:#000;font-weight:bold">.</span>set(<span style="color:#999">self</span><span style="color:#000;font-weight:bold">.</span>_key, <span style="color:#999">self</span><span style="color:#000;font-weight:bold">.</span>_uuid, px<span style="color:#000;font-weight:bold">=</span><span style="color:#999">self</span><span style="color:#000;font-weight:bold">.</span>_pexpire, nx<span style="color:#000;font-weight:bold">=</span><span style="color:#999">True</span>):
+            <span style="color:#000;font-weight:bold">raise</span> <span style="color:#900;font-weight:bold">Exception</span>(<span style="color:#d14"></span><span style="color:#d14">&#34;</span><span style="color:#d14">Locker is used by other one!</span><span style="color:#d14">&#34;</span>)
 
-<p>这样，修改后的ReMutex类为:</p>
-
-<pre><code class="language-python">class ReMutex:
-    def __init__(self, name, pexpire=500):
-        self.name = name
-        self._key = &quot;re:locker:{}&quot;.format(name)
-        self._uuid = str(uuid.uuid1())  # 这里最好替换成其他的id生成算法
-        self._pexpire = pexpire
-
-    def lock(self):
-        if not r.set(self._key, self._uuid, px=self._pexpire, nx=True):
-            raise Exception(&quot;Locker is used by other one!&quot;)
-
-    def unlock(self):
-        slua = &quot;&quot;&quot;
-        if redis.call('get', KEYS[1]) == ARGV[1] then 
-            return redis.call('del', KEYS[1]) 
-        else 
-            return 0 
-        end
-        &quot;&quot;&quot;
-        get_then_delete = r.register_script(slua)
-        return get_then_delete(keys=[self._key], args=[self._uuid])
-</code></pre>
-
-<p>新的ReMutex加锁与解锁的操作都具备原子性。这样的一个实例，解决了使用MySQL的前两个问题。为了能够获取锁失败后继续等待，我们也可以通过while实现一个自旋锁。</p>
-
-<h2 id="redlock算法">RedLock算法</h2>
-
+    <span style="color:#000;font-weight:bold">def</span> <span style="color:#900;font-weight:bold">unlock</span>(<span style="color:#999">self</span>):
+        slua <span style="color:#000;font-weight:bold">=</span> <span style="color:#d14"></span><span style="color:#d14">&#34;&#34;&#34;</span><span style="color:#d14">
+</span><span style="color:#d14"></span><span style="color:#d14">        if redis.call(</span><span style="color:#d14">&#39;</span><span style="color:#d14">get</span><span style="color:#d14">&#39;</span><span style="color:#d14">, KEYS[1]) == ARGV[1] then </span><span style="color:#d14">
+</span><span style="color:#d14"></span><span style="color:#d14">            return redis.call(</span><span style="color:#d14">&#39;</span><span style="color:#d14">del</span><span style="color:#d14">&#39;</span><span style="color:#d14">, KEYS[1]) </span><span style="color:#d14">
+</span><span style="color:#d14"></span><span style="color:#d14">        else </span><span style="color:#d14">
+</span><span style="color:#d14"></span><span style="color:#d14">            return 0 </span><span style="color:#d14">
+</span><span style="color:#d14"></span><span style="color:#d14">        end</span><span style="color:#d14">
+</span><span style="color:#d14"></span><span style="color:#d14">        </span><span style="color:#d14">&#34;&#34;&#34;</span>
+        get_then_delete <span style="color:#000;font-weight:bold">=</span> r<span style="color:#000;font-weight:bold">.</span>register_script(slua)
+        <span style="color:#000;font-weight:bold">return</span> get_then_delete(keys<span style="color:#000;font-weight:bold">=</span>[<span style="color:#999">self</span><span style="color:#000;font-weight:bold">.</span>_key], args<span style="color:#000;font-weight:bold">=</span>[<span style="color:#999">self</span><span style="color:#000;font-weight:bold">.</span>_uuid])
+</code></pre></td></tr></table>
+</div>
+</div><p>新的ReMutex加锁与解锁的操作都具备原子性。这样的一个实例，解决了使用MySQL的前两个问题。为了能够获取锁失败后继续等待，我们也可以通过while实现一个自旋锁。</p>
+<h2 id="redlock">RedLock算法</h2>
 <p>RedLock算法是Redis作者推荐的一种分布式锁算法。这里我们仅介绍下其内容，并不具体实现。</p>
-
 <ol>
 <li>获取当前时间；</li>
 <li>尝试从5个相互独立redis客户端获取锁；</li>
@@ -204,26 +250,24 @@ end
 <li>重新计算有效期时间，原有效时间减去获取锁消耗的时间；</li>
 <li>删除所有实例的锁。</li>
 </ol>
-
 <p>RedLock算法相对于单节点redis锁可靠性要更高，但是实现起来条件也较为苛刻。
 它的实现如此复杂，其中有一些显而易见的问题:</p>
-
 <ul>
 <li>必须部署5个节点才能让Redlock的可靠性更强，</li>
 <li>需要并发请求5个节点才能获取到锁，</li>
 <li>如果5个节点有2个宕机，此时锁的可用性会极大降低，首先必须等待这两个宕机节点的结果超时才能返回，</li>
 <li>如果出现网络分区，那么可能出现客户端永远也无法获取锁的情况</li>
 </ul>
-
 <p>虽然RedLock算法使Redis实现的分布式锁更可靠，但其所需的成本太高了，并且没有解决后续问题。</p>
-
 <p>在不是很重要的业务场景上，使用单节点的Redis分布式锁，是一个性价比很高的选择。</p>
-
 <p>下一节，我们看看通过zookeeper实现的分布式锁。</p>
 
-                        </div>
+        </div>
 
-                        
+        
+
+
+        
 
 <div class="post-archive">
     <h2>See Also</h2>
@@ -243,26 +287,26 @@ end
 </div>
 
 
-                        <div class="post-meta meta-tags">
-                            
-                            <ul class="clearfix">
-                                
-                                <li><a href="https://xiongsyao.github.io/tags/%E9%94%81">锁</a></li>
-                                
-                                <li><a href="https://xiongsyao.github.io/tags/%E5%88%86%E5%B8%83%E5%BC%8F">分布式</a></li>
-                                
-                            </ul>
-                            
-                        </div>
-                    </article>
-                    
+        <div class="post-meta meta-tags">
+            
+            <ul class="clearfix">
+                
+                <li><a href='https://xsymphony.github.io/tags/%E9%94%81'>锁</a></li>
+                
+                <li><a href='https://xsymphony.github.io/tags/%E5%88%86%E5%B8%83%E5%BC%8F'>分布式</a></li>
+                
+            </ul>
+            
+        </div>
+    </article>
+    
     
 
     
     
     <div class="post bg-white">
       <script src="https://utteranc.es/client.js"
-            repo= "xiongsyao/comments"
+            repo= "xsymphony/comments"
             issue-term="pathname"
             theme="github-light"
             crossorigin="anonymous"
@@ -270,14 +314,16 @@ end
       </script>
     </div>
     
+</div>
+
                 </div>
-            </div>
-            <div id="secondary">
+
+                <div id="secondary">
     <section class="widget">
-        <form id="search" action="//www.google.com/search" method="get" accept-charset="utf-8" target="_blank" _lpchecked="1">
+        <form id="search" action='//www.google.com/search' method="get" accept-charset="utf-8" target="_blank" _lpchecked="1">
       
       <input type="text" name="q" maxlength="20" placeholder="Search">
-      <input type="hidden" name="sitesearch" value="https://xiongsyao.github.io/">
+      <input type="hidden" name="sitesearch" value="https://xsymphony.github.io/">
       <button type="submit" class="submit icon-search"></button>
 </form>
     </section>
@@ -287,43 +333,43 @@ end
 <ul class="widget-list">
     
     <li>
-        <a href="https://xiongsyao.github.io/post/2019/02/27/%E6%BC%AB%E8%B0%88%E5%88%86%E5%B8%83%E5%BC%8F%E9%94%81%E4%B8%89/" title="漫谈分布式锁（三）">漫谈分布式锁（三）</a>
+        <a href="https://xsymphony.github.io/post/2019/02/27/%E6%BC%AB%E8%B0%88%E5%88%86%E5%B8%83%E5%BC%8F%E9%94%81%E4%B8%89/" title="漫谈分布式锁（三）">漫谈分布式锁（三）</a>
     </li>
     
     <li>
-        <a href="https://xiongsyao.github.io/post/2019/02/25/%E6%BC%AB%E8%B0%88%E5%88%86%E5%B8%83%E5%BC%8F%E9%94%81%E4%BA%8C/" title="漫谈分布式锁（二）">漫谈分布式锁（二）</a>
+        <a href="https://xsymphony.github.io/post/2019/02/25/%E6%BC%AB%E8%B0%88%E5%88%86%E5%B8%83%E5%BC%8F%E9%94%81%E4%BA%8C/" title="漫谈分布式锁（二）">漫谈分布式锁（二）</a>
     </li>
     
     <li>
-        <a href="https://xiongsyao.github.io/post/2019/02/21/%E6%BC%AB%E8%B0%88%E5%88%86%E5%B8%83%E5%BC%8F%E9%94%81%E4%B8%80/" title="漫谈分布式锁（一）">漫谈分布式锁（一）</a>
+        <a href="https://xsymphony.github.io/post/2019/02/21/%E6%BC%AB%E8%B0%88%E5%88%86%E5%B8%83%E5%BC%8F%E9%94%81%E4%B8%80/" title="漫谈分布式锁（一）">漫谈分布式锁（一）</a>
     </li>
     
     <li>
-        <a href="https://xiongsyao.github.io/post/2019/02/13/Redis%E6%8C%81%E4%B9%85%E5%8C%96/" title="Redis持久化">Redis持久化</a>
+        <a href="https://xsymphony.github.io/post/2019/02/13/Redis%E6%8C%81%E4%B9%85%E5%8C%96/" title="Redis持久化">Redis持久化</a>
     </li>
     
     <li>
-        <a href="https://xiongsyao.github.io/post/2019/01/02/%E8%A7%A3%E8%AF%BBredis%E5%8D%8F%E8%AE%AE/" title="解读redis协议">解读redis协议</a>
+        <a href="https://xsymphony.github.io/post/2019/01/02/%E8%A7%A3%E8%AF%BBredis%E5%8D%8F%E8%AE%AE/" title="解读redis协议">解读redis协议</a>
     </li>
     
     <li>
-        <a href="https://xiongsyao.github.io/post/2018/12/28/%E8%B0%88%E8%B0%88golang%E4%B8%AD%E7%9A%84%E9%94%81/" title="谈谈golang中的锁">谈谈golang中的锁</a>
+        <a href="https://xsymphony.github.io/post/2018/12/28/%E8%B0%88%E8%B0%88golang%E4%B8%AD%E7%9A%84%E9%94%81/" title="谈谈golang中的锁">谈谈golang中的锁</a>
     </li>
     
     <li>
-        <a href="https://xiongsyao.github.io/post/2018/12/17/LeetCode150%E9%80%86%E6%B3%A2%E5%85%B0%E8%A1%A8%E8%BE%BE%E5%BC%8F%E6%B1%82%E5%80%BC/" title="[LeetCode]150:逆波兰表达式求值">[LeetCode]150:逆波兰表达式求值</a>
+        <a href="https://xsymphony.github.io/post/2018/12/17/LeetCode150%E9%80%86%E6%B3%A2%E5%85%B0%E8%A1%A8%E8%BE%BE%E5%BC%8F%E6%B1%82%E5%80%BC/" title="[LeetCode]150:逆波兰表达式求值">[LeetCode]150:逆波兰表达式求值</a>
     </li>
     
     <li>
-        <a href="https://xiongsyao.github.io/post/2018/03/7/%E5%8A%A8%E6%80%81%E5%8A%A0%E8%BD%BDDjango%E7%9A%84config%E9%85%8D%E7%BD%AE/" title="动态加载Django的config配置">动态加载Django的config配置</a>
+        <a href="https://xsymphony.github.io/post/2018/01/25/%E4%BB%8E0%E5%BC%80%E5%A7%8B%E7%9A%84JS%E4%B9%8B%E6%97%85%E4%B8%89DOM%E6%93%8D%E4%BD%9C%E5%9F%BA%E7%A1%80/" title="从0开始的JS之旅（三）：DOM操作基础">从0开始的JS之旅（三）：DOM操作基础</a>
     </li>
     
     <li>
-        <a href="https://xiongsyao.github.io/post/2018/01/25/%E4%BB%8E0%E5%BC%80%E5%A7%8B%E7%9A%84JS%E4%B9%8B%E6%97%85%E4%B8%89DOM%E6%93%8D%E4%BD%9C%E5%9F%BA%E7%A1%80/" title="从0开始的JS之旅（三）：DOM操作基础">从0开始的JS之旅（三）：DOM操作基础</a>
+        <a href="https://xsymphony.github.io/post/2018/01/25/%E4%BB%8E0%E5%BC%80%E5%A7%8B%E7%9A%84JS%E4%B9%8B%E6%97%85%E4%BA%8C%E9%9D%A2%E5%90%91%E5%AF%B9%E8%B1%A1%E7%BC%96%E7%A8%8B/" title="从0开始的JS之旅（二）：面向对象编程">从0开始的JS之旅（二）：面向对象编程</a>
     </li>
     
     <li>
-        <a href="https://xiongsyao.github.io/post/2018/01/25/%E4%BB%8E0%E5%BC%80%E5%A7%8B%E7%9A%84JS%E4%B9%8B%E6%97%85%E4%BA%8C%E9%9D%A2%E5%90%91%E5%AF%B9%E8%B1%A1%E7%BC%96%E7%A8%8B/" title="从0开始的JS之旅（二）：面向对象编程">从0开始的JS之旅（二）：面向对象编程</a>
+        <a href="https://xsymphony.github.io/post/2018/01/25/%E4%BB%8E0%E5%BC%80%E5%A7%8B%E7%9A%84JS%E4%B9%8B%E6%97%85%E4%B8%80%E6%95%B0%E6%8D%AE%E7%B1%BB%E5%9E%8B%E6%B5%81%E7%A8%8B%E8%AF%AD%E5%8F%A5%E5%8F%8A%E5%87%BD%E6%95%B0/" title="从0开始的JS之旅（一）：数据类型，流程语句及函数">从0开始的JS之旅（一）：数据类型，流程语句及函数</a>
     </li>
     
 </ul>
@@ -335,29 +381,15 @@ end
         <h3 class="widget-title">分类</h3>
 <ul class="widget-list">
     
-    <li>
-        <a href="https://xiongsyao.github.io/categories/Django/">Django(1)</a>
-    </li>
+    <li><a href="https://xsymphony.github.io/categories/JavaScript/">JavaScript (3)</a></li>
     
-    <li>
-        <a href="https://xiongsyao.github.io/categories/JavaScript/">JavaScript(3)</a>
-    </li>
+    <li><a href="https://xsymphony.github.io/categories/Redis/">Redis (2)</a></li>
     
-    <li>
-        <a href="https://xiongsyao.github.io/categories/Redis/">Redis(2)</a>
-    </li>
+    <li><a href="https://xsymphony.github.io/categories/golang/">golang (1)</a></li>
     
-    <li>
-        <a href="https://xiongsyao.github.io/categories/golang/">golang(1)</a>
-    </li>
+    <li><a href="https://xsymphony.github.io/categories/leetcode/">leetcode (1)</a></li>
     
-    <li>
-        <a href="https://xiongsyao.github.io/categories/leetcode/">leetcode(1)</a>
-    </li>
-    
-    <li>
-        <a href="https://xiongsyao.github.io/categories/%E5%88%86%E5%B8%83%E5%BC%8F/">分布式(3)</a>
-    </li>
+    <li><a href="https://xsymphony.github.io/categories/%E5%88%86%E5%B8%83%E5%BC%8F/">分布式 (3)</a></li>
     
 </ul>
     </section>
@@ -366,29 +398,27 @@ end
         <h3 class="widget-title">标签</h3>
 <div class="tagcloud">
     
-    <a href="https://xiongsyao.github.io/tags/Django/">Django</a>
+    <a href="https://xsymphony.github.io/tags/JavaScript/">JavaScript</a>
     
-    <a href="https://xiongsyao.github.io/tags/JavaScript/">JavaScript</a>
+    <a href="https://xsymphony.github.io/tags/JavaScript%E5%9F%BA%E7%A1%80%E6%95%99%E7%A8%8B/">JavaScript基础教程</a>
     
-    <a href="https://xiongsyao.github.io/tags/JavaScript%E5%9F%BA%E7%A1%80%E6%95%99%E7%A8%8B/">JavaScript基础教程</a>
+    <a href="https://xsymphony.github.io/tags/Redis/">Redis</a>
     
-    <a href="https://xiongsyao.github.io/tags/Redis/">Redis</a>
+    <a href="https://xsymphony.github.io/tags/Zookeeper/">Zookeeper</a>
     
-    <a href="https://xiongsyao.github.io/tags/Zookeeper/">Zookeeper</a>
+    <a href="https://xsymphony.github.io/tags/golang/">golang</a>
     
-    <a href="https://xiongsyao.github.io/tags/golang/">golang</a>
+    <a href="https://xsymphony.github.io/tags/leetcode/">leetcode</a>
     
-    <a href="https://xiongsyao.github.io/tags/leetcode/">leetcode</a>
+    <a href="https://xsymphony.github.io/tags/stack/">stack</a>
     
-    <a href="https://xiongsyao.github.io/tags/stack/">stack</a>
+    <a href="https://xsymphony.github.io/tags/%E5%88%86%E5%B8%83%E5%BC%8F/">分布式</a>
     
-    <a href="https://xiongsyao.github.io/tags/%E5%88%86%E5%B8%83%E5%BC%8F/">分布式</a>
+    <a href="https://xsymphony.github.io/tags/%E5%8D%8F%E8%AE%AE/">协议</a>
     
-    <a href="https://xiongsyao.github.io/tags/%E5%8D%8F%E8%AE%AE/">协议</a>
+    <a href="https://xsymphony.github.io/tags/%E5%B9%B6%E5%8F%91/">并发</a>
     
-    <a href="https://xiongsyao.github.io/tags/%E5%B9%B6%E5%8F%91/">并发</a>
-    
-    <a href="https://xiongsyao.github.io/tags/%E9%94%81/">锁</a>
+    <a href="https://xsymphony.github.io/tags/%E9%94%81/">锁</a>
     
 </div>
     </section>
@@ -398,41 +428,37 @@ end
     <section class="widget">
         <h3 class="widget-title">其它</h3>
         <ul class="widget-list">
-            <li><a href="https://xiongsyao.github.io/index.xml">文章 RSS</a></li>
+            <li><a href="https://xsymphony.github.io/index.xml">文章 RSS</a></li>
         </ul>
     </section>
 </div>
+            </div>
         </div>
     </div>
-</div>
-<footer id="footer">
+    <footer id="footer">
     <div class="container">
-        &copy; 2018 <a href="https://xiongsyao.github.io/">Matrix By matrix</a>.
+        &copy; 2019 <a href="https://xsymphony.github.io/">Matrix By matrix</a>.
         Powered by <a rel="nofollow noreferer noopener" href="https://gohugo.io" target="_blank">Hugo</a>.
-        <a href="http://www.flysnow.org/" target="_blank">Theme</a> based on <a href="https://github.com/rujews/maupassant-hugo" target="_blank">maupassant</a>.
+        <a href="https://www.flysnow.org/" target="_blank">Theme</a> based on <a href="https://github.com/flysnow-org/maupassant-hugo" target="_blank">maupassant</a>.
         
     </div>
 </footer>
 
 
-    <script type="text/javascript">
     
-    (function(){
-        $("pre code").parent().addClass("line-numbers")
-    }())
-
-    window.MathJax = {
-        tex2jax: {
-            inlineMath: [ ['$','$'] ],
-            processEscapes: true
-        }
-    };
+    <script type="text/javascript">
+        window.MathJax = {
+            tex2jax: {
+                inlineMath: [['$', '$']],
+                processEscapes: true
+                }
+            };
     </script>
-    <script type="text/javascript" src="/js/prism.js" async="true"></script>
     <script src='https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-MML-AM_CHTML' async></script>
 
+
 <a id="rocket" href="#top"></a>
-<script type="text/javascript" src="/js/totop.js?v=0.0.0" async=""></script>
+<script type="text/javascript" src='/js/totop.js?v=0.0.0' async=""></script>
 
 
 
@@ -440,4 +466,5 @@ end
 
 
 </body>
+
 </html>
